@@ -8,6 +8,7 @@
  *
  * @since 2.0.0
  */
+import * as Grp from 'fp-ts/Group'
 
 // #############
 // ### Model ###
@@ -18,8 +19,4 @@
  * @category Type classes
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface AbelianGroup<A> {
-  add: (x: A, y: A) => A
-  sub: (x: A, y: A) => A
-  zero: A
-}
+export interface AbelianGroup<A> extends Grp.Group<A> {}

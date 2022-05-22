@@ -138,9 +138,9 @@ export const zeros: <A>(zero: A) => <N extends number>(n: N) => VecC<N, A> = zer
 export const getAbGroup: <A>(
   R: Rng.Ring<A>
 ) => <N extends number>(n: N) => AbGrp.AbelianGroup<VecC<N, A>> = R => n => ({
-  add: liftA2(R.add),
-  sub: liftA2(R.sub),
-  zero: zeros(R.zero)(n),
+  concat: liftA2(R.add),
+  inverse: map(x => R.sub(R.zero, x)),
+  empty: zeros(R.zero)(n),
 })
 
 /**
@@ -163,7 +163,7 @@ export const getModule: <R>(
  * @since 1.0.0
  * @category Instances
  */
-export const getVectorField: <F>(
+export const getVectorSpace: <F>(
   F: Fld.Field<F>
 ) => <N extends number>(n: N) => VecSpc.VectorSpace<F, VecC<N, F>> = F => n => ({
   ...getModule(F)(n),
@@ -180,7 +180,7 @@ export const getInnerProductSpace: <F>(
 ) => <N extends number>(n: N) => InPrSp.InnerProductSpace<F, VecC<N, F>> =
   (F, { conj }) =>
   n => ({
-    ...getVectorField(F)(n),
+    ...getVectorSpace(F)(n),
     conj,
     dot: (x, y) =>
       pipe(

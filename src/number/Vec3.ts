@@ -37,7 +37,7 @@ export const Module: Mod.Module<number, Vec3> = V.getModule(N.Field)(3)
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField: VecSpc.VectorSpace<number, Vec3> = V.getVectorField(N.Field)(3)
+export const VectorField: VecSpc.VectorSpace<number, Vec3> = V.getVectorSpace(N.Field)(3)
 
 /**
  * @since 1.0.0

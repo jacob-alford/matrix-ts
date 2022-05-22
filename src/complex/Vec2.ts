@@ -35,7 +35,7 @@ export const Module: Mod.Module<C.Complex, Vec2> = V.getModule(C.Field)(2)
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField: VecSpc.VectorSpace<C.Complex, Vec2> = V.getVectorField(C.Field)(
+export const VectorField: VecSpc.VectorSpace<C.Complex, Vec2> = V.getVectorSpace(C.Field)(
   2
 )
 
