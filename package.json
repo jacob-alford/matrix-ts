@@ -1,0 +1,39 @@
+{
+  "name": "matrix-ts",
+  "homepage": "http://",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "peerDependencies": {
+    "fp-ts": "^2.9.5"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^4.2.3",
+    "fp-ts": "^2.9.5",
+    "prettier": "^2.2.1",
+    "prettier-plugin-jsdoc": "^0.3.13",
+    "eslint": "^7.27.0",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
+    "@types/jest": "^26.0.20",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.3",
+    "fast-check": "^2.13.0",
+    "docs-ts": "^0.6.10",
+    "cspell": "^5.5.2",
+    "markdown-magic": "^2.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:watch": "tsc -w -p tsconfig.build.json",
+    "prepublish": "yarn run build",
+    "pretty": "yarn run prettier --check .",
+    "lint": "yarn run eslint . --ext .js,.jsx,.ts,.tsx --max-warnings 0",
+    "test": "yarn run jest",
+    "test:watch": "yarn run jest --watch",
+    "docs": "yarn run docs-ts",
+    "spell": "yarn cspell '**/*.*'",
+    "md": "yarn run markdown"
+  }
+}
