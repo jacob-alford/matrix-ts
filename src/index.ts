@@ -8,4 +8,38 @@ import * as Mod from './Module'
 import * as VecC from './VecC'
 import * as VecSpc from './VectorSpace'
 
-export { AbGrp, C, Conj, InPrSp, Mod, VecC, VecSpc }
+import * as RVec1 from './number/Vec1'
+import * as RVec2 from './number/Vec2'
+import * as RVec3 from './number/Vec3'
+import * as RVec4 from './number/Vec4'
+import * as RVec5 from './number/Vec5'
+import * as RVec6 from './number/Vec6'
+
+import * as CVec1 from './complex/Vec1'
+import * as CVec2 from './complex/Vec2'
+import * as CVec3 from './complex/Vec3'
+import * as CVec4 from './complex/Vec4'
+import * as CVec5 from './complex/Vec5'
+import * as CVec6 from './complex/Vec6'
+
+export {
+  AbGrp,
+  C,
+  Conj,
+  InPrSp,
+  Mod,
+  VecC,
+  VecSpc,
+  RVec1,
+  RVec2,
+  RVec3,
+  RVec4,
+  RVec5,
+  RVec6,
+  CVec1,
+  CVec2,
+  CVec3,
+  CVec4,
+  CVec5,
+  CVec6,
+}
