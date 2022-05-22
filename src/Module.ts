@@ -9,6 +9,7 @@
  *
  * @since 1.0.0
  */
+import * as Rng from 'fp-ts/Ring'
 
 import * as AbGrp from './AbelianGroup'
 
@@ -21,5 +22,6 @@ import * as AbGrp from './AbelianGroup'
  * @category Type classes
  */
 export interface Module<R, A> extends AbGrp.AbelianGroup<A> {
+  _R: Rng.Ring<R>
   scalarMul: (r: R, x: A) => A
 }

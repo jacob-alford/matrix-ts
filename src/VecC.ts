@@ -150,6 +150,7 @@ export const getAbGroup: <A>(
 export const getModule: <R>(
   R: Rng.Ring<R>
 ) => <N extends number>(n: N) => Mod.Module<R, VecC<N, R>> = R => n => ({
+  _R: R,
   ...getAbGroup(R)(n),
   scalarMul: (r, v) =>
     pipe(
@@ -164,7 +165,10 @@ export const getModule: <R>(
  */
 export const getVectorField: <F>(
   F: Fld.Field<F>
-) => <N extends number>(n: N) => VecSpc.VectorSpace<F, VecC<N, F>> = getModule
+) => <N extends number>(n: N) => VecSpc.VectorSpace<F, VecC<N, F>> = F => n => ({
+  ...getModule(F)(n),
+  _F: F,
+})
 
 /**
  * @since 1.0.0
