@@ -63,6 +63,13 @@ export const fromTuple: {
   <A>(t: [A, A, A, A, A, A, A, A, A, A]): VecC<10, A>
 } = wrap
 
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const repeat: <N extends number, A>(n: N, a: A) => VecC<N, A> = (n, a) =>
+  wrap(RA.replicate(n, a))
+
 // #####################
 // ### Non-Pipeables ###
 // #####################
@@ -126,13 +133,6 @@ export const liftA2: <N, A>(
 
 /**
  * @since 1.0.0
- * @category Internal
- */
-export const zeros: <A>(zero: A) => <N extends number>(n: N) => VecC<N, A> = zero => n =>
-  pipe(RA.replicate(n, zero), a => wrap(a))
-
-/**
- * @since 1.0.0
  * @category Instances
  */
 export const getAbGroup: <A>(
@@ -140,7 +140,7 @@ export const getAbGroup: <A>(
 ) => <N extends number>(n: N) => AbGrp.AbelianGroup<VecC<N, A>> = R => n => ({
   concat: liftA2(R.add),
   inverse: map(x => R.sub(R.zero, x)),
-  empty: zeros(R.zero)(n),
+  empty: repeat(n, R.zero),
 })
 
 /**
@@ -383,3 +383,25 @@ export const FoldableWithIndex: FlI.FoldableWithIndex2<URI, number> = {
   foldMapWithIndex: _foldMapWithIndex,
   reduceRightWithIndex: _reduceRightWithIndex,
 }
+
+// ###################
+// ### Do Notation ###
+// ###################
+
+/**
+ * @since 1.0.0
+ * @category Do notation
+ */
+export const bindTo = Fun.bindTo(Functor)
+
+/**
+ * @since 1.0.0
+ * @category Do notation
+ */
+export const bind = Chn.bind(Chain)
+
+/**
+ * @since 1.0.0
+ * @category Do notation
+ */
+export const apS = Ap.apS(Apply)
