@@ -3,11 +3,13 @@ import * as FunI from 'fp-ts/FunctorWithIndex'
 import * as Fl from 'fp-ts/Foldable'
 import * as FlI from 'fp-ts/FoldableWithIndex'
 import * as Mn from 'fp-ts/Monoid'
+import * as O from 'fp-ts/Option'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
 import { flow, identity, pipe } from 'fp-ts/function'
 
-import * as V from './VecC'
+import * as V from './VectorC'
+import { InnerProductSpace } from './InnerProductSpace'
 import * as AbGrp from './AbelianGroup'
 import * as Mod from './Module'
 import * as U from './lib/utilities'
@@ -72,6 +74,20 @@ export const fromNestedTuples: {
 } = wrap
 
 /**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const fromNestedReadonlyArrays: <M extends number, N extends number>(
+  m: M,
+  n: N
+) => <A>(as: ReadonlyArray<ReadonlyArray<A>>) => O.Option<MatC<M, N, A>> = (m, n) =>
+  flow(
+    V.fromReadonlyArray(m),
+    O.chain(V.traverse(O.Applicative)(V.fromReadonlyArray(n))),
+    O.map(from2dVectors)
+  )
+
+/**
  * Constructs the identity matrix
  *
  * @since 1.0.0
@@ -84,10 +100,32 @@ export const id: <A>(R: Rng.Ring<A>) => <M extends number>(m: M) => MatC<M, M, A
       a => wrap(a)
     )
 
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
 export const repeat: <A>(
   a: A
 ) => <M extends number, N extends number>(m: M, n: N) => MatC<M, N, A> = a => (m, n) =>
   from2dVectors(V.repeat(m, V.repeat(n, a)))
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const fromVectorAsRow: <N, A>(v: V.VecC<N, A>) => MatC<1, N, A> = flow(
+  V.of,
+  from2dVectors
+)
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const fromVectorAsColumn: <N, A>(v: V.VecC<N, A>) => MatC<N, 1, A> = flow(
+  V.map(V.of),
+  from2dVectors
+)
 
 // #####################
 // ### Non-Pipeables ###
@@ -189,9 +227,9 @@ export const getBimodule: <A>(
  * @since 1.0.0
  * @category Instance operations
  */
-export const map: <M, N, A, B>(f: (a: A) => B) => (v: MatC<M, N, A>) => MatC<M, N, B> =
-  f => v =>
-    pipe(v, RA.map(RA.map(f)), a => wrap(a))
+export const map: <M, N, A, B>(
+  f: (a: A) => B
+) => (v: MatC<M, N, A>) => MatC<M, N, B> = f => flow(V.map(V.map(f)), a => wrap(a))
 
 /**
  * @since 1.0.0
@@ -208,13 +246,12 @@ export const Functor: Fun.Functor3<URI> = {
  */
 export const mapWithIndex: <M, N, A, B>(
   f: (ij: [number, number], a: A) => B
-) => (v: MatC<M, N, A>) => MatC<M, N, B> = f => v =>
-  pipe(
-    v,
-    RA.mapWithIndex((i, a) =>
+) => (v: MatC<M, N, A>) => MatC<M, N, B> = f =>
+  flow(
+    V.mapWithIndex((i, a) =>
       pipe(
         a,
-        RA.mapWithIndex((j, b) => f([i, j], b))
+        V.mapWithIndex((j, b) => f([i, j], b))
       )
     ),
     a => wrap(a)
@@ -236,11 +273,7 @@ export const FunctorWithIndex: FunI.FunctorWithIndex3<URI, [number, number]> = {
 export const reduce: <M, N, A, B>(
   b: B,
   f: (b: B, a: A) => B
-) => (fa: MatC<M, N, A>) => B = (b, f) => fa =>
-  pipe(
-    fa,
-    RA.reduce(b, (b, a) => pipe(a, RA.reduce(b, f)))
-  )
+) => (fa: MatC<M, N, A>) => B = (b, f) => V.reduce(b, (b, a) => pipe(a, V.reduce(b, f)))
 
 /**
  * @since 1.0.0
@@ -248,11 +281,8 @@ export const reduce: <M, N, A, B>(
  */
 export const foldMap: <M>(
   M: Mn.Monoid<M>
-) => <N, O, A>(f: (a: A) => M) => (fa: MatC<N, O, A>) => M = M => f => fa =>
-  pipe(
-    fa,
-    RA.foldMap(M)(a => pipe(a, RA.foldMap(M)(f)))
-  )
+) => <N, O, A>(f: (a: A) => M) => (fa: MatC<N, O, A>) => M = M => f =>
+  V.foldMap(M)(a => pipe(a, V.foldMap(M)(f)))
 
 /**
  * @since 1.0.0
@@ -261,11 +291,8 @@ export const foldMap: <M>(
 export const reduceRight: <M, N, B, A>(
   b: A,
   f: (b: B, a: A) => A
-) => (fa: MatC<M, N, B>) => A = (a, f) => fa =>
-  pipe(
-    fa,
-    RA.reduceRight(a, (b, a) => pipe(b, RA.reduceRight(a, f)))
-  )
+) => (fa: MatC<M, N, B>) => A = (a, f) =>
+  V.reduceRight(a, (b, a) => pipe(b, V.reduceRight(a, f)))
 
 /**
  * @since 1.0.0
@@ -285,14 +312,11 @@ export const Foldable: Fl.Foldable3<URI> = {
 export const reduceWithIndex: <M, N, A, B>(
   b: B,
   f: (i: [number, number], b: B, a: A) => B
-) => (fa: MatC<M, N, A>) => B = (b, f) => fa =>
-  pipe(
-    fa,
-    RA.reduceWithIndex(b, (i, b, a) =>
-      pipe(
-        a,
-        RA.reduceWithIndex(b, (j, b, a) => f([i, j], b, a))
-      )
+) => (fa: MatC<M, N, A>) => B = (b, f) =>
+  V.reduceWithIndex(b, (i, b, a) =>
+    pipe(
+      a,
+      V.reduceWithIndex(b, (j, b, a) => f([i, j], b, a))
     )
   )
 
@@ -303,14 +327,11 @@ export const reduceWithIndex: <M, N, A, B>(
 export const foldMapWithIndex: <M>(
   M: Mn.Monoid<M>
 ) => <N, O, A>(f: (i: [number, number], a: A) => M) => (fa: MatC<N, O, A>) => M =
-  M => f => fa =>
-    pipe(
-      fa,
-      RA.foldMapWithIndex(M)((i, a) =>
-        pipe(
-          a,
-          RA.foldMapWithIndex(M)((j, a) => f([i, j], a))
-        )
+  M => f =>
+    V.foldMapWithIndex(M)((i, a) =>
+      pipe(
+        a,
+        V.foldMapWithIndex(M)((j, a) => f([i, j], a))
       )
     )
 
@@ -321,14 +342,11 @@ export const foldMapWithIndex: <M>(
 export const reduceRightWithIndex: <M, N, B, A>(
   b: A,
   f: (i: [number, number], b: B, a: A) => A
-) => (fa: MatC<M, N, B>) => A = (a, f) => fa =>
-  pipe(
-    fa,
-    RA.reduceRightWithIndex(a, (i, a, b) =>
-      pipe(
-        a,
-        RA.reduceRightWithIndex(b, (j, a, b) => f([i, j], a, b))
-      )
+) => (fa: MatC<M, N, B>) => A = (a, f) =>
+  V.reduceRightWithIndex(a, (i, a, b) =>
+    pipe(
+      a,
+      V.reduceRightWithIndex(b, (j, a, b) => f([i, j], a, b))
     )
   )
 
@@ -357,9 +375,7 @@ export const mul =
     x: MatC<M, N, A>,
     y: MatC<N, P, A>
   ): MatC<M, P, A> =>
-    x[0] === undefined
-      ? wrap([])
-      : y[0] === undefined
+    x[0] === undefined || y[0] === undefined
       ? wrap([])
       : pipe(
           repeat(R.zero)(x.length as M, y[0].length as P),
@@ -395,3 +411,83 @@ export const transpose = <M extends number, N extends number, A>(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mapWithIndex(([i, j]) => (v[j] as any)[i])
       )
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const replaceRow: (
+  m: number
+) => <M, N, A>(
+  f: (vm: V.VecC<N, A>) => V.VecC<N, A>
+) => (as: MatC<M, N, A>) => O.Option<MatC<M, N, A>> = m => f => as =>
+  pipe(
+    V.get(m)(as),
+    O.chain(a => V.updateAt(m)(f(a))(as)),
+    O.map(a => wrap(a))
+  )
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const addRows =
+  <A, N>(A: AbGrp.AbelianGroup<V.VecC<N, A>>) =>
+  (a: number, b: number) =>
+  <M>(vs: MatC<M, N, A>): O.Option<MatC<M, N, A>> =>
+    pipe(
+      V.get(a)(vs),
+      O.chain(as =>
+        pipe(
+          vs,
+          replaceRow(b)(bs => A.concat(as, bs))
+        )
+      )
+    )
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const scaleRow: <A, N>(
+  M: Mod.LeftModule<A, V.VecC<N, A>>
+) => (i: number, a: A) => <M>(vs: MatC<M, N, A>) => O.Option<MatC<M, N, A>> =
+  M => (i, a) =>
+    replaceRow(i)(as => M.leftScalarMul(a, as))
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const switchRows =
+  (i: number, j: number) =>
+  <A, N, M>(vs: MatC<M, N, A>): O.Option<MatC<M, N, A>> =>
+    pipe(
+      O.Do,
+      O.apS('ir', V.get(i)(vs)),
+      O.apS('jr', V.get(j)(vs)),
+      O.chain(({ ir, jr }) =>
+        pipe(
+          vs,
+          replaceRow(i)(() => jr),
+          O.chain(replaceRow(j)(() => ir))
+        )
+      )
+    )
+
+/**
+ * Matrix transformations over vectors
+ *
+ * (A in (m x n), v in (n x 1)) -> v in (m x 1)
+ *
+ * @since 1.0.0
+ * @category Instances
+ */
+export const linearMap: <N, A>(
+  I: InnerProductSpace<A, V.VecC<N, A>>
+) => <M extends number>(A: MatC<M, N, A>, x: V.VecC<N, A>) => V.VecC<M, A> =
+  I => (A, x) =>
+    pipe(
+      A,
+      V.map(y => I.dot(x, y))
+    )

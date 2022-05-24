@@ -1,5 +1,5 @@
 import * as C from '../Complex'
-import * as V from '../VecC'
+import * as V from '../VectorC'
 import * as AbGrp from '../AbelianGroup'
 import * as Mod from '../Module'
 import * as VecSpc from '../VectorSpace'
@@ -29,7 +29,7 @@ export const AbelianGroup: AbGrp.AbelianGroup<Vec4> = V.getAbGroup(C.Field)(4)
  * @since 1.0.0
  * @category Instances
  */
-export const Module: Mod.Bimodule<C.Complex, Vec4> = V.getBimodule(C.Field)(4)
+export const Bimodule: Mod.Bimodule<C.Complex, Vec4> = V.getBimodule(C.Field)(4)
 
 /**
  * @since 1.0.0

@@ -6,12 +6,16 @@ import * as Chn from 'fp-ts/Chain'
 import * as Fld from 'fp-ts/Field'
 import * as Fl from 'fp-ts/Foldable'
 import * as FlI from 'fp-ts/FoldableWithIndex'
+import { HKT } from 'fp-ts/HKT'
 import * as Mon from 'fp-ts/Monad'
 import * as Mn from 'fp-ts/Monoid'
+import * as O from 'fp-ts/Option'
+import * as Tr from 'fp-ts/Traversable'
+import * as TrI from 'fp-ts/TraversableWithIndex'
 import * as Pt from 'fp-ts/Pointed'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
-import { pipe } from 'fp-ts/function'
+import { flow, pipe } from 'fp-ts/function'
 
 import * as Mod from './Module'
 import * as AbGrp from './AbelianGroup'
@@ -70,6 +74,24 @@ export const fromTuple: {
 export const repeat: <N extends number, A>(n: N, a: A) => VecC<N, A> = (n, a) =>
   wrap(RA.replicate(n, a))
 
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const fromReadonlyArray: <N extends number>(
+  n: N
+) => <A>(as: ReadonlyArray<A>) => O.Option<VecC<N, A>> = n =>
+  flow(
+    O.fromPredicate(xs => xs.length === n),
+    O.map(a => wrap(a))
+  )
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const zero: <A>() => VecC<0, A> = () => wrap([])
+
 // #####################
 // ### Non-Pipeables ###
 // #####################
@@ -95,6 +117,24 @@ const _reduceRightWithIndex: FlI.FoldableWithIndex2<
   URI,
   number
 >['reduceRightWithIndex'] = (fa, b, f) => pipe(fa, reduceRightWithIndex(b, f))
+const _traverse: Tr.Traversable2<URI>['traverse'] = <F>(
+  F: Apl.Applicative<F>
+): (<N, A, B>(ta: VecC<N, A>, f: (a: A) => HKT<F, B>) => HKT<F, VecC<N, B>>) => {
+  const traverseF = traverse(F)
+  return (ta, f) => pipe(ta, traverseF(f))
+}
+/* istanbul ignore next */
+const _traverseWithIndex: TrI.TraversableWithIndex2<URI, number>['traverseWithIndex'] = <
+  F
+>(
+  F: Apl.Applicative<F>
+): (<N, A, B>(
+  ta: VecC<N, A>,
+  f: (i: number, a: A) => HKT<F, B>
+) => HKT<F, VecC<N, B>>) => {
+  const traverseWithIndexF = traverseWithIndex(F)
+  return (ta, f) => pipe(ta, traverseWithIndexF(f))
+}
 
 // #################
 // ### Instances ###
@@ -388,6 +428,95 @@ export const FoldableWithIndex: FlI.FoldableWithIndex2<URI, number> = {
   foldMapWithIndex: _foldMapWithIndex,
   reduceRightWithIndex: _reduceRightWithIndex,
 }
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const traverse: Tr.PipeableTraverse2<URI> =
+  <F>(F: Apl.Applicative<F>) =>
+  <A, B>(f: (a: A) => HKT<F, B>) =>
+  <N>(fa: VecC<N, A>): HKT<F, VecC<N, B>> => {
+    const traverseWithIndexF = traverseWithIndex(F)
+    return pipe(
+      fa,
+      traverseWithIndexF((_, a) => f(a))
+    )
+  }
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const sequence =
+  <F>(F: Apl.Applicative<F>) =>
+  <N, A>(fa: VecC<N, HKT<F, A>>): HKT<F, VecC<N, A>> =>
+    pipe(fa, RA.sequence(F), as => F.map(as, a => wrap(a)))
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Traversable: Tr.Traversable2<URI> = {
+  URI,
+  map: _map,
+  reduce: _reduce,
+  foldMap: _foldMap,
+  reduceRight: _reduceRight,
+  traverse: _traverse,
+  sequence,
+}
+
+/**
+ * @since 1.0.0
+ * @category Instance Operations
+ */
+export const traverseWithIndex =
+  <F>(F: Apl.Applicative<F>) =>
+  <N, A, B>(f: (i: number, a: A) => HKT<F, B>) =>
+  (ta: VecC<N, A>): HKT<F, VecC<N, B>> =>
+    pipe(ta, RA.traverseWithIndex(F)(f), fbs => F.map(fbs, bs => wrap(bs)))
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const TraversableWithIndex: TrI.TraversableWithIndex2<URI, number> = {
+  URI,
+  map: _map,
+  mapWithIndex: _mapWithIndex,
+  reduce: _reduce,
+  foldMap: _foldMap,
+  reduceRight: _reduceRight,
+  reduceWithIndex: _reduceWithIndex,
+  foldMapWithIndex: _foldMapWithIndex,
+  reduceRightWithIndex: _reduceRightWithIndex,
+  traverse: _traverse,
+  sequence,
+  traverseWithIndex: _traverseWithIndex,
+}
+
+// #########################
+// ### Vector Operations ###
+// #########################
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const updateAt: (
+  n: number
+) => <A>(a: A) => <N>(fa: VecC<N, A>) => O.Option<VecC<N, A>> = n => a =>
+  flow(
+    RA.updateAt(n, a),
+    O.map(a => wrap(a))
+  )
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const get: (i: number) => <N, A>(fa: VecC<N, A>) => O.Option<A> = RA.lookup
 
 // ###################
 // ### Do Notation ###
