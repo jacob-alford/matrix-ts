@@ -29,7 +29,7 @@ export const AbelianGroup: AbGrp.AbelianGroup<Vec6> = V.getAbGroup(C.Field)(6)
  * @since 1.0.0
  * @category Instances
  */
-export const Module: Mod.Module<C.Complex, Vec6> = V.getModule(C.Field)(6)
+export const Module: Mod.Bimodule<C.Complex, Vec6> = V.getBimodule(C.Field)(6)
 
 /**
  * @since 1.0.0

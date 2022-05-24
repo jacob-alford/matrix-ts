@@ -1,21 +1,15 @@
 import * as Fun from 'fp-ts/Functor'
 import * as FunI from 'fp-ts/FunctorWithIndex'
-import * as Ap from 'fp-ts/Apply'
-import * as Apl from 'fp-ts/Applicative'
-import * as Chn from 'fp-ts/Chain'
-import * as Fld from 'fp-ts/Field'
 import * as Fl from 'fp-ts/Foldable'
 import * as FlI from 'fp-ts/FoldableWithIndex'
-import * as Mon from 'fp-ts/Monad'
 import * as Mn from 'fp-ts/Monoid'
-import * as N from 'fp-ts/number'
-import * as Pt from 'fp-ts/Pointed'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
 import { flow, identity, pipe } from 'fp-ts/function'
 
 import * as V from './VecC'
 import * as AbGrp from './AbelianGroup'
+import * as Mod from './Module'
 import * as U from './lib/utilities'
 
 // #############
@@ -104,6 +98,22 @@ const _mapWithIndex: FunI.FunctorWithIndex3<URI, [number, number]>['mapWithIndex
   fa,
   f
 ) => pipe(fa, mapWithIndex(f))
+const _reduce: Fl.Foldable3<URI>['reduce'] = (fa, b, f) => pipe(fa, reduce(b, f))
+const _foldMap: Fl.Foldable3<URI>['foldMap'] = M => (fa, f) => pipe(fa, foldMap(M)(f))
+const _reduceRight: Fl.Foldable3<URI>['reduceRight'] = (fa, b, f) =>
+  pipe(fa, reduceRight(b, f))
+const _reduceWithIndex: FlI.FoldableWithIndex3<
+  URI,
+  [number, number]
+>['reduceWithIndex'] = (fa, b, f) => pipe(fa, reduceWithIndex(b, f))
+const _foldMapWithIndex: FlI.FoldableWithIndex3<
+  URI,
+  [number, number]
+>['foldMapWithIndex'] = M => (fa, f) => pipe(fa, foldMapWithIndex(M)(f))
+const _reduceRightWithIndex: FlI.FoldableWithIndex3<
+  URI,
+  [number, number]
+>['reduceRightWithIndex'] = (fa, b, f) => pipe(fa, reduceRightWithIndex(b, f))
 
 // #################
 // ### Instances ###
@@ -155,6 +165,28 @@ export const getAdditiveAbelianGroup =
 
 /**
  * @since 1.0.0
+ * @category Instances
+ */
+export const getBimodule: <A>(
+  R: Rng.Ring<A>
+) => <M extends number, N extends number>(m: M, n: N) => Mod.Bimodule<A, MatC<M, N, A>> =
+  R => (m, n) => ({
+    ...getAdditiveAbelianGroup(R)(m, n),
+    _R: R,
+    leftScalarMul: (r, x) =>
+      pipe(
+        x,
+        map(a => R.mul(r, a))
+      ),
+    rightScalarMul: (x, r) =>
+      pipe(
+        x,
+        map(a => R.mul(r, a))
+      ),
+  })
+
+/**
+ * @since 1.0.0
  * @category Instance operations
  */
 export const map: <M, N, A, B>(f: (a: A) => B) => (v: MatC<M, N, A>) => MatC<M, N, B> =
@@ -199,7 +231,125 @@ export const FunctorWithIndex: FunI.FunctorWithIndex3<URI, [number, number]> = {
 
 /**
  * @since 1.0.0
- * @category Utilities
+ * @category Instance operations
+ */
+export const reduce: <M, N, A, B>(
+  b: B,
+  f: (b: B, a: A) => B
+) => (fa: MatC<M, N, A>) => B = (b, f) => fa =>
+  pipe(
+    fa,
+    RA.reduce(b, (b, a) => pipe(a, RA.reduce(b, f)))
+  )
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const foldMap: <M>(
+  M: Mn.Monoid<M>
+) => <N, O, A>(f: (a: A) => M) => (fa: MatC<N, O, A>) => M = M => f => fa =>
+  pipe(
+    fa,
+    RA.foldMap(M)(a => pipe(a, RA.foldMap(M)(f)))
+  )
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const reduceRight: <M, N, B, A>(
+  b: A,
+  f: (b: B, a: A) => A
+) => (fa: MatC<M, N, B>) => A = (a, f) => fa =>
+  pipe(
+    fa,
+    RA.reduceRight(a, (b, a) => pipe(b, RA.reduceRight(a, f)))
+  )
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Foldable: Fl.Foldable3<URI> = {
+  URI,
+  reduce: _reduce,
+  foldMap: _foldMap,
+  reduceRight: _reduceRight,
+}
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const reduceWithIndex: <M, N, A, B>(
+  b: B,
+  f: (i: [number, number], b: B, a: A) => B
+) => (fa: MatC<M, N, A>) => B = (b, f) => fa =>
+  pipe(
+    fa,
+    RA.reduceWithIndex(b, (i, b, a) =>
+      pipe(
+        a,
+        RA.reduceWithIndex(b, (j, b, a) => f([i, j], b, a))
+      )
+    )
+  )
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const foldMapWithIndex: <M>(
+  M: Mn.Monoid<M>
+) => <N, O, A>(f: (i: [number, number], a: A) => M) => (fa: MatC<N, O, A>) => M =
+  M => f => fa =>
+    pipe(
+      fa,
+      RA.foldMapWithIndex(M)((i, a) =>
+        pipe(
+          a,
+          RA.foldMapWithIndex(M)((j, a) => f([i, j], a))
+        )
+      )
+    )
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const reduceRightWithIndex: <M, N, B, A>(
+  b: A,
+  f: (i: [number, number], b: B, a: A) => A
+) => (fa: MatC<M, N, B>) => A = (a, f) => fa =>
+  pipe(
+    fa,
+    RA.reduceRightWithIndex(a, (i, a, b) =>
+      pipe(
+        a,
+        RA.reduceRightWithIndex(b, (j, a, b) => f([i, j], a, b))
+      )
+    )
+  )
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const FoldableWithIndex: FlI.FoldableWithIndex3<URI, [number, number]> = {
+  ...Foldable,
+  reduceWithIndex: _reduceWithIndex,
+  foldMapWithIndex: _foldMapWithIndex,
+  reduceRightWithIndex: _reduceRightWithIndex,
+}
+
+// #########################
+// ### Matrix Operations ###
+// #########################
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
  */
 export const mul =
   <A>(R: Rng.Ring<A>) =>
@@ -213,17 +363,35 @@ export const mul =
       ? wrap([])
       : pipe(
           repeat(R.zero)(x.length as M, y[0].length as P),
-          V.mapWithIndex((i, r) =>
+          mapWithIndex(([i, j]) =>
             pipe(
-              r,
-              V.mapWithIndex(j =>
-                pipe(
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  RA.makeBy(y.length, k => R.mul((x[i] as any)[k], (y[k] as any)[j])),
-                  RA.foldMap(U.getAdditionMonoid(R))(identity)
-                )
-              )
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              RA.makeBy(y.length, k => R.mul((x[i] as any)[k], (y[k] as any)[j])),
+              RA.foldMap(U.getAdditionMonoid(R))(identity)
             )
-          ),
-          a => from2dVectors(a)
+          )
         )
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const trace: <M extends number, A>(
+  R: Rng.Ring<A>
+) => (fa: MatC<M, M, A>) => A = R =>
+  foldMapWithIndex(U.getAdditionMonoid(R))(([i, j], a) => (i === j ? a : R.zero))
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const transpose = <M extends number, N extends number, A>(
+  v: MatC<M, N, A>
+): MatC<N, M, A> =>
+  v[0] === undefined
+    ? wrap([])
+    : pipe(
+        repeat(0)(v[0].length as N, v.length as M),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mapWithIndex(([i, j]) => (v[j] as any)[i])
+      )

@@ -147,15 +147,20 @@ export const getAbGroup: <A>(
  * @since 1.0.0
  * @category Instances
  */
-export const getModule: <R>(
+export const getBimodule: <R>(
   R: Rng.Ring<R>
-) => <N extends number>(n: N) => Mod.Module<R, VecC<N, R>> = R => n => ({
+) => <N extends number>(n: N) => Mod.Bimodule<R, VecC<N, R>> = R => n => ({
   _R: R,
   ...getAbGroup(R)(n),
-  scalarMul: (r, v) =>
+  leftScalarMul: (r, v) =>
     pipe(
       v,
       map(x => R.mul(r, x))
+    ),
+  rightScalarMul: (v, r) =>
+    pipe(
+      v,
+      map(x => R.mul(x, r))
     ),
 })
 
@@ -166,7 +171,7 @@ export const getModule: <R>(
 export const getVectorSpace: <F>(
   F: Fld.Field<F>
 ) => <N extends number>(n: N) => VecSpc.VectorSpace<F, VecC<N, F>> = F => n => ({
-  ...getModule(F)(n),
+  ...getBimodule(F)(n),
   _F: F,
 })
 

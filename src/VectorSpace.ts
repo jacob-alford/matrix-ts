@@ -15,6 +15,6 @@ import * as Mod from './Module'
  * @since 1.0.0
  * @category Type classes
  */
-export interface VectorSpace<F, A> extends Mod.Module<F, A> {
+export interface VectorSpace<F, A> extends Mod.LeftModule<F, A> {
   _F: Fld.Field<F>
 }

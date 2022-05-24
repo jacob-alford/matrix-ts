@@ -31,7 +31,7 @@ export const AbelianGroup: AbGrp.AbelianGroup<Vec1> = V.getAbGroup(N.Field)(1)
  * @since 1.0.0
  * @category Instances
  */
-export const Module: Mod.Module<number, Vec1> = V.getModule(N.Field)(1)
+export const Module: Mod.Bimodule<number, Vec1> = V.getBimodule(N.Field)(1)
 
 /**
  * @since 1.0.0

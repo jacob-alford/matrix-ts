@@ -21,7 +21,22 @@ import * as AbGrp from './AbelianGroup'
  * @since 1.0.0
  * @category Type classes
  */
-export interface Module<R, A> extends AbGrp.AbelianGroup<A> {
+export interface LeftModule<R, A> extends AbGrp.AbelianGroup<A> {
   _R: Rng.Ring<R>
-  scalarMul: (r: R, x: A) => A
+  leftScalarMul: (r: R, x: A) => A
 }
+
+/**
+ * @since 1.0.0
+ * @category Type classes
+ */
+export interface RightModule<R, A> extends AbGrp.AbelianGroup<A> {
+  _R: Rng.Ring<R>
+  rightScalarMul: (x: A, r: R) => A
+}
+
+/**
+ * @since 1.0.0
+ * @category Type classes
+ */
+export interface Bimodule<R, A> extends LeftModule<R, A>, RightModule<R, A> {}
