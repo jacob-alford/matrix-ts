@@ -1,3 +1,7 @@
+/**
+ * A constrained matrix type. Allows for matrix/vector operations that won't fail due to
+ * incompatible shapes
+ */
 import * as Fun from 'fp-ts/Functor'
 import * as FunI from 'fp-ts/FunctorWithIndex'
 import * as Fl from 'fp-ts/Foldable'
