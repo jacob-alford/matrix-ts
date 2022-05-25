@@ -4,8 +4,9 @@ import * as AbGrp from './AbelianGroup'
 import * as C from './Complex'
 import * as Conj from './Conjugate'
 import * as InPrSp from './InnerProductSpace'
+import * as M from './MatrixC'
 import * as Mod from './Module'
-import * as VecC from './VecC'
+import * as V from './VectorC'
 import * as VecSpc from './VectorSpace'
 
 import * as RVec1 from './number/Vec1'
@@ -27,8 +28,9 @@ export {
   C,
   Conj,
   InPrSp,
+  M,
   Mod,
-  VecC,
+  V,
   VecSpc,
   RVec1,
   RVec2,

@@ -71,6 +71,83 @@ export const fromNestedTuples: {
   <A>(t: [[A, A, A, A], [A, A, A, A], [A, A, A, A]]): MatC<3, 4, A>
   <A>(t: [[A, A, A], [A, A, A], [A, A, A], [A, A, A]]): MatC<4, 3, A>
   <A>(t: [[A, A, A, A], [A, A, A, A], [A, A, A, A], [A, A, A, A]]): MatC<4, 4, A>
+  <A>(t: [[A, A, A, A, A]]): MatC<1, 5, A>
+  <A>(t: [[A], [A], [A], [A], [A]]): MatC<5, 1, A>
+  <A>(t: [[A, A, A, A, A], [A, A, A, A, A]]): MatC<2, 5, A>
+  <A>(t: [[A, A], [A, A], [A, A], [A, A], [A, A]]): MatC<5, 2, A>
+  <A>(t: [[A, A, A, A, A], [A, A, A, A, A], [A, A, A, A, A]]): MatC<3, 5, A>
+  <A>(t: [[A, A, A], [A, A, A], [A, A, A], [A, A, A], [A, A, A]]): MatC<5, 3, A>
+  <A>(t: [[A, A, A, A, A], [A, A, A, A, A], [A, A, A, A, A], [A, A, A, A, A]]): MatC<
+    4,
+    5,
+    A
+  >
+  <A>(t: [[A, A, A, A], [A, A, A, A], [A, A, A, A], [A, A, A, A], [A, A, A, A]]): MatC<
+    5,
+    4,
+    A
+  >
+  <A>(
+    t: [
+      [A, A, A, A, A],
+      [A, A, A, A, A],
+      [A, A, A, A, A],
+      [A, A, A, A, A],
+      [A, A, A, A, A]
+    ]
+  ): MatC<5, 5, A>
+  <A>(t: [[A, A, A, A, A, A]]): MatC<1, 6, A>
+  <A>(t: [[A], [A], [A], [A], [A], [A]]): MatC<6, 1, A>
+  <A>(t: [[A, A, A, A, A, A], [A, A, A, A, A, A]]): MatC<2, 6, A>
+  <A>(t: [[A, A], [A, A], [A, A], [A, A], [A, A], [A, A]]): MatC<6, 2, A>
+  <A>(t: [[A, A, A, A, A, A], [A, A, A, A, A, A], [A, A, A, A, A, A]]): MatC<3, 6, A>
+  <A>(t: [[A, A, A], [A, A, A], [A, A, A], [A, A, A], [A, A, A], [A, A, A]]): MatC<
+    6,
+    3,
+    A
+  >
+  <A>(
+    t: [[A, A, A, A, A, A], [A, A, A, A, A, A], [A, A, A, A, A, A], [A, A, A, A, A, A]]
+  ): MatC<4, 6, A>
+  <A>(
+    t: [
+      [A, A, A, A],
+      [A, A, A, A],
+      [A, A, A, A],
+      [A, A, A, A],
+      [A, A, A, A],
+      [A, A, A, A]
+    ]
+  ): MatC<6, 4, A>
+  <A>(
+    t: [
+      [A, A, A, A, A, A],
+      [A, A, A, A, A, A],
+      [A, A, A, A, A, A],
+      [A, A, A, A, A, A],
+      [A, A, A, A, A, A]
+    ]
+  ): MatC<5, 6, A>
+  <A>(
+    t: [
+      [A, A, A, A, A],
+      [A, A, A, A, A],
+      [A, A, A, A, A],
+      [A, A, A, A, A],
+      [A, A, A, A, A],
+      [A, A, A, A, A]
+    ]
+  ): MatC<6, 5, A>
+  <A>(
+    t: [
+      [A, A, A, A, A, A],
+      [A, A, A, A, A, A],
+      [A, A, A, A, A, A],
+      [A, A, A, A, A, A],
+      [A, A, A, A, A, A],
+      [A, A, A, A, A, A]
+    ]
+  ): MatC<6, 6, A>
 } = wrap
 
 /**
