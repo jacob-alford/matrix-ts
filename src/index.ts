@@ -1,6 +1,6 @@
 /** @since 1.0.0 */
 
-import * as AbGrp from './AbelianGroup'
+import * as AbGrp from './Commutative'
 import * as C from './Complex'
 import * as Conj from './Conjugate'
 import * as InPrSp from './InnerProductSpace'

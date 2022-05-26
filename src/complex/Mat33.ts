@@ -1,6 +1,6 @@
 import * as M from '../MatrixC'
 import * as C from '../Complex'
-import * as AbGrp from '../AbelianGroup'
+import * as AbGrp from '../Commutative'
 import * as Mod from '../Module'
 
 // #############

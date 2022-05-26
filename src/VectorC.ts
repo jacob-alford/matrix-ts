@@ -18,7 +18,7 @@ import * as Rng from 'fp-ts/Ring'
 import { flow, pipe } from 'fp-ts/function'
 
 import * as Mod from './Module'
-import * as AbGrp from './AbelianGroup'
+import * as Comm from './Commutative'
 import * as VecSpc from './VectorSpace'
 import * as InPrSp from './InnerProductSpace'
 import * as Conj from './Conjugate'
@@ -177,7 +177,7 @@ export const liftA2: <N, A>(
  */
 export const getAbGroup: <A>(
   R: Rng.Ring<A>
-) => <N extends number>(n: N) => AbGrp.AbelianGroup<VecC<N, A>> = R => n => ({
+) => <N extends number>(n: N) => Comm.AbelianGroup<VecC<N, A>> = R => n => ({
   concat: liftA2(R.add),
   inverse: map(x => R.sub(R.zero, x)),
   empty: repeat(n, R.zero),

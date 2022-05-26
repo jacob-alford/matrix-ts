@@ -1,6 +1,6 @@
 import * as C from '../Complex'
 import * as V from '../VectorC'
-import * as AbGrp from '../AbelianGroup'
+import * as AbGrp from '../Commutative'
 import * as Mod from '../Module'
 import * as VecSpc from '../VectorSpace'
 import * as InPrSp from '../InnerProductSpace'

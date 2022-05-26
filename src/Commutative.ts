@@ -9,6 +9,7 @@
  * @since 2.0.0
  */
 import * as Grp from 'fp-ts/Group'
+import * as Rng from 'fp-ts/Ring'
 
 // #############
 // ### Model ###
@@ -20,3 +21,10 @@ import * as Grp from 'fp-ts/Group'
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AbelianGroup<A> extends Grp.Group<A> {}
+
+/**
+ * @since 1.0.0
+ * @category Type classes
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface CommutativeRing<A> extends Rng.Ring<A> {}

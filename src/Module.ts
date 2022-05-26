@@ -11,7 +11,7 @@
  */
 import * as Rng from 'fp-ts/Ring'
 
-import * as AbGrp from './AbelianGroup'
+import * as AbGrp from './Commutative'
 
 // #############
 // ### Model ###

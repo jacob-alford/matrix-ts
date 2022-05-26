@@ -1,6 +1,6 @@
 import * as M from '../MatrixC'
 import * as C from '../Complex'
-import * as AbGrp from '../AbelianGroup'
+import * as AbGrp from '../Commutative'
 import * as Mod from '../Module'
 
 // #############
@@ -30,3 +30,13 @@ export const AdditiveAbelianGroup: AbGrp.AbelianGroup<Mat66> = M.getAdditiveAbel
  * @category Instances
  */
 export const Bimodule: Mod.Bimodule<C.Complex, Mat66> = M.getBimodule(C.Field)(6, 6)
+
+// ##############
+// ### Common ###
+// ##############
+
+/**
+ * @since 1.0.0
+ * @category Common
+ */
+export const id = M.id(C.Field)(6)

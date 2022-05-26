@@ -14,7 +14,7 @@ import { flow, identity, pipe } from 'fp-ts/function'
 
 import * as V from './VectorC'
 import { InnerProductSpace } from './InnerProductSpace'
-import * as AbGrp from './AbelianGroup'
+import * as Comm from './Commutative'
 import * as Mod from './Module'
 import * as U from './lib/utilities'
 
@@ -262,10 +262,7 @@ declare module 'fp-ts/HKT' {
  */
 export const getAdditiveAbelianGroup =
   <A>(R: Rng.Ring<A>) =>
-  <M extends number, N extends number>(
-    m: M,
-    n: N
-  ): AbGrp.AbelianGroup<MatC<M, N, A>> => ({
+  <M extends number, N extends number>(m: M, n: N): Comm.AbelianGroup<MatC<M, N, A>> => ({
     empty: repeat(R.zero)(m, n),
     concat: (x, y) =>
       pipe(
@@ -513,7 +510,7 @@ export const replaceRow: (
  * @category Matrix Operations
  */
 export const addRows =
-  <A, N>(A: AbGrp.AbelianGroup<V.VecC<N, A>>) =>
+  <A, N>(A: Comm.AbelianGroup<V.VecC<N, A>>) =>
   (a: number, b: number) =>
   <M>(vs: MatC<M, N, A>): O.Option<MatC<M, N, A>> =>
     pipe(
