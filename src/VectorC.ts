@@ -15,7 +15,7 @@ import * as TrI from 'fp-ts/TraversableWithIndex'
 import * as Pt from 'fp-ts/Pointed'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
-import { flow, pipe } from 'fp-ts/function'
+import { flow, pipe, tuple } from 'fp-ts/function'
 
 import * as Mod from './Module'
 import * as Comm from './Commutative'
@@ -46,6 +46,14 @@ export interface VecC<N, A> extends ReadonlyArray<A> {
  * @category Internal
  */
 const wrap: <N, A>(ks: ReadonlyArray<A>) => VecC<N, A> = ks =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ks as any
+
+/**
+ * @since 1.0.0
+ * @category Internal
+ */
+const unwrap: <N, A>(ks: VecC<N, A>) => ReadonlyArray<A> = ks =>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ks as any
 
@@ -495,6 +503,33 @@ export const TraversableWithIndex: TrI.TraversableWithIndex2<URI, number> = {
   traverseWithIndex: _traverseWithIndex,
 }
 
+// ###################
+// ### Destructors ###
+// ###################
+
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const toTuple: {
+  <A>(t: VecC<0, A>): []
+  <A>(t: VecC<1, A>): [A]
+  <A>(t: VecC<2, A>): [A, A]
+  <A>(t: VecC<3, A>): [A, A, A]
+  <A>(t: VecC<4, A>): [A, A, A, A]
+  <A>(t: VecC<5, A>): [A, A, A, A, A]
+  <A>(t: VecC<6, A>): [A, A, A, A, A, A]
+  <A>(t: VecC<7, A>): [A, A, A, A, A, A, A]
+  <A>(t: VecC<8, A>): [A, A, A, A, A, A, A, A]
+  <A>(t: VecC<9, A>): [A, A, A, A, A, A, A, A, A]
+  <A>(t: VecC<10, A>): [A, A, A, A, A, A, A, A, A, A]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} = unwrap as any
+
 // #########################
 // ### Vector Operations ###
 // #########################
@@ -516,6 +551,21 @@ export const updateAt: (
  * @category Vector Operations
  */
 export const get: (i: number) => <N, A>(fa: VecC<N, A>) => O.Option<A> = RA.lookup
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const crossProduct: <A>(
+  F: Fld.Field<A>
+) => (x: VecC<3, A>, y: VecC<3, A>) => VecC<3, A> = F => (x, y) =>
+  pipe(tuple(toTuple(x), toTuple(y)), ([[a1, a2, a3], [b1, b2, b3]]) =>
+    fromTuple([
+      F.sub(F.mul(a2, b3), F.mul(a3, b2)),
+      F.sub(F.mul(a3, b1), F.mul(a1, b3)),
+      F.sub(F.mul(a1, b2), F.mul(a2, b1)),
+    ])
+  )
 
 // ###################
 // ### Do Notation ###
