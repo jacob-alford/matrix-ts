@@ -288,7 +288,6 @@ export const getBimodule: <A>(
 ) => <M extends number, N extends number>(m: M, n: N) => Mod.Bimodule<A, MatC<M, N, A>> =
   R => (m, n) => ({
     ...getAdditiveAbelianGroup(R)(m, n),
-    _R: R,
     leftScalarMul: (r, x) =>
       pipe(
         x,

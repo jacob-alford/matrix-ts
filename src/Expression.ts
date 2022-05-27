@@ -1,6 +1,6 @@
-import * as Eq from 'fp-ts/Eq'
 import * as Fun from 'fp-ts/Functor'
 import * as FunI from 'fp-ts/FunctorWithIndex'
+import * as Mn from 'fp-ts/Monoid'
 import * as Prof from 'fp-ts/Profunctor'
 import * as RA from 'fp-ts/ReadonlyArray'
 import { flow, pipe } from 'fp-ts/function'
@@ -14,7 +14,6 @@ import { flow, pipe } from 'fp-ts/function'
  * @category Model
  */
 export interface Term<S, C, R> {
-  _eqS: Eq.Eq<S>
   symbol: S
   evaluate: (x: C) => R
 }
@@ -143,3 +142,16 @@ export const Profunctor: Prof.Profunctor3<URI> = {
   ...Functor,
   promap: _promap,
 }
+
+// ###################
+// ### Destructors ###
+// ###################
+
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+export const evaluate: <R>(
+  M: Mn.Monoid<R>
+) => <C>(x: C) => <S>(exp: Expression<S, C, R>) => R = M => x =>
+  RA.foldMap(M)(({ evaluate }) => evaluate(x))

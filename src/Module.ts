@@ -9,8 +9,6 @@
  *
  * @since 1.0.0
  */
-import * as Rng from 'fp-ts/Ring'
-
 import * as AbGrp from './Commutative'
 
 // #############
@@ -22,7 +20,6 @@ import * as AbGrp from './Commutative'
  * @category Type classes
  */
 export interface LeftModule<R, A> extends AbGrp.AbelianGroup<A> {
-  _R: Rng.Ring<R>
   leftScalarMul: (r: R, x: A) => A
 }
 
@@ -31,7 +28,6 @@ export interface LeftModule<R, A> extends AbGrp.AbelianGroup<A> {
  * @category Type classes
  */
 export interface RightModule<R, A> extends AbGrp.AbelianGroup<A> {
-  _R: Rng.Ring<R>
   rightScalarMul: (x: A, r: R) => A
 }
 
