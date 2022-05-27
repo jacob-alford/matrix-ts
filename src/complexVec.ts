@@ -120,7 +120,7 @@ export const InnerProductSpace3: InPrSp.InnerProductSpace<C.Complex, Vec3> =
  * @since 1.0.0
  * @category Vector Operations
  */
-export const crossProduct = V.crossProduct(C.Field)
+export const cross = V.crossProduct(C.Field)
 
 // #############
 // ### Vec4 ####

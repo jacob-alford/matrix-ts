@@ -1,5 +1,4 @@
 import * as N from 'fp-ts/number'
-import * as Z from 'fp-ts/Zero'
 
 import * as V from './VectorC'
 import * as AbGrp from './Commutative'
@@ -117,7 +116,7 @@ export const InnerProductSpace3: InPrSp.InnerProductSpace<number, Vec3> =
  * @since 1.0.0
  * @category Vector Operations
  */
-export const crossProduct = V.crossProduct(N.Field)
+export const cross = V.crossProduct(N.Field)
 
 // #############
 // ### Vec4 ####
