@@ -19,6 +19,7 @@ import { flow, pipe, tuple } from 'fp-ts/function'
 
 import * as Mod from './Module'
 import * as Comm from './Commutative'
+import * as FP from './FromPolynomial'
 import * as VecSpc from './VectorSpace'
 import * as InPrSp from './InnerProductSpace'
 import * as Conj from './Conjugate'

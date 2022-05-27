@@ -16,6 +16,8 @@ import { flow, identity, pipe, tuple } from 'fp-ts/function'
 
 import * as MC from './MatrixC'
 import * as U from './lib/utilities'
+import * as FV from './FromVector'
+import * as FP from './FromPolynomial'
 
 const MatrixBrand = Symbol('Matrix')
 type MatrixBrand = typeof MatrixBrand
@@ -271,6 +273,37 @@ export const FoldableWithIndex: FlI.FoldableWithIndex1<URI, [number, number]> = 
   reduceWithIndex: _reduceWithIndex,
   foldMapWithIndex: _foldMapWithIndex,
   reduceRightWithIndex: _reduceRightWithIndex,
+}
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const FromRowVector: FV.FromVector1<URI> = {
+  URI,
+  fromVector: flow(MC.fromVectorAsRow, fromMatC),
+}
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const FromColumnVector: FV.FromVector1<URI> = {
+  URI,
+  fromVector: flow(MC.fromVectorAsColumn, fromMatC),
+}
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const FromPolynomialCoefficients: FP.FromPolynomial1I<URI> = {
+  URI,
+  fromPolynomial: flow(
+    RA.map(({ symbol: [coefficient] }) => coefficient),
+    RA.of,
+    wrap
+  ),
 }
 
 /**

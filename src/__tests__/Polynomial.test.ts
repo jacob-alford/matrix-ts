@@ -1,12 +1,11 @@
 import * as N from 'fp-ts/number'
-import * as S from 'fp-ts/string'
 
 import * as Poly from '../Polynomial'
 import * as Exp from '../Exponentiate'
 
-const construct = Poly.fromCoefficientArray<'X', number>('X')
-const R = Poly.getRing<'X', number>('X', S.Ord, N.Field)
-const G = Poly.getAdditiveAbelianGroup<'X', number, number>(S.Ord, N.Field)
+const construct = Poly.fromCoefficientArray
+const R = Poly.getRing<number>(N.Field)
+const G = Poly.getAdditiveAbelianGroup<number>(N.Field)
 const evaluate = Poly.evaluate(N.Field, Exp.ExpNumber)
 
 describe('Polynomial', () => {
