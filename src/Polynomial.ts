@@ -205,15 +205,16 @@ export const getBimodule: <S, R, C>(
  * @since 1.0.0
  * @category Instances
  */
-export const getRing = <S, R, C>(
+export const getRing = <S, R>(
+  baseSymbol: S,
   ordS: Ord.Ord<S>,
   R: Rng.Ring<R>
-): Comm.CommutativeRing<Polynomial<S, R, C>> => ({
+): Comm.CommutativeRing<Polynomial<S, R, R>> => ({
   add: add(ordS, R),
   sub: (x, y) => add(ordS, R)(x, inverse(R)(y)),
   zero: zero(),
-  mul: mul(R),
-  one: zero(),
+  mul: mul(ordS, R),
+  one: one(baseSymbol, R),
 })
 
 /**
@@ -274,9 +275,12 @@ export const Contravariant: Cnvt.Contravariant3<URI> = {
 export const evaluate: <R>(
   R: Rng.Ring<R>,
   expR: Ex.Exp<R>
-) => <C>(x: C) => <S>(fa: Polynomial<S, R, C>) => R = (R, expR) => x =>
-  RA.foldMap(U.getAdditionMonoid(R))(({ evaluate, symbol: [coefficient, , power] }) =>
-    R.mul(coefficient, expR.exp(evaluate(x), power))
+) => <S, C>(fa: Polynomial<S, R, C>, x: C) => R = (R, expR) => (xs, x) =>
+  pipe(
+    xs,
+    RA.foldMap(U.getAdditionMonoid(R))(({ evaluate, symbol: [coefficient, , power] }) =>
+      R.mul(coefficient, expR.exp(evaluate(x), power))
+    )
   )
 
 /**
@@ -299,14 +303,22 @@ export const toExpression: <S, T, R>(
 
 /**
  * @since 1.0.0
- * @category Polynomial Operations
+ * @category Internal
  */
-export const add =
+const concatPolynomials = <S, R, C>(
+  x: Polynomial<S, R, C>,
+  y: Polynomial<S, R, C>
+): Polynomial<S, R, C> => pipe(x, RA.concat(y), wrap)
+
+/**
+ * @since 1.0.0
+ * @category Internal
+ */
+const combineLikeTerms =
   <S, R>(ordS: Ord.Ord<S>, R: Rng.Ring<R>) =>
-  <C>(x: Polynomial<S, R, C>, y: Polynomial<S, R, C>): Polynomial<S, R, C> =>
+  <C>(x: Polynomial<S, R, C>): Polynomial<S, R, C> =>
     pipe(
-      y,
-      RA.concat(x),
+      x,
       RNEA.fromReadonlyArray,
       O.map(
         flow(
@@ -337,15 +349,35 @@ export const add =
  * @since 1.0.0
  * @category Polynomial Operations
  */
+export const one = <S, R>(baseSymbol: S, R: Rng.Ring<R>): Polynomial<S, R, R> =>
+  pipe(
+    RA.of<Monomial<S, R, R>>({ symbol: tuple(R.one, baseSymbol, 0), evaluate: identity }),
+    wrap
+  )
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const add =
+  <S, R>(ordS: Ord.Ord<S>, R: Rng.Ring<R>) =>
+  <C>(x: Polynomial<S, R, C>, y: Polynomial<S, R, C>): Polynomial<S, R, C> =>
+    pipe(concatPolynomials(x, y), combineLikeTerms(ordS, R))
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
 export const mul =
-  <R>(R: Rng.Ring<R>) =>
-  <S, C>(x: Polynomial<S, R, C>, y: Polynomial<S, R, C>): Polynomial<S, R, C> =>
+  <S, R>(ordS: Ord.Ord<S>, R: Rng.Ring<R>) =>
+  <C>(x: Polynomial<S, R, C>, y: Polynomial<S, R, C>): Polynomial<S, R, C> =>
     pipe(
       RA.Do,
       RA.apS('a', x),
       RA.apS('b', y),
       RA.map(({ a, b }) => getMonomialMultiplicativeMagma<S, R, C>(R).concat(a, b)),
-      wrap
+      wrap,
+      combineLikeTerms(ordS, R)
     )
 
 /**

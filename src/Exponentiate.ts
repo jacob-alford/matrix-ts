@@ -24,6 +24,6 @@ export interface Exp<A> {
  * @since 1.0.0
  * @category Instances
  */
-export const ERing: Exp<number> = {
+export const ExpNumber: Exp<number> = {
   exp: (a, n) => Math.pow(a, n),
 }
