@@ -16,6 +16,7 @@ import * as V from './VectorC'
 import { InnerProductSpace } from './InnerProductSpace'
 import * as Comm from './Commutative'
 import * as Mod from './Module'
+import * as LMap from './LinearMap'
 import * as U from './lib/utilities'
 
 // #############
@@ -302,6 +303,20 @@ export const getBimodule: <A>(
 
 /**
  * @since 1.0.0
+ * @category Instances
+ */
+export const getLinearMap =
+  <N, F>(I: InnerProductSpace<F, V.VecC<N, F>>) =>
+  <M>(A: MatC<M, N, F>): LMap.LinearMap<V.VecC<N, F>, V.VecC<M, F>> => ({
+    mapL: x =>
+      pipe(
+        A,
+        V.map(y => I.dot(x, y))
+      ),
+  })
+
+/**
+ * @since 1.0.0
  * @category Instance operations
  */
 export const map: <M, N, A, B>(
@@ -550,21 +565,4 @@ export const switchRows =
           O.chain(replaceRow(j)(() => ir))
         )
       )
-    )
-
-/**
- * Matrix transformations over vectors
- *
- * (A in (m x n), v in (n x 1)) -> v in (m x 1)
- *
- * @since 1.0.0
- * @category Instances
- */
-export const linearMap: <N, A>(
-  I: InnerProductSpace<A, V.VecC<N, A>>
-) => <M extends number>(A: MatC<M, N, A>, x: V.VecC<N, A>) => V.VecC<M, A> =
-  I => (A, x) =>
-    pipe(
-      A,
-      V.map(y => I.dot(x, y))
     )
