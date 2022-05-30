@@ -22,7 +22,6 @@ import { flow, identity, pipe, tuple } from 'fp-ts/function'
 
 import * as Exp from './Expression'
 import * as Ex from './Exponentiate'
-import * as FV from './FromVector'
 import * as U from './lib/utilities'
 import * as Comm from './Commutative'
 import * as Mod from './Module'
@@ -255,15 +254,6 @@ export const contramap: <R, C, D>(
 export const Contravariant: Cnvt.Contravariant2<URI> = {
   URI,
   contramap: _contramap,
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const FromVector: FV.FromVector1<URI> = {
-  URI,
-  fromVector: fromCoefficientArray,
 }
 
 // ###################

@@ -17,6 +17,7 @@ import * as Mod from './Module'
 import * as VecSpc from './VectorSpace'
 import * as InPrSp from './InnerProductSpace'
 import * as Poly from './Polynomial'
+import * as Iso from './Iso'
 
 // #############
 // ### Model ###
@@ -217,6 +218,19 @@ export const argumentDegrees: (c: Complex) => O.Option<number> = flow(
  */
 export const modulus: (c: Complex) => number = ({ Re, Im }) =>
   Math.sqrt(Re ** 2 + Im ** 2)
+
+// ####################
+// ### Isomorphisms ###
+// ####################
+
+/**
+ * @since 1.0.0
+ * @category Isomorphisms
+ */
+export const IsoVector: Iso.Iso0<Complex, V.VecC<2, number>> = {
+  get: toVector,
+  reverseGet: fromVector,
+}
 
 // #############
 // ### Vec1 ####

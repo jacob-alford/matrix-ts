@@ -16,8 +16,6 @@ import { flow, identity, pipe, tuple } from 'fp-ts/function'
 
 import * as MC from './MatrixC'
 import * as U from './lib/utilities'
-import * as FV from './FromVector'
-import * as FP from './FromPolynomial'
 
 const MatrixBrand = Symbol('Matrix')
 type MatrixBrand = typeof MatrixBrand
@@ -94,6 +92,18 @@ export const fromMatC: <A>(as: MC.MatC<unknown, unknown, A>) => Mat<A> = identit
  */
 export const repeat: <A>(shape: Shape, value: A) => Mat<A> = (shape, value) =>
   pipe(RA.replicate(shape[0], RA.replicate(shape[1], value)), wrap)
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const fromRowVector = flow(MC.fromVectorAsRow, fromMatC)
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const fromColumnVector = flow(MC.fromVectorAsColumn, fromMatC)
 
 // #####################
 // ### Non-Pipeables ###
@@ -273,37 +283,6 @@ export const FoldableWithIndex: FlI.FoldableWithIndex1<URI, [number, number]> = 
   reduceWithIndex: _reduceWithIndex,
   foldMapWithIndex: _foldMapWithIndex,
   reduceRightWithIndex: _reduceRightWithIndex,
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const FromRowVector: FV.FromVector1<URI> = {
-  URI,
-  fromVector: flow(MC.fromVectorAsRow, fromMatC),
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const FromColumnVector: FV.FromVector1<URI> = {
-  URI,
-  fromVector: flow(MC.fromVectorAsColumn, fromMatC),
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const FromPolynomialCoefficients: FP.FromPolynomial1I<URI> = {
-  URI,
-  fromPolynomial: flow(
-    RA.map(({ symbol: [coefficient] }) => coefficient),
-    RA.of,
-    wrap
-  ),
 }
 
 /**
