@@ -28,7 +28,7 @@ export interface Iso0<A, B> {
  */
 export interface Iso1<F extends URIS, G extends URIS> {
   get: <A>(fa: Kind<F, A>) => Kind<G, A>
-  reverseGet: <A>(fb: Kind<F, A>) => Kind<G, A>
+  reverseGet: <A>(fb: Kind<G, A>) => Kind<F, A>
 }
 
 /**
@@ -37,7 +37,7 @@ export interface Iso1<F extends URIS, G extends URIS> {
  */
 export interface Iso2<F extends URIS2, G extends URIS2> {
   get: <E, A>(fa: Kind2<F, E, A>) => Kind2<G, E, A>
-  reverseGet: <E, A>(fb: Kind2<F, E, A>) => Kind2<G, E, A>
+  reverseGet: <E, A>(fb: Kind2<G, E, A>) => Kind2<F, E, A>
 }
 
 /**
@@ -46,7 +46,7 @@ export interface Iso2<F extends URIS2, G extends URIS2> {
  */
 export interface Iso2C<F extends URIS2, G extends URIS2, E> {
   get: <A>(fa: Kind2<F, E, A>) => Kind2<G, E, A>
-  reverseGet: <A>(fb: Kind2<F, E, A>) => Kind2<G, E, A>
+  reverseGet: <A>(fb: Kind2<G, E, A>) => Kind2<F, E, A>
 }
 
 /**
@@ -55,7 +55,7 @@ export interface Iso2C<F extends URIS2, G extends URIS2, E> {
  */
 export interface Iso3<F extends URIS3, G extends URIS3> {
   get: <R, E, A>(fa: Kind3<F, R, E, A>) => Kind3<G, R, E, A>
-  reverseGet: <R, E, A>(fb: Kind3<F, R, E, A>) => Kind3<G, R, E, A>
+  reverseGet: <R, E, A>(fb: Kind3<G, R, E, A>) => Kind3<G, R, E, A>
 }
 
 /**
@@ -64,7 +64,7 @@ export interface Iso3<F extends URIS3, G extends URIS3> {
  */
 export interface Iso3C<F extends URIS3, G extends URIS3, E> {
   get: <R, A>(fa: Kind3<F, R, E, A>) => Kind3<G, R, E, A>
-  reverseGet: <R, A>(fb: Kind3<F, R, E, A>) => Kind3<G, R, E, A>
+  reverseGet: <R, A>(fb: Kind3<G, R, E, A>) => Kind3<F, R, E, A>
 }
 
 /**
@@ -73,7 +73,7 @@ export interface Iso3C<F extends URIS3, G extends URIS3, E> {
  */
 export interface Iso4<F extends URIS4, G extends URIS4> {
   get: <S, R, E, A>(fa: Kind4<F, S, R, E, A>) => Kind4<G, S, R, E, A>
-  reverseGet: <S, R, E, A>(fb: Kind4<F, S, R, E, A>) => Kind4<G, S, R, E, A>
+  reverseGet: <S, R, E, A>(fb: Kind4<G, S, R, E, A>) => Kind4<F, S, R, E, A>
 }
 
 /**
@@ -82,5 +82,5 @@ export interface Iso4<F extends URIS4, G extends URIS4> {
  */
 export interface Iso4C<F extends URIS4, G extends URIS4, E> {
   get: <S, R, A>(fa: Kind4<F, S, R, E, A>) => Kind4<G, S, R, E, A>
-  reverseGet: <S, R, A>(fb: Kind4<F, S, R, E, A>) => Kind4<G, S, R, E, A>
+  reverseGet: <S, R, A>(fb: Kind4<G, S, R, E, A>) => Kind4<F, S, R, E, A>
 }

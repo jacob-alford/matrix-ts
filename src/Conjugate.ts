@@ -11,8 +11,6 @@
  * @since 1.0.0
  */
 
-import { identity } from 'fp-ts/function'
-
 // #############
 // ### Model ###
 // #############
@@ -23,8 +21,4 @@ import { identity } from 'fp-ts/function'
  */
 export interface Conjugate<A> {
   conj: (x: A) => A
-}
-
-export const ConjugateNumber: Conjugate<number> = {
-  conj: identity,
 }

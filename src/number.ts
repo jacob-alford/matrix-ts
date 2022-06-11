@@ -1,9 +1,10 @@
 import * as N from 'fp-ts/number'
+import { identity } from 'fp-ts/function'
 
 import * as V from './VectorC'
 import * as M from './MatrixC'
 import * as C from './Complex'
-import * as Exp from './Exponentiate'
+import * as Exp_ from './Exponentiate'
 import * as AbGrp from './Commutative'
 import * as Mod from './Module'
 import * as VecSpc from './VectorSpace'
@@ -11,6 +12,35 @@ import * as Conj from './Conjugate'
 import * as Poly from './Polynomial'
 import * as InPrSp from './InnerProductSpace'
 import * as LinMap from './LinearMap'
+import * as Abs_ from './Abs'
+
+// #################
+// ### Instances ###
+// #################
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Exp: Exp_.Exp<number> = {
+  exp: (a, n) => Math.pow(a, n),
+}
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Conjugate: Conj.Conjugate<number> = {
+  conj: identity,
+}
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Abs: Abs_.Abs<number> = {
+  abs: Math.abs,
+}
 
 // #############
 // ### Vec1 ####
@@ -45,7 +75,7 @@ export const VectorField1: VecSpc.VectorSpace<number, Vec1> = V.getVectorSpace(N
  * @category Instances
  */
 export const InnerProductSpace1: InPrSp.InnerProductSpace<number, Vec1> =
-  V.getInnerProductSpace(N.Field, Conj.ConjugateNumber)(1)
+  V.getInnerProductSpace(N.Field, Conjugate)(1)
 
 // #############
 // ### Vec2 ####
@@ -80,7 +110,7 @@ export const VectorField2: VecSpc.VectorSpace<number, Vec2> = V.getVectorSpace(N
  * @category Instances
  */
 export const InnerProductSpace2: InPrSp.InnerProductSpace<number, Vec2> =
-  V.getInnerProductSpace(N.Field, Conj.ConjugateNumber)(2)
+  V.getInnerProductSpace(N.Field, Conjugate)(2)
 
 /**
  * @since 1.0.0
@@ -167,7 +197,7 @@ export const VectorField3: VecSpc.VectorSpace<number, Vec3> = V.getVectorSpace(N
  * @category Instances
  */
 export const InnerProductSpace3: InPrSp.InnerProductSpace<number, Vec3> =
-  V.getInnerProductSpace(N.Field, Conj.ConjugateNumber)(3)
+  V.getInnerProductSpace(N.Field, Conjugate)(3)
 
 /**
  * @since 1.0.0
@@ -277,7 +307,7 @@ export const VectorField4: VecSpc.VectorSpace<number, Vec4> = V.getVectorSpace(N
  * @category Instances
  */
 export const InnerProductSpace4: InPrSp.InnerProductSpace<number, Vec4> =
-  V.getInnerProductSpace(N.Field, Conj.ConjugateNumber)(4)
+  V.getInnerProductSpace(N.Field, Conjugate)(4)
 
 /**
  * @since 1.0.0
@@ -342,7 +372,7 @@ export const VectorField5: VecSpc.VectorSpace<number, Vec5> = V.getVectorSpace(N
  * @category Instances
  */
 export const InnerProductSpace5: InPrSp.InnerProductSpace<number, Vec5> =
-  V.getInnerProductSpace(N.Field, Conj.ConjugateNumber)(5)
+  V.getInnerProductSpace(N.Field, Conjugate)(5)
 
 /**
  * @since 1.0.0
@@ -407,7 +437,7 @@ export const VectorField6: VecSpc.VectorSpace<number, Vec6> = V.getVectorSpace(N
  * @category Instances
  */
 export const InnerProductSpace6: InPrSp.InnerProductSpace<number, Vec6> =
-  V.getInnerProductSpace(N.Field, Conj.ConjugateNumber)(6)
+  V.getInnerProductSpace(N.Field, Conjugate)(6)
 
 /**
  * @since 1.0.0
@@ -469,7 +499,7 @@ export const PolynomialRing = Poly.getRing(N.Field)
  * @since 1.0.0
  * @category Destructors
  */
-export const evaluatePolynomial = Poly.evaluate(N.Field, Exp.ExpNumber)
+export const evaluatePolynomial = Poly.evaluate(N.Field, Exp)
 
 /**
  * @since 1.0.0
@@ -477,6 +507,6 @@ export const evaluatePolynomial = Poly.evaluate(N.Field, Exp.ExpNumber)
  */
 export const polynomialToExpression = Poly.toExpression<`${number}z^${number}`, number>(
   N.Field,
-  Exp.ExpNumber,
+  Exp,
   ([coefficient, power]) => `${coefficient}z^${power}`
 )

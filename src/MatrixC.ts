@@ -18,7 +18,6 @@ import * as Comm from './Commutative'
 import * as Mod from './Module'
 import * as LMap from './LinearMap'
 import * as U from './lib/utilities'
-import * as Iso from './Iso'
 
 // #############
 // ### Model ###
@@ -560,15 +559,26 @@ export const scaleRow: <A, N>(
 export const switchRows =
   (i: number, j: number) =>
   <A, N, M>(vs: MatC<M, N, A>): O.Option<MatC<M, N, A>> =>
-    pipe(
-      O.Do,
-      O.apS('ir', V.get(i)(vs)),
-      O.apS('jr', V.get(j)(vs)),
-      O.chain(({ ir, jr }) =>
-        pipe(
-          vs,
-          replaceRow(i)(() => jr),
-          O.chain(replaceRow(j)(() => ir))
+    i === j
+      ? O.some(vs)
+      : pipe(
+          O.Do,
+          O.apS('ir', V.get(i)(vs)),
+          O.apS('jr', V.get(j)(vs)),
+          O.chain(({ ir, jr }) =>
+            pipe(
+              vs,
+              replaceRow(i)(() => jr),
+              O.chain(replaceRow(j)(() => ir))
+            )
+          )
         )
-      )
-    )
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const get: (i: number, j: number) => <M, N, A>(m: MatC<M, N, A>) => O.Option<A> = (
+  i,
+  j
+) => flow(V.get(i), O.chain(V.get(j)))

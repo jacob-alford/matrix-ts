@@ -15,15 +15,3 @@
 export interface Exp<A> {
   exp: (a: A, n: number) => A
 }
-
-// #################
-// ### Instances ###
-// #################
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const ExpNumber: Exp<number> = {
-  exp: (a, n) => Math.pow(a, n),
-}

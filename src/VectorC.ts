@@ -478,10 +478,10 @@ export const Traversable: Tr.Traversable2<URI> = {
  * @since 1.0.0
  * @category Instance Operations
  */
-export const traverseWithIndex =
+export const traverseWithIndex: TrI.PipeableTraverseWithIndex2<URI, number> =
   <F>(F: Apl.Applicative<F>) =>
-  <N, A, B>(f: (i: number, a: A) => HKT<F, B>) =>
-  (ta: VecC<N, A>): HKT<F, VecC<N, B>> =>
+  <A, B>(f: (i: number, a: A) => HKT<F, B>) =>
+  <N>(ta: VecC<N, A>): HKT<F, VecC<N, B>> =>
     pipe(ta, RA.traverseWithIndex(F)(f), fbs => F.map(fbs, bs => wrap(bs)))
 
 /**
@@ -545,6 +545,15 @@ export const updateAt: (
     RA.updateAt(n, a),
     O.map(a => wrap(a))
   )
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const zipVectors: <N, A>(
+  v1: VecC<N, A>,
+  v2: VecC<N, A>
+) => VecC<N, readonly [A, A]> = (v1, v2) => pipe(RA.zip(v1, v2), a => wrap(a))
 
 /**
  * @since 1.0.0
