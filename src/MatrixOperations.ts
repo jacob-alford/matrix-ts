@@ -315,7 +315,7 @@ const subtractAndScaleBelowPivotRow =
  * @category Constructors
  */
 export const guassianEliminationWithPartialPivoting =
-  <LO = string>(Log: LFM.Logger<string, LO>) =>
+  (Log: LFM.Logger<string>) =>
   <A>(BndA: Bnd.Bounded<A>, F: Fld.Field<A>, A: Abs<A>) =>
   <M extends number>(
     m: M.MatC<M, M, A>
@@ -327,17 +327,17 @@ export const guassianEliminationWithPartialPivoting =
         InvertibleMatrix<M, A>
       ]
     >,
-    LFM.FreeMonoid<IO<LO>>
+    LFM.FreeMonoid<IO<string>>
   ] => {
     const [, columns] = M_.shape(M_.fromMatC(m))
     const go = (
       steps: ReadonlyArray<GaussianEliminationStep<A>>,
       pivotIndex: number,
       acc: M.MatC<M, M, A>,
-      logs: LFM.FreeMonoid<IO<LO>>
+      logs: LFM.FreeMonoid<IO<string>>
     ): [
       O.Option<[ReadonlyArray<GaussianEliminationStep<A>>, UpperTriangularMatrix<M, A>]>,
-      LFM.FreeMonoid<IO<LO>>
+      LFM.FreeMonoid<IO<string>>
     ] => {
       /** Acc is now reduced */
       if (pivotIndex >= columns)

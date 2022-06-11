@@ -25,11 +25,11 @@ export type FreeMonoid<A> =
  * @since 1.0.0
  * @category Typeclasses
  */
-export interface Logger<A, B = A> {
-  info: (a: A) => FreeMonoid<IO<B>>
-  success: (a: A) => FreeMonoid<IO<B>>
-  failure: (a: A) => FreeMonoid<IO<B>>
-  warning: (a: A) => FreeMonoid<IO<B>>
+export interface Logger<A> {
+  info: (a: A) => FreeMonoid<IO<A>>
+  success: (a: A) => FreeMonoid<IO<A>>
+  failure: (a: A) => FreeMonoid<IO<A>>
+  warning: (a: A) => FreeMonoid<IO<A>>
 }
 
 // ####################

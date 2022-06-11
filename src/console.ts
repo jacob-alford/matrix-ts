@@ -12,11 +12,11 @@ import * as LFM from './LoggerFreeMonoid'
  * @since 1.0.0
  * @category Model
  */
-export type LogLevel<A> =
-  | { _tag: 'Info'; log: A }
-  | { _tag: 'Success'; success: A }
-  | { _tag: 'Failure'; failure: A }
-  | { _tag: 'Warn'; warning: A }
+export type LogLevel =
+  | `   [Info]: ${string}`
+  | `[Success]: ${string}`
+  | `[Failure]: ${string}`
+  | `[Warning]: ${string}`
 
 // ####################
 // ### Constructors ###
@@ -26,25 +26,25 @@ export type LogLevel<A> =
  * @since 1.0.0
  * @category Constructors
  */
-export const info = <A>(log: A): LogLevel<A> => ({ _tag: 'Info', log })
+export const info = (log: string): LogLevel => `   [Info]: ${log}`
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const success = <A>(success: A): LogLevel<A> => ({ _tag: 'Success', success })
+export const success = (success: string): LogLevel => `[Success]: ${success}`
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const failure = <A>(failure: A): LogLevel<A> => ({ _tag: 'Failure', failure })
+export const failure = (failure: string): LogLevel => `[Failure]: ${failure}`
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const warn = <A>(warning: A): LogLevel<A> => ({ _tag: 'Warn', warning })
+export const warn = (warning: string): LogLevel => `[Warning]: ${warning}`
 
 // #################
 // ### Instances ###
@@ -65,7 +65,7 @@ export const LoggerVerboseImpure: LFM.Logger<string> = {
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerVerbosePure: LFM.Logger<string, LogLevel<string>> = {
+export const LoggerVerbosePure: LFM.Logger<string> = {
   info: flow(info, IO.of, LFM.of),
   success: flow(success, IO.of, LFM.of),
   failure: flow(failure, IO.of, LFM.of),
@@ -87,7 +87,7 @@ export const LoggerSparseImpure: LFM.Logger<string> = {
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerSparsePure: LFM.Logger<string, LogLevel<string>> = {
+export const LoggerSparsePure: LFM.Logger<string> = {
   info: () => LFM.nil,
   success: () => LFM.nil,
   failure: flow(failure, IO.of, LFM.of),
@@ -98,7 +98,7 @@ export const LoggerSparsePure: LFM.Logger<string, LogLevel<string>> = {
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerNilPure: LFM.Logger<string, LogLevel<string>> = {
+export const LoggerNilPure: LFM.Logger<string> = {
   info: () => LFM.nil,
   success: () => LFM.nil,
   failure: () => LFM.nil,
