@@ -3,6 +3,7 @@ import * as Ap from 'fp-ts/Apply'
 import * as Chn from 'fp-ts/Chain'
 import * as E from 'fp-ts/Either'
 import * as Fun from 'fp-ts/Functor'
+import * as IO from 'fp-ts/IO'
 import * as Mon from 'fp-ts/Monad'
 import * as MonThrow from 'fp-ts/MonadThrow'
 import * as RTup from 'fp-ts/ReadonlyTuple'
@@ -18,7 +19,7 @@ import * as FM from './LoggerFreeMonoid'
  * @since 1.0.0
  * @category Model
  */
-export type Computation<E, A> = readonly [E.Either<E, A>, FM.FreeMonoid<E>]
+export type Computation<E, A> = IO.IO<readonly [E.Either<E, A>, FM.FreeMonoid<E>]>
 
 // ####################
 // ### Constructors ###
@@ -28,10 +29,8 @@ export type Computation<E, A> = readonly [E.Either<E, A>, FM.FreeMonoid<E>]
  * @since 1.0.0
  * @category Constructors
  */
-export const of: <A>(value: A) => Computation<never, A> = value => [
-  E.right(value),
-  FM.nil,
-]
+export const of: <A>(value: A) => Computation<never, A> = value => () =>
+  [E.right(value), FM.nil]
 
 // #####################
 // ### Non-Pipeables ###
@@ -69,7 +68,7 @@ declare module 'fp-ts/HKT' {
  */
 export const map: <A, B>(
   f: (a: A) => B
-) => <E>(fa: Computation<E, A>) => Computation<E, B> = f => RTup.mapFst(E.map(f))
+) => <E>(fa: Computation<E, A>) => Computation<E, B> = f => IO.map(RTup.mapFst(E.map(f)))
 
 /**
  * @since 1.0.0
@@ -86,10 +85,11 @@ export const Functor: Fun.Functor2<URI> = {
  */
 export const ap: <E, A, B>(
   fab: Computation<E, (a: A) => B>
-) => (fa: Computation<E, A>) => Computation<E, B> =
-  ([fab, ls1]) =>
-  ([fa, ls2]) =>
-    [pipe(fab, E.ap(fa)), FM.concat(ls1, ls2)]
+) => (fa: Computation<E, A>) => Computation<E, B> = ioFab => ioFa => () => {
+  const [fab, ls1] = ioFab()
+  const [fa, ls2] = ioFa()
+  return [pipe(fab, E.ap(fa)), FM.concat(ls1, ls2)]
+}
 
 /**
  * @since 1.0.0
@@ -115,17 +115,20 @@ export const Applicative: Apl.Applicative2<URI> = {
  */
 export const chain: <E, A, B>(
   f: (a: A) => Computation<E, B>
-) => (fa: Computation<E, A>) => Computation<E, B> =
-  f =>
-  ([fa, logs]) =>
-    pipe(
-      fa,
-      E.map(f),
-      E.fold(
-        err => [E.left(err), logs],
-        ([result, logs2]) => [result, FM.concat(logs, logs2)]
-      )
+) => (fa: Computation<E, A>) => Computation<E, B> = f => ioFa => () => {
+  const [fa, logs] = ioFa()
+  return pipe(
+    fa,
+    E.map(f),
+    E.fold(
+      err => [E.left(err), logs],
+      ioResult => {
+        const [result, logs2] = ioResult()
+        return [result, FM.concat(logs, logs2)]
+      }
     )
+  )
+}
 
 /**
  * @since 1.0.0
@@ -149,7 +152,8 @@ export const Monad: Mon.Monad2<URI> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const throwError: <E, A>(e: E) => Computation<E, A> = e => [E.left(e), FM.of(e)]
+export const throwError: <E, A>(e: E) => Computation<E, A> = e => () =>
+  [E.left(e), FM.of(e)]
 
 /**
  * @since 1.0.0
@@ -168,19 +172,18 @@ export const MonadThrow: MonThrow.MonadThrow2<URI> = {
  * @since 1.0.0
  * @category Utilities
  */
-export const tell: <E>(message: E) => Computation<E, void> = message => [
-  E.right(undefined),
-  FM.of(message),
-]
+export const tell: <E>(message: E) => Computation<E, void> = message => () =>
+  [E.right(undefined), FM.of(message)]
 
 /**
  * @since 1.0.0
  * @category Utilities
  */
 export const log: <E>(message: E) => <A>(fa: Computation<E, A>) => Computation<E, A> =
-  message =>
-  ([a, logs]) =>
-    [a, FM.concat(logs, FM.of(message))]
+  message => ioA => () => {
+    const [a, logs] = ioA()
+    return [a, FM.concat(FM.of(message), logs)]
+  }
 
 /**
  * @since 1.0.0
