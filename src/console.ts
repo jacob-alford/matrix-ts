@@ -78,9 +78,9 @@ export const LoggerVerbosePure: LFM.Logger<string, LogLevel<string>> = {
  */
 export const LoggerSparseImpure: LFM.Logger<string> = {
   info: () => LFM.nil,
-  success: flow(IO.of, IO.chainFirst(C.log), LFM.of),
+  success: () => LFM.nil,
   failure: flow(IO.of, IO.chainFirst(C.error), LFM.of),
-  warning: flow(IO.of, IO.chainFirst(C.warn), LFM.of),
+  warning: () => LFM.nil,
 }
 
 /**
@@ -89,7 +89,18 @@ export const LoggerSparseImpure: LFM.Logger<string> = {
  */
 export const LoggerSparsePure: LFM.Logger<string, LogLevel<string>> = {
   info: () => LFM.nil,
-  success: flow(success, IO.of, LFM.of),
+  success: () => LFM.nil,
   failure: flow(failure, IO.of, LFM.of),
-  warning: flow(warn, IO.of, LFM.of),
+  warning: () => LFM.nil,
+}
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const LoggerNilPure: LFM.Logger<string, LogLevel<string>> = {
+  info: () => LFM.nil,
+  success: () => LFM.nil,
+  failure: () => LFM.nil,
+  warning: () => LFM.nil,
 }
