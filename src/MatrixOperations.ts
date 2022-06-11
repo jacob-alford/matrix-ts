@@ -1,11 +1,13 @@
 import * as O from 'fp-ts/Option'
 import * as B from 'fp-ts/boolean'
+import * as Bnd from 'fp-ts/Bounded'
 import * as Eq from 'fp-ts/Eq'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Ord from 'fp-ts/Ord'
 import * as Rng from 'fp-ts/Ring'
 import * as RTup from 'fp-ts/ReadonlyTuple'
 import * as Fld from 'fp-ts/Field'
+import { Show } from 'fp-ts/Show'
 import { IO } from 'fp-ts/IO'
 import { flow, identity, tuple, pipe } from 'fp-ts/function'
 
@@ -98,7 +100,7 @@ type ScaleRow<A> = { tag: 'ScaleRow'; i: number; a: A }
  * @since 1.0.0
  * @category Model
  */
-type ScaleAndSubtractRows<A> = { tag: 'ScaleAndAddRows'; i: number; j: number; a: A }
+type ScaleAndSubtractRows<A> = { tag: 'ScaleAndSubtractRows'; i: number; j: number; a: A }
 
 /**
  * @since 1.0.0
@@ -108,27 +110,6 @@ export type GaussianEliminationStep<A> =
   | RowInterchange
   | ScaleRow<A>
   | ScaleAndSubtractRows<A>
-
-/**
- * @since 1.0.0
- * @category Model
- */
-type MatrixIsSingular = { tag: 'MatrixIsSingular' }
-
-/**
- * @since 1.0.0
- * @category Model
- */
-type ColumnValuesAreEquivalentAndNonZero<A> = {
-  tag: 'ColumnValuesAreEquivalentAndNonZero'
-  value: A
-}
-
-/**
- * @since 1.0.0
- * @category Model
- */
-type IndexIsOutOfBounds = { tag: 'IndexIsOutOfBounds' }
 
 // ####################
 // ### Constructors ###
@@ -159,33 +140,10 @@ export const ScaleAndSubtractRows = <A>(
   j: number,
   a: A
 ): ScaleAndSubtractRows<A> => ({
-  tag: 'ScaleAndAddRows',
+  tag: 'ScaleAndSubtractRows',
   i,
   j,
   a,
-})
-
-/**
- * @since 1.0.0
- * @category Constructors
- */
-const IndexIsOutOfBounds = (): IndexIsOutOfBounds => ({ tag: 'IndexIsOutOfBounds' })
-
-/**
- * @since 1.0.0
- * @category Constructors
- */
-const MatrixIsSingular = (): MatrixIsSingular => ({ tag: 'MatrixIsSingular' })
-
-/**
- * @since 1.0.0
- * @category Constructors
- */
-const ColumnValuesAreEquivalentAndNonZero = <A>(
-  value: A
-): ColumnValuesAreEquivalentAndNonZero<A> => ({
-  tag: 'ColumnValuesAreEquivalentAndNonZero',
-  value,
 })
 
 /**
@@ -222,6 +180,29 @@ export const lowerFromSquareMatrix: <A>(
     O.map(wrapLowerTriangular)
   )
 
+// #################
+// ### Instances ###
+// #################
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getShowEliminationStep: <A>(
+  showA: Show<A>
+) => Show<GaussianEliminationStep<A>> = showA => ({
+  show: a => {
+    switch (a.tag) {
+      case 'RowInterchange':
+        return `RowInterchange(${a.i}, ${a.j})`
+      case 'ScaleRow':
+        return `ScaleRow(${a.i}, ${showA.show(a.a)})`
+      case 'ScaleAndSubtractRows':
+        return `ScaleAndSubtractRows(${a.i}, ${a.j}, ${showA.show(a.a)})`
+    }
+  },
+})
+
 // #########################
 // ### Matrix Operations ###
 // #########################
@@ -231,38 +212,26 @@ export const lowerFromSquareMatrix: <A>(
  * @category Internal
  */
 const getMaxRowIndex =
-  <A>(ordA: Ord.Ord<A>, { abs }: Abs<A>) =>
-  <M, N>(cIndex: number, m: M.MatC<M, N, A>): O.Option<[number, A]> => {
-    const [, columns] = M_.shape(M_.fromMatC(m))
-    return pipe(
+  <A>(Bnd: Bnd.Bounded<A>, { abs }: Abs<A>) =>
+  <M, N>(pivotIndex: number, m: M.MatC<M, N, A>): [A, O.Option<number>] =>
+    pipe(
       m,
-      O.fromPredicate(() => cIndex < columns),
-      O.chain(
-        V.reduceWithIndex(O.zero<[number, A]>(), (i, acc, a) =>
-          pipe(
-            a,
-            V.get(cIndex),
-            O.map(ai =>
-              pipe(
-                acc,
-                O.fold(
-                  () => tuple(i, abs(ai)),
-                  ([maxIndex, bi]) =>
-                    Ord.gt(ordA)(abs(ai), bi) ? tuple(i, abs(ai)) : tuple(maxIndex, bi)
-                )
-              )
-            )
-          )
-        )
+      M.reduceWithIndex(
+        tuple(Bnd.bottom, O.zero()),
+        ([currentRow, currentColumn], [currentMax, maxIndex], next) =>
+          currentColumn !== pivotIndex || currentRow <= pivotIndex
+            ? tuple(currentMax, maxIndex)
+            : Ord.gt(Bnd)(abs(next), currentMax)
+            ? tuple(next, O.some(currentRow))
+            : tuple(currentMax, maxIndex)
       )
     )
-  }
 
 /**
  * @since 1.0.0
  * @category Internal
  */
-const matrixColumnIsZeroAtIndex =
+const matrixRowIsZeroAtIndex =
   <A>(eqA: Eq.Eq<A>, R: Rng.Ring<A>) =>
   <M extends number, N extends number>(
     cIndex: number,
@@ -275,7 +244,7 @@ const matrixColumnIsZeroAtIndex =
  * @category Internal
  */
 const subtractAndScaleBelowPivotRow =
-  <A>(F: Fld.Field<A>) =>
+  <A>(eqA: Eq.Eq<A>, F: Fld.Field<A>) =>
   <M, N>(
     pivot: number,
     m: M.MatC<M, N, A>
@@ -292,14 +261,16 @@ const subtractAndScaleBelowPivotRow =
             row: V.VecC<N, A>
           ): [V.VecC<N, A>, ReadonlyArray<GaussianEliminationStep<A>>] => {
             const multiplier = F.div(aji, aii)
-            return pipe(
-              V.zipVectors(row, pivotRow),
-              V.map(([ajk, aik]) => F.sub(ajk, F.mul(aik, multiplier))),
-              resultingVector =>
-                tuple(resultingVector, [
-                  ScaleAndSubtractRows(pivot, rowIndex, multiplier),
-                ])
-            )
+            return eqA.equals(multiplier, F.zero)
+              ? tuple(row, [])
+              : pipe(
+                  V.zipVectors(row, pivotRow),
+                  V.map(([ajk, aik]) => F.sub(ajk, F.mul(aik, multiplier))),
+                  resultingVector =>
+                    tuple(resultingVector, [
+                      ScaleAndSubtractRows(pivot, rowIndex, multiplier),
+                    ])
+                )
           }
         return pipe(
           m,
@@ -345,7 +316,7 @@ const subtractAndScaleBelowPivotRow =
  */
 export const guassianEliminationWithPartialPivoting =
   <LO = string>(Log: LFM.Logger<string, LO>) =>
-  <A>(ordA: Ord.Ord<A>, F: Fld.Field<A>, A: Abs<A>) =>
+  <A>(BndA: Bnd.Bounded<A>, F: Fld.Field<A>, A: Abs<A>) =>
   <M extends number>(
     m: M.MatC<M, M, A>
   ): readonly [
@@ -375,7 +346,7 @@ export const guassianEliminationWithPartialPivoting =
           LFM.concat(logs, Log.success('Successfully reduced matrix')),
         ]
 
-      const matrixIsSingular = matrixColumnIsZeroAtIndex(ordA, F)(pivotIndex, acc)
+      const matrixIsSingular = matrixRowIsZeroAtIndex(BndA, F)(pivotIndex, acc)
 
       /** This case should be unreachable */
       if (O.isNone(matrixIsSingular))
@@ -393,20 +364,13 @@ export const guassianEliminationWithPartialPivoting =
       if (matrixIsSingular.value)
         return [O.none, LFM.concat(logs, Log.failure('Matrix is singular'))]
 
-      const maxIndex = getMaxRowIndex(ordA, A)(pivotIndex, acc)
+      const [, maxRowIndex] = getMaxRowIndex(BndA, A)(pivotIndex, acc)
 
-      /** This case should be unreachable */
-      if (O.isNone(maxIndex))
-        return [
-          O.none,
-          LFM.concat(logs, Log.failure('Unreachable case: cannot find max row index')),
-        ]
+      const willPivot = O.isSome(maxRowIndex)
 
-      const [maxRowIndex] = maxIndex.value
-
-      const willPivot = maxRowIndex !== pivotIndex
-
-      const mPivoted = pipe(acc, M.switchRows(pivotIndex, maxRowIndex))
+      const mPivoted = willPivot
+        ? pipe(acc, M.switchRows(pivotIndex, maxRowIndex.value))
+        : O.some(acc)
 
       /** This case should be unreachable */
       if (O.isNone(mPivoted))
@@ -415,7 +379,10 @@ export const guassianEliminationWithPartialPivoting =
           LFM.concat(logs, Log.failure('Unreachable case: unable to switch rows')),
         ]
 
-      const mPivotedScaled = subtractAndScaleBelowPivotRow(F)(pivotIndex, mPivoted.value)
+      const mPivotedScaled = subtractAndScaleBelowPivotRow(BndA, F)(
+        pivotIndex,
+        mPivoted.value
+      )
 
       /** This case should be unreachable */
       if (O.isNone(mPivotedScaled))
@@ -428,7 +395,7 @@ export const guassianEliminationWithPartialPivoting =
 
       const newSteps = [
         ...steps,
-        ...(willPivot ? [RowInterchange(maxRowIndex, pivotIndex)] : []),
+        ...(willPivot ? [RowInterchange(maxRowIndex.value, pivotIndex)] : []),
         ...stepsScaledAndAdded,
       ]
 
@@ -438,7 +405,7 @@ export const guassianEliminationWithPartialPivoting =
         newMatrix,
         LFM.concat(
           logs,
-          willPivot ? Log.info(`Swapped ${pivotIndex} and ${maxRowIndex}`) : LFM.nil
+          willPivot ? Log.info(`Swapped ${pivotIndex} and ${maxRowIndex.value}`) : LFM.nil
         )
       )
     }
