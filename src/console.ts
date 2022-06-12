@@ -1,5 +1,5 @@
 import * as C from 'fp-ts/Console'
-import { flow } from 'fp-ts/function'
+import { constVoid, flow } from 'fp-ts/function'
 import * as IO from 'fp-ts/IO'
 
 import * as LFM from './LoggerFreeMonoid'
@@ -55,10 +55,10 @@ export const warn = (warning: string): LogLevel => `[Warning]: ${warning}`
  * @category Instances
  */
 export const LoggerVerboseImpure: LFM.Logger<string> = {
-  info: flow(IO.of, IO.chainFirst(C.info), LFM.of),
-  success: flow(IO.of, IO.chainFirst(C.log), LFM.of),
-  failure: flow(IO.of, IO.chainFirst(C.error), LFM.of),
-  warning: flow(IO.of, IO.chainFirst(C.warn), LFM.of),
+  info: flow(IO.of, IO.chainFirst(C.info)),
+  success: flow(IO.of, IO.chainFirst(C.log)),
+  failure: flow(IO.of, IO.chainFirst(C.error)),
+  warning: flow(IO.of, IO.chainFirst(C.warn)),
 }
 
 /**
@@ -66,10 +66,10 @@ export const LoggerVerboseImpure: LFM.Logger<string> = {
  * @category Instances
  */
 export const LoggerVerbosePure: LFM.Logger<string> = {
-  info: flow(info, IO.of, LFM.of),
-  success: flow(success, IO.of, LFM.of),
-  failure: flow(failure, IO.of, LFM.of),
-  warning: flow(warn, IO.of, LFM.of),
+  info: flow(info, IO.of),
+  success: flow(success, IO.of),
+  failure: flow(failure, IO.of),
+  warning: flow(warn, IO.of),
 }
 
 /**
@@ -77,30 +77,19 @@ export const LoggerVerbosePure: LFM.Logger<string> = {
  * @category Instances
  */
 export const LoggerSparseImpure: LFM.Logger<string> = {
-  info: () => LFM.nil,
-  success: () => LFM.nil,
-  failure: flow(IO.of, IO.chainFirst(C.error), LFM.of),
-  warning: () => LFM.nil,
+  info: IO.of,
+  success: IO.of,
+  failure: flow(IO.of, IO.chainFirst(C.error)),
+  warning: IO.of,
 }
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerSparsePure: LFM.Logger<string> = {
-  info: () => LFM.nil,
-  success: () => LFM.nil,
-  failure: flow(failure, IO.of, LFM.of),
-  warning: () => LFM.nil,
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const LoggerNilPure: LFM.Logger<string> = {
-  info: () => LFM.nil,
-  success: () => LFM.nil,
-  failure: () => LFM.nil,
-  warning: () => LFM.nil,
+export const LoggerVoid: LFM.Logger<unknown, void> = {
+  info: flow(constVoid, IO.of),
+  success: flow(constVoid, IO.of),
+  failure: flow(constVoid, IO.of),
+  warning: flow(constVoid, IO.of),
 }

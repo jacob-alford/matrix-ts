@@ -1,14 +1,15 @@
 import * as O from 'fp-ts/Option'
 import * as B from 'fp-ts/boolean'
 import * as Bnd from 'fp-ts/Bounded'
+import * as ChnR from 'fp-ts/ChainRec'
+import * as E from 'fp-ts/Either'
 import * as Eq from 'fp-ts/Eq'
+import * as IO from 'fp-ts/IO'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Ord from 'fp-ts/Ord'
 import * as Rng from 'fp-ts/Ring'
-import * as RTup from 'fp-ts/ReadonlyTuple'
 import * as Fld from 'fp-ts/Field'
 import { Show } from 'fp-ts/Show'
-import { IO } from 'fp-ts/IO'
 import { flow, identity, tuple, pipe } from 'fp-ts/function'
 
 import * as M from './MatrixC'
@@ -16,6 +17,7 @@ import * as M_ from './Matrix'
 import * as V from './VectorC'
 import { Abs } from './Abs'
 import * as LFM from './LoggerFreeMonoid'
+import * as C from './Computation'
 
 const UpperTriangularSymbol = Symbol('UpperTriangular')
 type UpperTriangularSymbol = typeof UpperTriangularSymbol
@@ -315,102 +317,98 @@ const subtractAndScaleBelowPivotRow =
  * @category Constructors
  */
 export const guassianEliminationWithPartialPivoting =
-  (Log: LFM.Logger<string>) =>
+  <LO>(Log: LFM.Logger<string, LO>) =>
   <A>(BndA: Bnd.Bounded<A>, F: Fld.Field<A>, A: Abs<A>) =>
   <M extends number>(
     m: M.MatC<M, M, A>
-  ): readonly [
-    O.Option<
-      [
-        ReadonlyArray<GaussianEliminationStep<A>>,
-        UpperTriangularMatrix<M, A>,
-        InvertibleMatrix<M, A>
-      ]
-    >,
-    LFM.FreeMonoid<IO<string>>
-  ] => {
+  ): C.Computation<
+    IO.IO<LO>,
+    [
+      ReadonlyArray<GaussianEliminationStep<A>>,
+      UpperTriangularMatrix<M, A>,
+      InvertibleMatrix<M, A>
+    ]
+  > => {
+    type ComputationParams = {
+      acc: M.MatC<M, M, A>
+      pivotIndex: number
+      steps: ReadonlyArray<GaussianEliminationStep<A>>
+    }
+
+    type Computation = C.Computation<IO.IO<LO>, ComputationParams>
+
     const [, columns] = M_.shape(M_.fromMatC(m))
-    const go = (
-      steps: ReadonlyArray<GaussianEliminationStep<A>>,
-      pivotIndex: number,
-      acc: M.MatC<M, M, A>,
-      logs: LFM.FreeMonoid<IO<string>>
-    ): [
-      O.Option<[ReadonlyArray<GaussianEliminationStep<A>>, UpperTriangularMatrix<M, A>]>,
-      LFM.FreeMonoid<IO<string>>
-    ] => {
-      /** Acc is now reduced */
-      if (pivotIndex >= columns)
-        return [
-          O.some(tuple(steps, wrapUpperTriangular(acc))),
-          LFM.concat(logs, Log.success('Successfully reduced matrix')),
-        ]
 
-      const matrixIsSingular = matrixRowIsZeroAtIndex(BndA, F)(pivotIndex, acc)
+    const go = (computation: Computation): E.Either<Computation, Computation> => {
+      const [result] = computation
 
-      /** This case should be unreachable */
-      if (O.isNone(matrixIsSingular))
-        return [
-          O.none,
-          LFM.concat(
-            logs,
-            Log.failure(
-              'Unreachable case: cannot find pivot index during singularity check'
-            )
-          ),
-        ]
+      /** Base case: computation has failed in prior iterations */
+      if (E.isLeft(result)) return E.right(computation)
 
-      /** Matrix is singular */
-      if (matrixIsSingular.value)
-        return [O.none, LFM.concat(logs, Log.failure('Matrix is singular'))]
+      /** Base case: Matrix reduction is complete */
+      if (result.right.pivotIndex >= columns) return E.right(computation)
 
-      const [, maxRowIndex] = getMaxRowIndex(BndA, A)(pivotIndex, acc)
-
-      const willPivot = O.isSome(maxRowIndex)
-
-      const mPivoted = willPivot
-        ? pipe(acc, M.switchRows(pivotIndex, maxRowIndex.value))
-        : O.some(acc)
-
-      /** This case should be unreachable */
-      if (O.isNone(mPivoted))
-        return [
-          O.none,
-          LFM.concat(logs, Log.failure('Unreachable case: unable to switch rows')),
-        ]
-
-      const mPivotedScaled = subtractAndScaleBelowPivotRow(BndA, F)(
-        pivotIndex,
-        mPivoted.value
-      )
-
-      /** This case should be unreachable */
-      if (O.isNone(mPivotedScaled))
-        return [
-          O.none,
-          LFM.concat(logs, Log.failure('Unreachable case: unable to pivot and scale')),
-        ]
-
-      const [stepsScaledAndAdded, newMatrix] = mPivotedScaled.value
-
-      const newSteps = [
-        ...steps,
-        ...(willPivot ? [RowInterchange(maxRowIndex.value, pivotIndex)] : []),
-        ...stepsScaledAndAdded,
-      ]
-
-      return go(
-        newSteps,
-        pivotIndex + 1,
-        newMatrix,
-        LFM.concat(
-          logs,
-          willPivot ? Log.info(`Swapped ${pivotIndex} and ${maxRowIndex.value}`) : LFM.nil
-        )
+      return pipe(
+        computation,
+        C.chainFirst(
+          flow(
+            C.filterOptionK(
+              ({ pivotIndex, acc }) => matrixRowIsZeroAtIndex(BndA, F)(pivotIndex, acc),
+              () =>
+                Log.failure(
+                  'Unreachable case: cannot find pivot index during singularity check'
+                )
+            ),
+            C.filter(identity, () => Log.failure('Matrix is singular'))
+          )
+        ),
+        C.bindTo('computation'),
+        C.bindW('maxRowIndex', ({ computation: { pivotIndex, acc } }) =>
+          pipe(getMaxRowIndex(BndA, A)(pivotIndex, acc)[1], C.of)
+        ),
+        C.bind('mPivoted', ({ computation: { acc, pivotIndex }, maxRowIndex }) =>
+          pipe(
+            O.isSome(maxRowIndex)
+              ? pipe(acc, M.switchRows(pivotIndex, maxRowIndex.value))
+              : O.some(acc),
+            C.fromOption(() => Log.failure('Unreachable case: unable to switch rows'))
+          )
+        ),
+        C.bind('mPivotedScaled', ({ computation: { pivotIndex }, mPivoted }) =>
+          pipe(
+            subtractAndScaleBelowPivotRow(BndA, F)(pivotIndex, mPivoted),
+            C.fromOption(() => Log.failure('Unreachable case: unable to pivot and scale'))
+          )
+        ),
+        C.logOption(({ maxRowIndex, computation: { pivotIndex } }) =>
+          pipe(
+            maxRowIndex,
+            O.map(maxRowIndex => Log.info(`Swapped ${pivotIndex} and ${maxRowIndex}`))
+          )
+        ),
+        C.map(
+          ({
+            mPivotedScaled: [scaleSteps, pivotedScaled],
+            computation: { pivotIndex, steps },
+            maxRowIndex,
+          }): ComputationParams => ({
+            acc: pivotedScaled,
+            pivotIndex: pivotIndex + 1,
+            steps: [
+              ...steps,
+              ...scaleSteps,
+              ...(O.isSome(maxRowIndex)
+                ? [RowInterchange(maxRowIndex.value, pivotIndex)]
+                : []),
+            ],
+          })
+        ),
+        E.left
       )
     }
+
     return pipe(
-      go([], 0, m, LFM.nil),
-      RTup.mapFst(O.map(([steps, reduced]) => tuple(steps, reduced, wrapInvertible(m))))
+      ChnR.tailRec(C.of({ acc: m, steps: [], pivotIndex: 0 }), go),
+      C.map(({ steps, acc }) => tuple(steps, wrapUpperTriangular(acc), wrapInvertible(m)))
     )
   }
