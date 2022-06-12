@@ -11,7 +11,7 @@ import * as V from '../VectorC'
 
 describe('Gaussian Elimination with Partial Pivoting', () => {
   it('returns a factorized matrix', () => {
-    const [result, logs] = MatOps.guassianEliminationWithPartialPivoting({
+    const [result] = MatOps.guassianEliminationWithPartialPivoting({
       logger: Log.LoggerVoid,
     })(
       M.fromNestedTuples([
@@ -29,8 +29,6 @@ describe('Gaussian Elimination with Partial Pivoting', () => {
       [0, 0, 0, -0.05],
     ])
 
-    pipe(logs, FM.IsoReadonlyArray.get, RA.sequence(IO.Applicative))()
-
     if (E.isLeft(result)) {
       throw new Error('Unexpected result')
     }
@@ -44,7 +42,7 @@ describe('Gaussian Elimination with Partial Pivoting', () => {
   })
   it('detects a singular matrix (i)', () => {
     const [result, logs] = MatOps.guassianEliminationWithPartialPivoting({
-      logger: Log.LoggerVerbosePure,
+      logger: Log.LoggerVoid,
     })(
       M.fromNestedTuples([
         [1, -2],
@@ -62,7 +60,7 @@ describe('Gaussian Elimination with Partial Pivoting', () => {
   })
   it('detects a singular matrix (ii)', () => {
     const [result, logs] = MatOps.guassianEliminationWithPartialPivoting({
-      logger: Log.LoggerVerbosePure,
+      logger: Log.LoggerVoid,
     })(
       M.fromNestedTuples([
         [1, 1, 1],
@@ -81,7 +79,7 @@ describe('Gaussian Elimination with Partial Pivoting', () => {
   })
   it('detects a singular matrix (iii)', () => {
     const [result, logs] = MatOps.guassianEliminationWithPartialPivoting({
-      logger: Log.LoggerVerbosePure,
+      logger: Log.LoggerVoid,
     })(
       M.fromNestedTuples([
         [1, 2],

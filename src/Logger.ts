@@ -25,11 +25,17 @@ export interface Logger<A, B = A> {
  * @since 1.0.0
  * @category Model
  */
-export type LogLevel =
-  | `   [Info]: ${string}`
-  | `[Success]: ${string}`
-  | `[Failure]: ${string}`
-  | `[Warning]: ${string}`
+export type LogLevel = 'Info' | 'Success' | 'Failure' | 'Warning'
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export type LogDetails<E> = {
+  message: E
+  timestamp: string
+  level: LogLevel
+}
 
 // ####################
 // ### Constructors ###
@@ -39,25 +45,41 @@ export type LogLevel =
  * @since 1.0.0
  * @category Constructors
  */
-export const info = (log: string): LogLevel => `   [Info]: ${log}`
+export const info = <E>(message: E): LogDetails<E> => ({
+  message,
+  timestamp: new Date().toISOString(),
+  level: 'Info',
+})
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const success = (success: string): LogLevel => `[Success]: ${success}`
+export const success = <E>(message: E): LogDetails<E> => ({
+  message,
+  timestamp: new Date().toISOString(),
+  level: 'Success',
+})
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const failure = (failure: string): LogLevel => `[Failure]: ${failure}`
+export const failure = <E>(message: E): LogDetails<E> => ({
+  message,
+  timestamp: new Date().toISOString(),
+  level: 'Failure',
+})
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const warn = (warning: string): LogLevel => `[Warning]: ${warning}`
+export const warning = <E>(message: E): LogDetails<E> => ({
+  message,
+  timestamp: new Date().toISOString(),
+  level: 'Warning',
+})
 
 // #################
 // ### Instances ###
@@ -67,44 +89,33 @@ export const warn = (warning: string): LogLevel => `[Warning]: ${warning}`
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerVerboseImpure: Logger<string> = {
-  info: flow(IO.of, IO.chainFirst(C.info)),
-  success: flow(IO.of, IO.chainFirst(C.log)),
-  failure: flow(IO.of, IO.chainFirst(C.error)),
-  warning: flow(IO.of, IO.chainFirst(C.warn)),
+export const LoggerVerboseImpure: Logger<string, LogDetails<string>> = {
+  info: flow(info, IO.of, IO.chainFirst(C.info)),
+  success: flow(success, IO.of, IO.chainFirst(C.log)),
+  failure: flow(failure, IO.of, IO.chainFirst(C.error)),
+  warning: flow(warning, IO.of, IO.chainFirst(C.warn)),
 }
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerVerbosePure: Logger<string> = {
-  info: IO.of,
-  success: IO.of,
-  failure: IO.of,
-  warning: IO.of,
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const LoggerTaggedVerbosePure: Logger<string> = {
+export const LoggerVerbosePure: Logger<string, LogDetails<string>> = {
   info: flow(info, IO.of),
   success: flow(success, IO.of),
   failure: flow(failure, IO.of),
-  warning: flow(warn, IO.of),
+  warning: flow(warning, IO.of),
 }
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerSparseImpure: Logger<string> = {
-  info: IO.of,
-  success: IO.of,
+export const LoggerImpure: Logger<string> = {
+  info: flow(IO.of, IO.chainFirst(C.error)),
+  success: flow(IO.of, IO.chainFirst(C.error)),
   failure: flow(IO.of, IO.chainFirst(C.error)),
-  warning: IO.of,
+  warning: flow(IO.of, IO.chainFirst(C.error)),
 }
 
 /**

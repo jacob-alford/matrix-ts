@@ -348,7 +348,12 @@ export const guassianEliminationWithPartialPivoting =
       if (E.isLeft(result)) return E.right(computation)
 
       /** Base case: Matrix reduction is complete */
-      if (result.right.pivotIndex >= columns) return E.right(computation)
+      if (result.right.pivotIndex >= columns)
+        return pipe(
+          computation,
+          C.log(logger.success('Successfully reduced matrix')),
+          E.right
+        )
 
       return pipe(
         computation,
