@@ -66,9 +66,6 @@ declare module 'fp-ts/HKT' {
   interface URItoKind3<R, E, A> {
     readonly [URI]: Computation<R, E, A>
   }
-  interface URItoKind2<E, A> {
-    readonly [URI]: Computation<E, E, A>
-  }
 }
 
 /**
@@ -186,7 +183,10 @@ export const Monad: Mon.Monad3<URI> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const throwError: <E, A>(e: E) => Computation<E, E, A> = e => [E.left(e), FM.of(e)]
+export const throwError: <R, E, A>(e: E) => Computation<R, E, A> = e => [
+  E.left(e),
+  FM.nil,
+]
 
 /**
  * @since 1.0.0
@@ -201,7 +201,7 @@ export const throwErrorMessage: <R, E, A>(
  * @since 1.0.0
  * @category Instances
  */
-export const MonadThrow: MonThrow.MonadThrow2<URI> = {
+export const MonadThrow: MonThrow.MonadThrow3<URI> = {
   ...Monad,
   throwError,
 }
@@ -210,16 +210,22 @@ export const MonadThrow: MonThrow.MonadThrow2<URI> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const fromEither: FE.FromEither2<URI>['fromEither'] = a => [
-  a,
-  E.isLeft(a) ? FM.of(a.left) : FM.nil,
-]
+export const fromEither: FE.FromEither3<URI>['fromEither'] = a => [a, FM.nil]
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const fromEitherWithMessage: <R, E>(
+  createMessage: (e: E) => R
+) => <A>(from: E.Either<E, A>) => Computation<R, E, A> = createMessage =>
+  E.fold(e => throwErrorMessage(e, createMessage), of)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const FromEither: FE.FromEither2<URI> = {
+export const FromEither: FE.FromEither3<URI> = {
   URI,
   fromEither,
 }
