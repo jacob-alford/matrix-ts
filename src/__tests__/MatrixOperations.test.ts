@@ -1,7 +1,6 @@
 import * as E from 'fp-ts/Either'
 import * as IO from 'fp-ts/IO'
 import * as RA from 'fp-ts/ReadonlyArray'
-import * as N from 'fp-ts/number'
 import { pipe } from 'fp-ts/function'
 
 import * as MatOps from '../MatrixOperations'
@@ -59,9 +58,7 @@ describe('Gaussian Elimination with Partial Pivoting', () => {
       throw new Error('Unexpected result')
     }
 
-    const error = result.left()
-
-    expect(error).toBe('Matrix is singular')
+    expect(result.left).toBe('Matrix is singular')
   })
   it('detects a singular matrix (ii)', () => {
     const [result, logs] = MatOps.guassianEliminationWithPartialPivoting({
@@ -80,9 +77,7 @@ describe('Gaussian Elimination with Partial Pivoting', () => {
       throw new Error('Unexpected result')
     }
 
-    const error = result.left()
-
-    expect(error).toBe('Matrix is singular')
+    expect(result.left).toBe('Matrix is singular')
   })
   it('detects a singular matrix (iii)', () => {
     const [result, logs] = MatOps.guassianEliminationWithPartialPivoting({
@@ -100,8 +95,6 @@ describe('Gaussian Elimination with Partial Pivoting', () => {
       throw new Error('Unexpected result')
     }
 
-    const error = result.left()
-
-    expect(error).toBe('Matrix is singular')
+    expect(result.left).toBe('Matrix is singular')
   })
 })

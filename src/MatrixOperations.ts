@@ -324,6 +324,7 @@ export const guassianEliminationWithPartialPivoting =
     m: M.MatC<M, M, number>
   ): C.Computation<
     IO.IO<E>,
+    string,
     [
       ReadonlyArray<GaussianEliminationStep<number>>,
       UpperTriangularMatrix<M, number>,
@@ -336,7 +337,7 @@ export const guassianEliminationWithPartialPivoting =
       steps: ReadonlyArray<GaussianEliminationStep<number>>
     }
 
-    type Computation = C.Computation<IO.IO<E>, ComputationParams>
+    type Computation = C.Computation<IO.IO<E>, string, ComputationParams>
 
     const [, columns] = M_.shape(M_.fromMatC(m))
 
@@ -355,14 +356,13 @@ export const guassianEliminationWithPartialPivoting =
           flow(
             C.filterOptionK(
               ({ pivotIndex, acc }) => matrixRowIsZeroAtIndex(pivotIndex, acc),
-              () =>
-                logger.failure(
-                  'Unreachable case: cannot find pivot index during singularity check'
-                )
+              () => 'Unreachable case: cannot find pivot index during singularity check',
+              logger.failure
             ),
             C.filter(
               matrixIsSingular => !matrixIsSingular,
-              () => logger.failure('Matrix is singular')
+              () => 'Matrix is singular',
+              logger.failure
             )
           )
         ),
@@ -375,13 +375,16 @@ export const guassianEliminationWithPartialPivoting =
             O.isSome(maxRowIndex)
               ? pipe(acc, M.switchRows(pivotIndex, maxRowIndex.value))
               : O.some(acc),
-            C.fromOption(() => logger.failure('Unreachable case: unable to switch rows'))
+            C.fromOptionWithMessage(
+              () => 'Unreachable case: unable to switch rows',
+              logger.failure
+            )
           )
         ),
         C.bind('mPivotedScaled', ({ computation: { pivotIndex }, mPivoted }) =>
           pipe(
             subtractAndScaleBelowPivotRow(pivotIndex, mPivoted),
-            C.fromOption(() => logger.failure('Matrix is singular'))
+            C.fromOptionWithMessage(() => 'Matrix is singular', logger.failure)
           )
         ),
         C.logOption(({ maxRowIndex, computation: { pivotIndex } }) =>
