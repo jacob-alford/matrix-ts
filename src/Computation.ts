@@ -10,7 +10,7 @@ import * as O from 'fp-ts/Option'
 import * as RTup from 'fp-ts/ReadonlyTuple'
 import { pipe } from 'fp-ts/function'
 
-import * as FM from './LoggerFreeMonoid'
+import * as FM from './FreeMonoid'
 
 // #############
 // ### Model ###
@@ -290,7 +290,7 @@ export const filter: <E, A>(
   predicate: (a: A) => boolean,
   onFalse: (a: A) => E
 ) => (fa: Computation<E, A>) => Computation<E, A> = (predicate, onFalse) =>
-  chain(a => (!predicate(a) ? of(a) : throwError(onFalse(a))))
+  chain(a => (predicate(a) ? of(a) : throwError(onFalse(a))))
 
 /**
  * @since 1.0.0

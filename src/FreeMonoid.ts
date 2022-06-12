@@ -1,4 +1,3 @@
-import { IO } from 'fp-ts/IO'
 import * as RA from 'fp-ts/ReadonlyArray'
 import { pipe } from 'fp-ts/function'
 
@@ -16,21 +15,6 @@ export type FreeMonoid<A> =
   | { _tag: 'Nil' }
   | { _tag: 'Cons'; value: A }
   | { _tag: 'Concat'; left: FreeMonoid<A>; right: FreeMonoid<A> }
-
-// ###################
-// ### Typeclasses ###
-// ###################
-
-/**
- * @since 1.0.0
- * @category Typeclasses
- */
-export interface Logger<A, B = A> {
-  info: (a: A) => IO<B>
-  success: (a: A) => IO<B>
-  failure: (a: A) => IO<B>
-  warning: (a: A) => IO<B>
-}
 
 // ####################
 // ### Constructors ###

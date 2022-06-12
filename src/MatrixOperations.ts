@@ -1,23 +1,19 @@
 import * as O from 'fp-ts/Option'
 import * as B from 'fp-ts/boolean'
-import * as Bnd from 'fp-ts/Bounded'
 import * as ChnR from 'fp-ts/ChainRec'
 import * as E from 'fp-ts/Either'
 import * as Eq from 'fp-ts/Eq'
 import * as IO from 'fp-ts/IO'
 import * as RA from 'fp-ts/ReadonlyArray'
-import * as Ord from 'fp-ts/Ord'
 import * as Rng from 'fp-ts/Ring'
-import * as Fld from 'fp-ts/Field'
 import { Show } from 'fp-ts/Show'
 import { flow, identity, tuple, pipe } from 'fp-ts/function'
 
 import * as M from './MatrixC'
 import * as M_ from './Matrix'
 import * as V from './VectorC'
-import { Abs } from './Abs'
-import * as LFM from './LoggerFreeMonoid'
 import * as C from './Computation'
+import * as Log from './Logger'
 
 const UpperTriangularSymbol = Symbol('UpperTriangular')
 type UpperTriangularSymbol = typeof UpperTriangularSymbol
@@ -31,6 +27,14 @@ type InvertibleMatrixSymbol = typeof InvertibleMatrixSymbol
 // #############
 // ### Model ###
 // #############
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export interface LoggerEnv<E> {
+  readonly logger: Log.Logger<string, E>
+}
 
 /**
  * Upper Triangular Matricies
@@ -213,129 +217,126 @@ export const getShowEliminationStep: <A>(
  * @since 1.0.0
  * @category Internal
  */
-const getMaxRowIndex =
-  <A>(Bnd: Bnd.Bounded<A>, { abs }: Abs<A>) =>
-  <M, N>(pivotIndex: number, m: M.MatC<M, N, A>): [A, O.Option<number>] =>
-    pipe(
-      m,
-      M.reduceWithIndex(
-        tuple(Bnd.bottom, O.zero()),
-        ([currentRow, currentColumn], [currentMax, maxIndex], next) =>
-          currentColumn !== pivotIndex || currentRow <= pivotIndex
-            ? tuple(currentMax, maxIndex)
-            : Ord.gt(Bnd)(abs(next), currentMax)
-            ? tuple(next, O.some(currentRow))
-            : tuple(currentMax, maxIndex)
-      )
+const getMaxRowIndex = <M, N>(
+  pivotIndex: number,
+  m: M.MatC<M, N, number>
+): [number, O.Option<number>] =>
+  pipe(
+    m,
+    M.reduceWithIndex(
+      tuple(-Infinity, O.zero()),
+      ([currentRow, currentColumn], [currentMax, maxIndex], next) =>
+        currentColumn !== pivotIndex || currentRow <= pivotIndex
+          ? tuple(currentMax, maxIndex)
+          : Math.abs(next) > currentMax
+          ? tuple(next, O.some(currentRow))
+          : tuple(currentMax, maxIndex)
     )
+  )
 
 /**
  * @since 1.0.0
  * @category Internal
  */
-const matrixRowIsZeroAtIndex =
-  <A>(eqA: Eq.Eq<A>, R: Rng.Ring<A>) =>
-  <M extends number, N extends number>(
-    cIndex: number,
-    m: M.MatC<M, N, A>
-  ): O.Option<boolean> =>
-    pipe(m, V.get(cIndex), O.map(V.foldMap(B.MonoidAll)(a => eqA.equals(a, R.zero))))
+const matrixRowIsZeroAtIndex = <M extends number, N extends number>(
+  cIndex: number,
+  m: M.MatC<M, N, number>
+): O.Option<boolean> =>
+  pipe(m, V.get(cIndex), O.map(V.foldMap(B.MonoidAll)(a => a === 0)))
 
 /**
  * @since 1.0.0
  * @category Internal
  */
-const subtractAndScaleBelowPivotRow =
-  <A>(eqA: Eq.Eq<A>, F: Fld.Field<A>) =>
-  <M, N>(
-    pivot: number,
-    m: M.MatC<M, N, A>
-  ): O.Option<[ReadonlyArray<GaussianEliminationStep<A>>, M.MatC<M, N, A>]> =>
-    pipe(
-      m,
-      V.get(pivot),
-      O.chain(pivotRow => {
-        const scaleAndSubtractRow =
-          (aii: A) =>
-          (aji: A) =>
-          (
-            rowIndex: number,
-            row: V.VecC<N, A>
-          ): [V.VecC<N, A>, ReadonlyArray<GaussianEliminationStep<A>>] => {
-            const multiplier = F.div(aji, aii)
-            return eqA.equals(multiplier, F.zero)
-              ? tuple(row, [])
-              : pipe(
-                  V.zipVectors(row, pivotRow),
-                  V.map(([ajk, aik]) => F.sub(ajk, F.mul(aik, multiplier))),
-                  resultingVector =>
-                    tuple(resultingVector, [
-                      ScaleAndSubtractRows(pivot, rowIndex, multiplier),
-                    ])
-                )
-          }
-        return pipe(
-          m,
-          M.get(pivot, pivot),
-          O.chain(aii =>
-            pipe(
-              m,
-              V.traverseWithIndex(O.Applicative)((j, row) =>
-                j > pivot
-                  ? pipe(
-                      row,
-                      V.get(pivot),
-                      O.map(aji => scaleAndSubtractRow(aii)(aji)(j, row))
+const subtractAndScaleBelowPivotRow = <M, N>(
+  pivot: number,
+  m: M.MatC<M, N, number>
+): O.Option<[ReadonlyArray<GaussianEliminationStep<number>>, M.MatC<M, N, number>]> =>
+  pipe(
+    m,
+    V.get(pivot),
+    O.chain(pivotRow => {
+      const scaleAndSubtractRow =
+        (aii: number) =>
+        (aji: number) =>
+        (
+          rowIndex: number,
+          row: V.VecC<N, number>
+        ): [V.VecC<N, number>, ReadonlyArray<GaussianEliminationStep<number>>] => {
+          const multiplier = aji / aii
+          return multiplier === 0
+            ? tuple(row, [])
+            : pipe(
+                V.zipVectors(row, pivotRow),
+                V.map(([ajk, aik]) => ajk - aik * multiplier),
+                resultingVector =>
+                  tuple(resultingVector, [
+                    ScaleAndSubtractRows(pivot, rowIndex, multiplier),
+                  ])
+              )
+        }
+      return pipe(
+        m,
+        M.get(pivot, pivot),
+        O.filter(aii => aii !== 0),
+        O.chain(aii =>
+          pipe(
+            m,
+            V.traverseWithIndex(O.Applicative)((j, row) =>
+              j > pivot
+                ? pipe(
+                    row,
+                    V.get(pivot),
+                    O.map(aji => scaleAndSubtractRow(aii)(aji)(j, row))
+                  )
+                : O.some(tuple(row, []))
+            ),
+            O.map(vs =>
+              pipe(
+                vs,
+                V.foldMap(RA.getMonoid<GaussianEliminationStep<number>>())(
+                  ([, steps]) => steps
+                ),
+                steps =>
+                  tuple(
+                    steps,
+                    pipe(
+                      vs,
+                      V.map(([v]) => v),
+                      M.from2dVectors
                     )
-                  : O.some(tuple(row, []))
-              ),
-              O.map(vs =>
-                pipe(
-                  vs,
-                  V.foldMap(RA.getMonoid<GaussianEliminationStep<A>>())(
-                    ([, steps]) => steps
-                  ),
-                  steps =>
-                    tuple(
-                      steps,
-                      pipe(
-                        vs,
-                        V.map(([v]) => v),
-                        M.from2dVectors
-                      )
-                    )
-                )
+                  )
               )
             )
           )
         )
-      })
-    )
+      )
+    })
+  )
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
 export const guassianEliminationWithPartialPivoting =
-  <LO>(Log: LFM.Logger<string, LO>) =>
-  <A>(BndA: Bnd.Bounded<A>, F: Fld.Field<A>, A: Abs<A>) =>
+  <E>({ logger }: LoggerEnv<E>) =>
   <M extends number>(
-    m: M.MatC<M, M, A>
+    m: M.MatC<M, M, number>
   ): C.Computation<
-    IO.IO<LO>,
+    IO.IO<E>,
     [
-      ReadonlyArray<GaussianEliminationStep<A>>,
-      UpperTriangularMatrix<M, A>,
-      InvertibleMatrix<M, A>
+      ReadonlyArray<GaussianEliminationStep<number>>,
+      UpperTriangularMatrix<M, number>,
+      InvertibleMatrix<M, number>
     ]
   > => {
     type ComputationParams = {
-      acc: M.MatC<M, M, A>
+      acc: M.MatC<M, M, number>
       pivotIndex: number
-      steps: ReadonlyArray<GaussianEliminationStep<A>>
+      steps: ReadonlyArray<GaussianEliminationStep<number>>
     }
 
-    type Computation = C.Computation<IO.IO<LO>, ComputationParams>
+    type Computation = C.Computation<IO.IO<E>, ComputationParams>
 
     const [, columns] = M_.shape(M_.fromMatC(m))
 
@@ -353,37 +354,40 @@ export const guassianEliminationWithPartialPivoting =
         C.chainFirst(
           flow(
             C.filterOptionK(
-              ({ pivotIndex, acc }) => matrixRowIsZeroAtIndex(BndA, F)(pivotIndex, acc),
+              ({ pivotIndex, acc }) => matrixRowIsZeroAtIndex(pivotIndex, acc),
               () =>
-                Log.failure(
+                logger.failure(
                   'Unreachable case: cannot find pivot index during singularity check'
                 )
             ),
-            C.filter(identity, () => Log.failure('Matrix is singular'))
+            C.filter(
+              matrixIsSingular => !matrixIsSingular,
+              () => logger.failure('Matrix is singular')
+            )
           )
         ),
         C.bindTo('computation'),
         C.bindW('maxRowIndex', ({ computation: { pivotIndex, acc } }) =>
-          pipe(getMaxRowIndex(BndA, A)(pivotIndex, acc)[1], C.of)
+          pipe(getMaxRowIndex(pivotIndex, acc)[1], C.of)
         ),
         C.bind('mPivoted', ({ computation: { acc, pivotIndex }, maxRowIndex }) =>
           pipe(
             O.isSome(maxRowIndex)
               ? pipe(acc, M.switchRows(pivotIndex, maxRowIndex.value))
               : O.some(acc),
-            C.fromOption(() => Log.failure('Unreachable case: unable to switch rows'))
+            C.fromOption(() => logger.failure('Unreachable case: unable to switch rows'))
           )
         ),
         C.bind('mPivotedScaled', ({ computation: { pivotIndex }, mPivoted }) =>
           pipe(
-            subtractAndScaleBelowPivotRow(BndA, F)(pivotIndex, mPivoted),
-            C.fromOption(() => Log.failure('Unreachable case: unable to pivot and scale'))
+            subtractAndScaleBelowPivotRow(pivotIndex, mPivoted),
+            C.fromOption(() => logger.failure('Matrix is singular'))
           )
         ),
         C.logOption(({ maxRowIndex, computation: { pivotIndex } }) =>
           pipe(
             maxRowIndex,
-            O.map(maxRowIndex => Log.info(`Swapped ${pivotIndex} and ${maxRowIndex}`))
+            O.map(maxRowIndex => logger.info(`Swapped ${pivotIndex} and ${maxRowIndex}`))
           )
         ),
         C.map(

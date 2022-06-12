@@ -1,8 +1,21 @@
 import * as C from 'fp-ts/Console'
-import { constVoid, flow } from 'fp-ts/function'
 import * as IO from 'fp-ts/IO'
+import { constVoid, flow } from 'fp-ts/function'
 
-import * as LFM from './LoggerFreeMonoid'
+// ###################
+// ### Typeclasses ###
+// ###################
+
+/**
+ * @since 1.0.0
+ * @category Typeclasses
+ */
+export interface Logger<A, B = A> {
+  info: (a: A) => IO.IO<B>
+  success: (a: A) => IO.IO<B>
+  failure: (a: A) => IO.IO<B>
+  warning: (a: A) => IO.IO<B>
+}
 
 // #############
 // ### Model ###
@@ -54,7 +67,7 @@ export const warn = (warning: string): LogLevel => `[Warning]: ${warning}`
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerVerboseImpure: LFM.Logger<string> = {
+export const LoggerVerboseImpure: Logger<string> = {
   info: flow(IO.of, IO.chainFirst(C.info)),
   success: flow(IO.of, IO.chainFirst(C.log)),
   failure: flow(IO.of, IO.chainFirst(C.error)),
@@ -65,7 +78,18 @@ export const LoggerVerboseImpure: LFM.Logger<string> = {
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerVerbosePure: LFM.Logger<string> = {
+export const LoggerVerbosePure: Logger<string> = {
+  info: IO.of,
+  success: IO.of,
+  failure: IO.of,
+  warning: IO.of,
+}
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const LoggerTaggedVerbosePure: Logger<string> = {
   info: flow(info, IO.of),
   success: flow(success, IO.of),
   failure: flow(failure, IO.of),
@@ -76,7 +100,7 @@ export const LoggerVerbosePure: LFM.Logger<string> = {
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerSparseImpure: LFM.Logger<string> = {
+export const LoggerSparseImpure: Logger<string> = {
   info: IO.of,
   success: IO.of,
   failure: flow(IO.of, IO.chainFirst(C.error)),
@@ -87,7 +111,7 @@ export const LoggerSparseImpure: LFM.Logger<string> = {
  * @since 1.0.0
  * @category Instances
  */
-export const LoggerVoid: LFM.Logger<unknown, void> = {
+export const LoggerVoid: Logger<unknown, void> = {
   info: flow(constVoid, IO.of),
   success: flow(constVoid, IO.of),
   failure: flow(constVoid, IO.of),
