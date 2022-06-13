@@ -10,9 +10,9 @@ import { Show } from 'fp-ts/Show'
 import { flow, identity, tuple, pipe } from 'fp-ts/function'
 
 import * as M from './MatrixC'
-import * as M_ from './Matrix'
+import * as M_ from './MatrixU'
 import * as V from './VectorC'
-import * as C from './Computation'
+import * as Comp from './Computation'
 import * as Log from './Logger'
 
 const UpperTriangularSymbol = Symbol('UpperTriangular')
@@ -322,7 +322,7 @@ export const guassianEliminationWithPartialPivoting =
   <E>({ logger }: LoggerEnv<E>) =>
   <M extends number>(
     m: M.MatC<M, M, number>
-  ): C.Computation<
+  ): Comp.Computation<
     IO.IO<E>,
     string,
     [
@@ -337,7 +337,7 @@ export const guassianEliminationWithPartialPivoting =
       steps: ReadonlyArray<GaussianEliminationStep<number>>
     }
 
-    type Computation = C.Computation<IO.IO<E>, string, ComputationParams>
+    type Computation = Comp.Computation<IO.IO<E>, string, ComputationParams>
 
     const [, columns] = M_.shape(M_.fromMatC(m))
 
@@ -351,54 +351,54 @@ export const guassianEliminationWithPartialPivoting =
       if (result.right.pivotIndex >= columns)
         return pipe(
           computation,
-          C.log(logger.success('Successfully reduced matrix')),
+          Comp.log(logger.success('Successfully reduced matrix')),
           E.right
         )
 
       return pipe(
         computation,
-        C.chainFirst(
+        Comp.chainFirst(
           flow(
-            C.filterOptionK(
+            Comp.filterOptionK(
               ({ pivotIndex, acc }) => matrixRowIsZeroAtIndex(pivotIndex, acc),
               () => 'Unreachable case: cannot find pivot index during singularity check',
               logger.failure
             ),
-            C.filter(
+            Comp.filter(
               matrixIsSingular => !matrixIsSingular,
               () => 'Matrix is singular',
               logger.failure
             )
           )
         ),
-        C.bindTo('computation'),
-        C.bindW('maxRowIndex', ({ computation: { pivotIndex, acc } }) =>
-          pipe(getMaxRowIndex(pivotIndex, acc)[1], C.of)
+        Comp.bindTo('computation'),
+        Comp.bindW('maxRowIndex', ({ computation: { pivotIndex, acc } }) =>
+          pipe(getMaxRowIndex(pivotIndex, acc)[1], Comp.of)
         ),
-        C.bind('mPivoted', ({ computation: { acc, pivotIndex }, maxRowIndex }) =>
+        Comp.bind('mPivoted', ({ computation: { acc, pivotIndex }, maxRowIndex }) =>
           pipe(
             O.isSome(maxRowIndex)
               ? pipe(acc, M.switchRows(pivotIndex, maxRowIndex.value))
               : O.some(acc),
-            C.fromOptionWithMessage(
+            Comp.fromOptionWithMessage(
               () => 'Unreachable case: unable to switch rows',
               logger.failure
             )
           )
         ),
-        C.bind('mPivotedScaled', ({ computation: { pivotIndex }, mPivoted }) =>
+        Comp.bind('mPivotedScaled', ({ computation: { pivotIndex }, mPivoted }) =>
           pipe(
             subtractAndScaleBelowPivotRow(pivotIndex, mPivoted),
-            C.fromOptionWithMessage(() => 'Matrix is singular', logger.failure)
+            Comp.fromOptionWithMessage(() => 'Matrix is singular', logger.failure)
           )
         ),
-        C.logOption(({ maxRowIndex, computation: { pivotIndex } }) =>
+        Comp.logOption(({ maxRowIndex, computation: { pivotIndex } }) =>
           pipe(
             maxRowIndex,
             O.map(maxRowIndex => logger.info(`Swapped ${pivotIndex} and ${maxRowIndex}`))
           )
         ),
-        C.map(
+        Comp.map(
           ({
             mPivotedScaled: [scaleSteps, pivotedScaled],
             computation: { pivotIndex, steps },
@@ -420,7 +420,9 @@ export const guassianEliminationWithPartialPivoting =
     }
 
     return pipe(
-      ChnR.tailRec(C.of({ acc: m, steps: [], pivotIndex: 0 }), go),
-      C.map(({ steps, acc }) => tuple(steps, wrapUpperTriangular(acc), wrapInvertible(m)))
+      ChnR.tailRec(Comp.of({ acc: m, steps: [], pivotIndex: 0 }), go),
+      Comp.map(({ steps, acc }) =>
+        tuple(steps, wrapUpperTriangular(acc), wrapInvertible(m))
+      )
     )
   }

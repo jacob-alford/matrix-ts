@@ -8,16 +8,11 @@ import * as O from 'fp-ts/Option'
 import * as N from 'fp-ts/number'
 import { flow, pipe } from 'fp-ts/function'
 
-import * as Conj from './Conjugate'
-import * as Expo from './Exponentiate'
-import * as V from './VectorC'
-import * as M from './MatrixC'
-import * as Comm from './Commutative'
-import * as Mod from './Module'
-import * as VecSpc from './VectorSpace'
-import * as InPrSp from './InnerProductSpace'
-import * as Poly from './Polynomial'
 import * as Iso from './Iso'
+import * as M from './MatrixC'
+import * as Poly from './Polynomial'
+import * as TC from './typeclasses'
+import * as V from './VectorC'
 
 // #############
 // ### Model ###
@@ -162,7 +157,7 @@ export const Show: Sh.Show<Complex> = {
  * @since 1.0.0
  * @category Instances
  */
-export const Conjugate: Conj.Conjugate<Complex> = {
+export const Conjugate: TC.Conjugate<Complex> = {
   conj: ({ Re, Im }) => ({ Re, Im: -Im }),
 }
 
@@ -170,7 +165,7 @@ export const Conjugate: Conj.Conjugate<Complex> = {
  * @since 1.0.0
  * @category Instances
  */
-export const Exp: Expo.Exp<Complex> = {
+export const Exp: TC.Exp<Complex> = {
   exp: (c, n) =>
     pipe(
       argumentRadians(c),
@@ -246,25 +241,25 @@ export type Vec1 = V.VecC<1, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup1: Comm.AbelianGroup<Vec1> = V.getAbGroup(Field)(1)
+export const AbelianGroup1: TC.AbelianGroup<Vec1> = V.getAbGroup(Field)(1)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule1: Mod.Bimodule<Complex, Vec1> = V.getBimodule(Field)(1)
+export const Bimodule1: TC.Bimodule<Complex, Vec1> = V.getBimodule(Field)(1)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField1: VecSpc.VectorSpace<Complex, Vec1> = V.getVectorSpace(Field)(1)
+export const VectorField1: TC.VectorSpace<Complex, Vec1> = V.getVectorSpace(Field)(1)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace1: InPrSp.InnerProductSpace<Complex, Vec1> =
+export const InnerProductSpace1: TC.InnerProductSpace<Complex, Vec1> =
   V.getInnerProductSpace(Field, Conjugate)(1)
 
 // #############
@@ -281,25 +276,25 @@ export type Vec2 = V.VecC<2, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup2: Comm.AbelianGroup<Vec2> = V.getAbGroup(Field)(2)
+export const AbelianGroup2: TC.AbelianGroup<Vec2> = V.getAbGroup(Field)(2)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule2: Mod.Bimodule<Complex, Vec2> = V.getBimodule(Field)(2)
+export const Bimodule2: TC.Bimodule<Complex, Vec2> = V.getBimodule(Field)(2)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField2: VecSpc.VectorSpace<Complex, Vec2> = V.getVectorSpace(Field)(2)
+export const VectorField2: TC.VectorSpace<Complex, Vec2> = V.getVectorSpace(Field)(2)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace2: InPrSp.InnerProductSpace<Complex, Vec2> =
+export const InnerProductSpace2: TC.InnerProductSpace<Complex, Vec2> =
   V.getInnerProductSpace(Field, Conjugate)(2)
 
 // ###############
@@ -316,7 +311,7 @@ export type Mat22 = M.MatC<2, 2, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbelianGroup22: Comm.AbelianGroup<Mat22> = M.getAdditiveAbelianGroup(
+export const AdditiveAbelianGroup22: TC.AbelianGroup<Mat22> = M.getAdditiveAbelianGroup(
   Field
 )(2, 2)
 
@@ -324,7 +319,7 @@ export const AdditiveAbelianGroup22: Comm.AbelianGroup<Mat22> = M.getAdditiveAbe
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule22: Mod.Bimodule<Complex, Mat22> = M.getBimodule(Field)(2, 2)
+export const Bimodule22: TC.Bimodule<Complex, Mat22> = M.getBimodule(Field)(2, 2)
 
 // #############
 // ### Vec3 ####
@@ -340,25 +335,25 @@ export type Vec3 = V.VecC<3, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup3: Comm.AbelianGroup<Vec3> = V.getAbGroup(Field)(3)
+export const AbelianGroup3: TC.AbelianGroup<Vec3> = V.getAbGroup(Field)(3)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule3: Mod.Bimodule<Complex, Vec3> = V.getBimodule(Field)(3)
+export const Bimodule3: TC.Bimodule<Complex, Vec3> = V.getBimodule(Field)(3)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField3: VecSpc.VectorSpace<Complex, Vec3> = V.getVectorSpace(Field)(3)
+export const VectorField3: TC.VectorSpace<Complex, Vec3> = V.getVectorSpace(Field)(3)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace3: InPrSp.InnerProductSpace<Complex, Vec3> =
+export const InnerProductSpace3: TC.InnerProductSpace<Complex, Vec3> =
   V.getInnerProductSpace(Field, Conjugate)(3)
 
 /**
@@ -381,7 +376,7 @@ export type Mat33 = M.MatC<3, 3, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbelianGroup33: Comm.AbelianGroup<Mat33> = M.getAdditiveAbelianGroup(
+export const AdditiveAbelianGroup33: TC.AbelianGroup<Mat33> = M.getAdditiveAbelianGroup(
   Field
 )(3, 3)
 
@@ -389,7 +384,7 @@ export const AdditiveAbelianGroup33: Comm.AbelianGroup<Mat33> = M.getAdditiveAbe
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule33: Mod.Bimodule<Complex, Mat33> = M.getBimodule(Field)(3, 3)
+export const Bimodule33: TC.Bimodule<Complex, Mat33> = M.getBimodule(Field)(3, 3)
 
 // #############
 // ### Vec4 ####
@@ -405,25 +400,25 @@ export type Vec4 = V.VecC<4, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup4: Comm.AbelianGroup<Vec4> = V.getAbGroup(Field)(4)
+export const AbelianGroup4: TC.AbelianGroup<Vec4> = V.getAbGroup(Field)(4)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule4: Mod.Bimodule<Complex, Vec4> = V.getBimodule(Field)(4)
+export const Bimodule4: TC.Bimodule<Complex, Vec4> = V.getBimodule(Field)(4)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField4: VecSpc.VectorSpace<Complex, Vec4> = V.getVectorSpace(Field)(4)
+export const VectorField4: TC.VectorSpace<Complex, Vec4> = V.getVectorSpace(Field)(4)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace4: InPrSp.InnerProductSpace<Complex, Vec4> =
+export const InnerProductSpace4: TC.InnerProductSpace<Complex, Vec4> =
   V.getInnerProductSpace(Field, Conjugate)(4)
 
 // ###############
@@ -440,7 +435,7 @@ export type Mat44 = M.MatC<4, 4, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbelianGroup44: Comm.AbelianGroup<Mat44> = M.getAdditiveAbelianGroup(
+export const AdditiveAbelianGroup44: TC.AbelianGroup<Mat44> = M.getAdditiveAbelianGroup(
   Field
 )(4, 4)
 
@@ -448,7 +443,7 @@ export const AdditiveAbelianGroup44: Comm.AbelianGroup<Mat44> = M.getAdditiveAbe
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule44: Mod.Bimodule<Complex, Mat44> = M.getBimodule(Field)(4, 4)
+export const Bimodule44: TC.Bimodule<Complex, Mat44> = M.getBimodule(Field)(4, 4)
 
 // #############
 // ### Vec5 ####
@@ -464,25 +459,25 @@ export type Vec5 = V.VecC<5, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup5: Comm.AbelianGroup<Vec5> = V.getAbGroup(Field)(5)
+export const AbelianGroup5: TC.AbelianGroup<Vec5> = V.getAbGroup(Field)(5)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule5: Mod.Bimodule<Complex, Vec5> = V.getBimodule(Field)(5)
+export const Bimodule5: TC.Bimodule<Complex, Vec5> = V.getBimodule(Field)(5)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField5: VecSpc.VectorSpace<Complex, Vec5> = V.getVectorSpace(Field)(5)
+export const VectorField5: TC.VectorSpace<Complex, Vec5> = V.getVectorSpace(Field)(5)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace5: InPrSp.InnerProductSpace<Complex, Vec5> =
+export const InnerProductSpace5: TC.InnerProductSpace<Complex, Vec5> =
   V.getInnerProductSpace(Field, Conjugate)(5)
 
 // ###############
@@ -499,7 +494,7 @@ export type Mat55 = M.MatC<5, 5, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbelianGroup55: Comm.AbelianGroup<Mat55> = M.getAdditiveAbelianGroup(
+export const AdditiveAbelianGroup55: TC.AbelianGroup<Mat55> = M.getAdditiveAbelianGroup(
   Field
 )(5, 5)
 
@@ -507,7 +502,7 @@ export const AdditiveAbelianGroup55: Comm.AbelianGroup<Mat55> = M.getAdditiveAbe
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule55: Mod.Bimodule<Complex, Mat55> = M.getBimodule(Field)(5, 5)
+export const Bimodule55: TC.Bimodule<Complex, Mat55> = M.getBimodule(Field)(5, 5)
 
 // #############
 // ### Vec6 ####
@@ -523,25 +518,25 @@ export type Vec6 = V.VecC<6, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup6: Comm.AbelianGroup<Vec6> = V.getAbGroup(Field)(6)
+export const AbelianGroup6: TC.AbelianGroup<Vec6> = V.getAbGroup(Field)(6)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule6: Mod.Bimodule<Complex, Vec6> = V.getBimodule(Field)(6)
+export const Bimodule6: TC.Bimodule<Complex, Vec6> = V.getBimodule(Field)(6)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField6: VecSpc.VectorSpace<Complex, Vec6> = V.getVectorSpace(Field)(6)
+export const VectorField6: TC.VectorSpace<Complex, Vec6> = V.getVectorSpace(Field)(6)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace6: InPrSp.InnerProductSpace<Complex, Vec6> =
+export const InnerProductSpace6: TC.InnerProductSpace<Complex, Vec6> =
   V.getInnerProductSpace(Field, Conjugate)(6)
 
 // ###############
@@ -558,7 +553,7 @@ export type Mat66 = M.MatC<6, 6, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbelianGroup66: Comm.AbelianGroup<Mat66> = M.getAdditiveAbelianGroup(
+export const AdditiveAbelianGroup66: TC.AbelianGroup<Mat66> = M.getAdditiveAbelianGroup(
   Field
 )(6, 6)
 
@@ -566,7 +561,7 @@ export const AdditiveAbelianGroup66: Comm.AbelianGroup<Mat66> = M.getAdditiveAbe
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule66: Mod.Bimodule<Complex, Mat66> = M.getBimodule(Field)(6, 6)
+export const Bimodule66: TC.Bimodule<Complex, Mat66> = M.getBimodule(Field)(6, 6)
 
 // ############################
 // ### Polynomial Instances ###

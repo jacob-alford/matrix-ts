@@ -1,16 +1,16 @@
-/** @since 1.0.0 */
-
-import * as AbGrp from './Commutative'
-import * as C from './Complex'
-import * as N from './number'
-import * as Conj from './Conjugate'
-import * as InPrSp from './InnerProductSpace'
-import * as M from './MatrixC'
-import * as Mod from './Module'
-import * as V from './VectorC'
-import * as VecSpc from './VectorSpace'
-import * as Poly from './Polynomial'
+import * as C from './complex'
+import * as Comp from './Computation'
 import * as Expr from './Expression'
-import * as Exp from './Exponentiate'
+import * as Iso from './Iso'
+import * as FM from './FreeMonoid'
+import * as LM from './LinearMap'
+import * as Log from './Logger'
+import * as MatOps from './MatrixOps'
+import * as M from './MatrixC'
+import * as MU from './MatrixU'
+import * as N from './number'
+import * as Poly from './Polynomial'
+import * as TC from './typeclasses'
+import * as V from './VectorC'
 
-export { AbGrp, C, Conj, InPrSp, M, Mod, V, VecSpc, N, Poly, Expr, Exp }
+export { C, Comp, Expr, Iso, FM, LM, Log, MatOps, M, MU, N, Poly, TC, V }

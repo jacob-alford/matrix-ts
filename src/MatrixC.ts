@@ -12,11 +12,9 @@ import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
 import { flow, identity, pipe } from 'fp-ts/function'
 
+import * as LM from './LinearMap'
+import * as TC from './typeclasses'
 import * as V from './VectorC'
-import { InnerProductSpace } from './InnerProductSpace'
-import * as Comm from './Commutative'
-import * as Mod from './Module'
-import * as LMap from './LinearMap'
 import * as U from './lib/utilities'
 
 // #############
@@ -268,7 +266,7 @@ declare module 'fp-ts/HKT' {
  */
 export const getAdditiveAbelianGroup =
   <A>(R: Rng.Ring<A>) =>
-  <M extends number, N extends number>(m: M, n: N): Comm.AbelianGroup<MatC<M, N, A>> => ({
+  <M extends number, N extends number>(m: M, n: N): TC.AbelianGroup<MatC<M, N, A>> => ({
     empty: repeat(R.zero)(m, n),
     concat: (x, y) =>
       pipe(
@@ -291,7 +289,7 @@ export const getAdditiveAbelianGroup =
  */
 export const getBimodule: <A>(
   R: Rng.Ring<A>
-) => <M extends number, N extends number>(m: M, n: N) => Mod.Bimodule<A, MatC<M, N, A>> =
+) => <M extends number, N extends number>(m: M, n: N) => TC.Bimodule<A, MatC<M, N, A>> =
   R => (m, n) => ({
     ...getAdditiveAbelianGroup(R)(m, n),
     leftScalarMul: (r, x) =>
@@ -311,8 +309,8 @@ export const getBimodule: <A>(
  * @category Instances
  */
 export const getLinearMap =
-  <N, F>(I: InnerProductSpace<F, V.VecC<N, F>>) =>
-  <M>(A: MatC<M, N, F>): LMap.LinearMap<V.VecC<N, F>, V.VecC<M, F>> => ({
+  <N, F>(I: TC.InnerProductSpace<F, V.VecC<N, F>>) =>
+  <M>(A: MatC<M, N, F>): LM.LinearMap<V.VecC<N, F>, V.VecC<M, F>> => ({
     mapL: x =>
       pipe(
         A,
@@ -529,7 +527,7 @@ export const replaceRow: (
  * @category Matrix Operations
  */
 export const addRows =
-  <A, N>(A: Comm.AbelianGroup<V.VecC<N, A>>) =>
+  <A, N>(A: TC.AbelianGroup<V.VecC<N, A>>) =>
   (a: number, b: number) =>
   <M>(vs: MatC<M, N, A>): O.Option<MatC<M, N, A>> =>
     pipe(
@@ -547,7 +545,7 @@ export const addRows =
  * @category Matrix Operations
  */
 export const scaleRow: <A, N>(
-  M: Mod.LeftModule<A, V.VecC<N, A>>
+  M: TC.LeftModule<A, V.VecC<N, A>>
 ) => (i: number, a: A) => <M>(vs: MatC<M, N, A>) => O.Option<MatC<M, N, A>> =
   M => (i, a) =>
     replaceRow(i)(as => M.leftScalarMul(a, as))
