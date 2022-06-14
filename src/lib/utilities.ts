@@ -1,7 +1,7 @@
 import * as Mn from 'fp-ts/Monoid'
 import * as Rng from 'fp-ts/Ring'
 
-import * as Comm from '../Commutative'
+import * as TC from '../typeclasses'
 
 /**
  * @since 1.0.0
@@ -25,9 +25,7 @@ export const getMultiplicationMonoid: <A>(F: Rng.Ring<A>) => Mn.Monoid<A> = F =>
  * @since 1.0.0
  * @category Internal
  */
-export const getAdditiveAbelianGroup: <A>(
-  F: Rng.Ring<A>
-) => Comm.AbelianGroup<A> = F => ({
+export const getAdditiveAbelianGroup: <A>(F: Rng.Ring<A>) => TC.AbelianGroup<A> = F => ({
   concat: F.add,
   inverse: a => F.sub(F.zero, a),
   empty: F.zero,

@@ -3,7 +3,7 @@ import * as IO from 'fp-ts/IO'
 import * as RA from 'fp-ts/ReadonlyArray'
 import { pipe } from 'fp-ts/function'
 
-import * as MatOps from '../MatrixOperations'
+import * as MatOps from '../MatrixOps'
 import * as Log from '../Logger'
 import * as M from '../MatrixC'
 import * as FM from '../FreeMonoid'

@@ -1,7 +1,7 @@
 import * as laws from 'fp-ts-laws'
 import * as fc from 'fast-check'
 
-import * as C from '../Complex'
+import * as C from '../complex'
 
 const fcComplex: fc.Arbitrary<C.Complex> = fc.record({
   Re: fc.float(),

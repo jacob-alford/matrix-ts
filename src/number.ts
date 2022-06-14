@@ -2,15 +2,64 @@ import * as N from 'fp-ts/number'
 import { identity } from 'fp-ts/function'
 
 import * as C from './complex'
-import * as V from './VectorC'
+import * as Iso from './Iso'
+import * as LM from './LinearMap'
 import * as M from './MatrixC'
 import * as Poly from './Polynomial'
-import * as LinMap from './LinearMap'
 import * as TC from './typeclasses'
+import * as V from './VectorC'
 
 // #################
 // ### Instances ###
 // #################
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Eq = N.Eq
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const MagmaSub = N.MagmaSub
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const SemigroupSum = N.SemigroupSum
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const SemigroupProduct = N.SemigroupProduct
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const MonoidSum = N.MonoidSum
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const MonoidProduct = N.MonoidProduct
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Field = N.Field
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Show = N.Show
 
 /**
  * @since 1.0.0
@@ -28,89 +77,91 @@ export const Conjugate: TC.Conjugate<number> = {
   conj: identity,
 }
 
-// #############
-// ### Vec1 ####
-// #############
+// ##############
+// ### Vec1d ####
+// ##############
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type Vec1 = V.VecC<1, number>
+export type Vec1d = V.VecC<1, number>
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup1: TC.AbelianGroup<Vec1> = V.getAbGroup(N.Field)(1)
+export const AbelianGroup1d: TC.AbelianGroup<Vec1d> = V.getAbGroup(Field)(1)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule1: TC.Bimodule<number, Vec1> = V.getBimodule(N.Field)(1)
+export const Bimodule1d: TC.Bimodule<number, Vec1d> = V.getBimodule(Field)(1)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField1: TC.VectorSpace<number, Vec1> = V.getVectorSpace(N.Field)(1)
+export const VectorField1d: TC.VectorSpace<number, Vec1d> = V.getVectorSpace(Field)(1)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace1: TC.InnerProductSpace<number, Vec1> =
-  V.getInnerProductSpace(N.Field, Conjugate)(1)
+export const InnerProductSpace1d: TC.InnerProductSpace<number, Vec1d> =
+  V.getInnerProductSpace(Field, Conjugate)(1)
 
-// #############
-// ### Vec2 ####
-// #############
+// ##############
+// ### Vec2d ####
+// ##############
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type Vec2 = V.VecC<2, number>
+export type Vec2d = V.VecC<2, number>
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup2: TC.AbelianGroup<Vec2> = V.getAbGroup(N.Field)(2)
+export const AbelianGroup2d: TC.AbelianGroup<Vec2d> = V.getAbGroup(Field)(2)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule2: TC.Bimodule<number, Vec2> = V.getBimodule(N.Field)(2)
+export const Bimodule2d: TC.Bimodule<number, Vec2d> = V.getBimodule(Field)(2)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField2: TC.VectorSpace<number, Vec2> = V.getVectorSpace(N.Field)(2)
+export const VectorField2d: TC.VectorSpace<number, Vec2d> = V.getVectorSpace(Field)(2)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace2: TC.InnerProductSpace<number, Vec2> =
-  V.getInnerProductSpace(N.Field, Conjugate)(2)
+export const InnerProductSpace2d: TC.InnerProductSpace<number, Vec2d> =
+  V.getInnerProductSpace(Field, Conjugate)(2)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const getLinearMap2: (M: Mat22) => LinMap.LinearMap<Vec2, Vec2> =
-  M.getLinearMap(InnerProductSpace2)
+export const getLinearMap2d: (M: Mat22) => LM.LinearMap2<V.URI, 2, number, number> =
+  M.getLinearMap(InnerProductSpace2d)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const getRotationMap2: (theta: number) => LinMap.LinearMap<Vec2, Vec2> = theta =>
-  getLinearMap2(
+export const getRotationMap2d: (
+  theta: number
+) => LM.LinearMap2<V.URI, 2, number, number> = theta =>
+  getLinearMap2d(
     M.fromNestedTuples([
       [Math.cos(theta), -Math.sin(theta)],
       [Math.sin(theta), Math.cos(theta)],
@@ -132,14 +183,14 @@ export type Mat22 = M.MatC<2, 2, number>
  * @category Instances
  */
 export const AdditiveAbelianGroup22: TC.AbelianGroup<Mat22> = M.getAdditiveAbelianGroup(
-  N.Field
+  Field
 )(2, 2)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule22: TC.Bimodule<number, Mat22> = M.getBimodule(N.Field)(2, 2)
+export const Bimodule22: TC.Bimodule<number, Mat22> = M.getBimodule(Field)(2, 2)
 
 /**
  * @since 1.0.0
@@ -151,54 +202,56 @@ export const matFromComplex: (c: C.Complex) => Mat22 = ({ Re, Im }) =>
     [Im, Re],
   ])
 
-// #############
-// ### Vec3 ####
-// #############
+// ##############
+// ### Vec3d ####
+// ##############
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type Vec3 = V.VecC<3, number>
+export type Vec3d = V.VecC<3, number>
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup3: TC.AbelianGroup<Vec3> = V.getAbGroup(N.Field)(3)
+export const AbelianGroup3d: TC.AbelianGroup<Vec3d> = V.getAbGroup(Field)(3)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule3: TC.Bimodule<number, Vec3> = V.getBimodule(N.Field)(3)
+export const Bimodule3d: TC.Bimodule<number, Vec3d> = V.getBimodule(Field)(3)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField3: TC.VectorSpace<number, Vec3> = V.getVectorSpace(N.Field)(3)
+export const VectorField3d: TC.VectorSpace<number, Vec3d> = V.getVectorSpace(Field)(3)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace3: TC.InnerProductSpace<number, Vec3> =
-  V.getInnerProductSpace(N.Field, Conjugate)(3)
+export const InnerProductSpace3d: TC.InnerProductSpace<number, Vec3d> =
+  V.getInnerProductSpace(Field, Conjugate)(3)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const getLinearMap3: (M: Mat33) => LinMap.LinearMap<Vec3, Vec3> =
-  M.getLinearMap(InnerProductSpace3)
+export const getLinearMap3d: (M: Mat33) => LM.LinearMap2<V.URI, 3, number, number> =
+  M.getLinearMap(InnerProductSpace3d)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const getXRotationMap3: (theta: number) => LinMap.LinearMap<Vec3, Vec3> = theta =>
-  getLinearMap3(
+export const getXRotationMap3d: (
+  theta: number
+) => LM.LinearMap2<V.URI, 3, number, number> = theta =>
+  getLinearMap3d(
     M.fromNestedTuples([
       [1, 0, 0],
       [0, Math.cos(theta), -Math.sin(theta)],
@@ -210,8 +263,10 @@ export const getXRotationMap3: (theta: number) => LinMap.LinearMap<Vec3, Vec3> =
  * @since 1.0.0
  * @category Instances
  */
-export const getYRotationMap3: (theta: number) => LinMap.LinearMap<Vec3, Vec3> = theta =>
-  getLinearMap3(
+export const getYRotationMap3d: (
+  theta: number
+) => LM.LinearMap2<V.URI, 3, number, number> = theta =>
+  getLinearMap3d(
     M.fromNestedTuples([
       [Math.cos(theta), 0, Math.sin(theta)],
       [0, 1, 0],
@@ -223,8 +278,10 @@ export const getYRotationMap3: (theta: number) => LinMap.LinearMap<Vec3, Vec3> =
  * @since 1.0.0
  * @category Instances
  */
-export const getZRotationMap3: (theta: number) => LinMap.LinearMap<Vec3, Vec3> = theta =>
-  getLinearMap3(
+export const getZRotationMap3d: (
+  theta: number
+) => LM.LinearMap2<V.URI, 3, number, number> = theta =>
+  getLinearMap3d(
     M.fromNestedTuples([
       [Math.cos(theta), -Math.sin(theta), 0],
       [Math.sin(theta), Math.cos(theta), 0],
@@ -236,7 +293,7 @@ export const getZRotationMap3: (theta: number) => LinMap.LinearMap<Vec3, Vec3> =
  * @since 1.0.0
  * @category Vector Operations
  */
-export const cross = V.crossProduct(N.Field)
+export const cross = V.crossProduct(Field)
 
 // ###############
 // ### Mat 3x3 ###
@@ -253,56 +310,56 @@ export type Mat33 = M.MatC<3, 3, number>
  * @category Instances
  */
 export const AdditiveAbelianGroup33: TC.AbelianGroup<Mat33> = M.getAdditiveAbelianGroup(
-  N.Field
+  Field
 )(3, 3)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule33: TC.Bimodule<number, Mat33> = M.getBimodule(N.Field)(3, 3)
+export const Bimodule33: TC.Bimodule<number, Mat33> = M.getBimodule(Field)(3, 3)
 
-// #############
-// ### Vec4 ####
-// #############
+// ##############
+// ### Vec4d ####
+// ##############
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type Vec4 = V.VecC<4, number>
+export type Vec4d = V.VecC<4, number>
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup4: TC.AbelianGroup<Vec4> = V.getAbGroup(N.Field)(4)
+export const AbelianGroup4d: TC.AbelianGroup<Vec4d> = V.getAbGroup(Field)(4)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule4: TC.Bimodule<number, Vec4> = V.getBimodule(N.Field)(4)
+export const Bimodule4d: TC.Bimodule<number, Vec4d> = V.getBimodule(Field)(4)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField4: TC.VectorSpace<number, Vec4> = V.getVectorSpace(N.Field)(4)
+export const VectorField4d: TC.VectorSpace<number, Vec4d> = V.getVectorSpace(Field)(4)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace4: TC.InnerProductSpace<number, Vec4> =
-  V.getInnerProductSpace(N.Field, Conjugate)(4)
+export const InnerProductSpace4d: TC.InnerProductSpace<number, Vec4d> =
+  V.getInnerProductSpace(Field, Conjugate)(4)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const getLinearMap4: (M: Mat44) => LinMap.LinearMap<Vec4, Vec4> =
-  M.getLinearMap(InnerProductSpace4)
+export const getLinearMap4dd: (M: Mat44) => LM.LinearMap2<V.URI, 4, number, number> =
+  M.getLinearMap(InnerProductSpace4d)
 
 // ###############
 // ### Mat 4x4 ###
@@ -319,56 +376,56 @@ export type Mat44 = M.MatC<4, 4, number>
  * @category Instances
  */
 export const AdditiveAbelianGroup44: TC.AbelianGroup<Mat44> = M.getAdditiveAbelianGroup(
-  N.Field
+  Field
 )(4, 4)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule44: TC.Bimodule<number, Mat44> = M.getBimodule(N.Field)(4, 4)
+export const Bimodule44: TC.Bimodule<number, Mat44> = M.getBimodule(Field)(4, 4)
 
-// #############
-// ### Vec5 ####
-// #############
+// ##############
+// ### Vec5d ####
+// ##############
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type Vec5 = V.VecC<5, number>
+export type Vec5d = V.VecC<5, number>
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup5: TC.AbelianGroup<Vec5> = V.getAbGroup(N.Field)(5)
+export const AbelianGroup5d: TC.AbelianGroup<Vec5d> = V.getAbGroup(Field)(5)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule5: TC.Bimodule<number, Vec5> = V.getBimodule(N.Field)(5)
+export const Bimodule5d: TC.Bimodule<number, Vec5d> = V.getBimodule(Field)(5)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField5: TC.VectorSpace<number, Vec5> = V.getVectorSpace(N.Field)(5)
+export const VectorField5d: TC.VectorSpace<number, Vec5d> = V.getVectorSpace(Field)(5)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace5: TC.InnerProductSpace<number, Vec5> =
-  V.getInnerProductSpace(N.Field, Conjugate)(5)
+export const InnerProductSpace5d: TC.InnerProductSpace<number, Vec5d> =
+  V.getInnerProductSpace(Field, Conjugate)(5)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const getLinearMap5: (M: Mat55) => LinMap.LinearMap<Vec5, Vec5> =
-  M.getLinearMap(InnerProductSpace5)
+export const getLinearMap5d: (M: Mat55) => LM.LinearMap2<V.URI, 5, number, number> =
+  M.getLinearMap(InnerProductSpace5d)
 
 // ###############
 // ### Mat 5x5 ###
@@ -385,56 +442,56 @@ export type Mat55 = M.MatC<5, 5, number>
  * @category Instances
  */
 export const AdditiveAbelianGroup55: TC.AbelianGroup<Mat55> = M.getAdditiveAbelianGroup(
-  N.Field
+  Field
 )(5, 5)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule55: TC.Bimodule<number, Mat55> = M.getBimodule(N.Field)(5, 5)
+export const Bimodule55: TC.Bimodule<number, Mat55> = M.getBimodule(Field)(5, 5)
 
-// #############
-// ### Vec6 ####
-// #############
+// ##############
+// ### Vec6d ####
+// ##############
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type Vec6 = V.VecC<6, number>
+export type Vec6d = V.VecC<6, number>
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const AbelianGroup6: TC.AbelianGroup<Vec6> = V.getAbGroup(N.Field)(6)
+export const AbelianGroup6d: TC.AbelianGroup<Vec6d> = V.getAbGroup(Field)(6)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule6: TC.Bimodule<number, Vec6> = V.getBimodule(N.Field)(6)
+export const Bimodule6d: TC.Bimodule<number, Vec6d> = V.getBimodule(Field)(6)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField6: TC.VectorSpace<number, Vec6> = V.getVectorSpace(N.Field)(6)
+export const VectorField6d: TC.VectorSpace<number, Vec6d> = V.getVectorSpace(Field)(6)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const InnerProductSpace6: TC.InnerProductSpace<number, Vec6> =
-  V.getInnerProductSpace(N.Field, Conjugate)(6)
+export const InnerProductSpace6d: TC.InnerProductSpace<number, Vec6d> =
+  V.getInnerProductSpace(Field, Conjugate)(6)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const getLinearMap6: (M: Mat66) => LinMap.LinearMap<Vec6, Vec6> =
-  M.getLinearMap(InnerProductSpace6)
+export const getLinearMap6d: (M: Mat66) => LM.LinearMap2<V.URI, 6, number, number> =
+  M.getLinearMap(InnerProductSpace6d)
 
 // ###############
 // ### Mat 6x6 ###
@@ -451,14 +508,30 @@ export type Mat66 = M.MatC<6, 6, number>
  * @category Instances
  */
 export const AdditiveAbelianGroup66: TC.AbelianGroup<Mat66> = M.getAdditiveAbelianGroup(
-  N.Field
+  Field
 )(6, 6)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule66: TC.Bimodule<number, Mat66> = M.getBimodule(N.Field)(6, 6)
+export const Bimodule66: TC.Bimodule<number, Mat66> = M.getBimodule(Field)(6, 6)
+
+// #############################
+// ### Polynomial Operations ###
+// #############################
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const differentiate = Poly.getDifferentiateNumber()
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const indefiniteIntegral = Poly.getIndefiniteIntegralNumber()
 
 // ############################
 // ### Polynomial Instances ###
@@ -468,19 +541,45 @@ export const Bimodule66: TC.Bimodule<number, Mat66> = M.getBimodule(N.Field)(6, 
  * @since 1.0.0
  * @category Instances
  */
-export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(N.Field)
+export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(Field)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const PolynomialBimodule = Poly.getBimodule(N.Field)
+export const PolynomialBimodule = Poly.getBimodule(Field)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const PolynomialRing = Poly.getRing(N.Field)
+export const PolynomialRing = Poly.getRing(Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialVectorSpace = Poly.getVectorSpace(Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const DifferentialLinearMap: LM.LinearMap2<Poly.URI, number, number, number> = {
+  isoV: Iso.getId(),
+  mapL: differentiate,
+}
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getDefiniteIntegralLinearMap: (
+  constantTerm: number
+) => LM.LinearMap2<Poly.URI, number, number, number> = constantTerm => ({
+  isoV: Iso.getId(),
+  mapL: indefiniteIntegral(constantTerm),
+})
 
 // ##############################
 // ### Polynomial Destructors ###
@@ -490,14 +589,14 @@ export const PolynomialRing = Poly.getRing(N.Field)
  * @since 1.0.0
  * @category Destructors
  */
-export const evaluatePolynomial = Poly.evaluate(N.Field, Exp)
+export const evaluatePolynomial = Poly.evaluate(Field, Exp)
 
 /**
  * @since 1.0.0
  * @category Destructors
  */
-export const polynomialToExpression = Poly.toExpression<`${number}z^${number}`, number>(
-  N.Field,
+export const polynomialToExpression = Poly.toExpression<`${number}x^${number}`, number>(
+  Field,
   Exp,
-  ([coefficient, power]) => `${coefficient}z^${power}`
+  ([coefficient, power]) => `${coefficient}x^${power}`
 )

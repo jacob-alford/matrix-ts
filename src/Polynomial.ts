@@ -10,6 +10,7 @@
 
 import * as Cnvt from 'fp-ts/Contravariant'
 import * as Eq from 'fp-ts/Eq'
+import * as Fld from 'fp-ts/Field'
 import * as Mg from 'fp-ts/Magma'
 import * as N from 'fp-ts/number'
 import * as O from 'fp-ts/Option'
@@ -21,10 +22,8 @@ import * as Z from 'fp-ts/Zero'
 import { flow, identity, pipe, tuple } from 'fp-ts/function'
 
 import * as Exp from './Expression'
-import * as Ex from './Exponentiate'
+import * as TC from './typeclasses'
 import * as U from './lib/utilities'
-import * as Comm from './Commutative'
-import * as Mod from './Module'
 
 const PolynomialSymbol = Symbol('Polynomial')
 type PolynomialSymbol = typeof PolynomialSymbol
@@ -58,6 +57,15 @@ export interface Polynomial<R, C> extends Exp.Expression<[R, number], C, R> {
 const wrap: <R, C>(exp: Exp.Expression<[R, number], C, R>) => Polynomial<R, C> =
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   identity as any
+
+/**
+ * @since 1.0.0
+ * @category Internal
+ */
+const monomial: <R, C>(symbol: [R, number], evaluate: (c: C) => R) => Monomial<R, C> = (
+  symbol,
+  evaluate
+) => ({ symbol, evaluate })
 
 /**
  * @since 1.0.0
@@ -128,6 +136,13 @@ export const getMonomialOrd: <R, C>() => Ord.Ord<Monomial<R, C>> = () =>
   )
 
 /**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getPolynomialEq = <R, C>(R: Rng.Ring<R>): Eq.Eq<Polynomial<R, C>> =>
+  pipe(RA.getEq(getMonomialEq<R, C>()), Eq.contramap(combineLikeTerms(R)))
+
+/**
  * Monomial addition is only a Magma, because it assumes that the two terms added are of
  * the same symbol (and hence evaluate function). But this means that it is not
  * commutative, and doesn't follow Semigroup laws
@@ -166,7 +181,7 @@ export const getMonomialMultiplicativeMagma: <R, C>(
  */
 export const getAdditiveAbelianGroup = <R>(
   R: Rng.Ring<R>
-): Comm.AbelianGroup<Polynomial<R, R>> => ({
+): TC.AbelianGroup<Polynomial<R, R>> => ({
   concat: add(R),
   inverse: inverse(R),
   empty: zero(),
@@ -192,7 +207,7 @@ const scaleMonomialCoefficient: <R>(
  */
 export const getBimodule: <R>(
   R: Rng.Ring<R>
-) => Mod.Bimodule<R, Polynomial<R, R>> = R => ({
+) => TC.Bimodule<R, Polynomial<R, R>> = R => ({
   ...getAdditiveAbelianGroup(R),
   leftScalarMul: (n, as) => pipe(as, RA.map(scaleMonomialCoefficient(R)(n)), wrap),
   rightScalarMul: (as, n) => pipe(as, RA.map(scaleMonomialCoefficient(R)(n)), wrap),
@@ -202,7 +217,18 @@ export const getBimodule: <R>(
  * @since 1.0.0
  * @category Instances
  */
-export const getRing = <R>(R: Rng.Ring<R>): Comm.CommutativeRing<Polynomial<R, R>> => ({
+export const getVectorSpace: <F>(
+  F: Fld.Field<F>
+) => TC.VectorSpace<F, Polynomial<F, F>> = F => ({
+  ...getBimodule(F),
+  _F: F,
+})
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getRing = <R>(R: Rng.Ring<R>): TC.CommutativeRing<Polynomial<R, R>> => ({
   add: add(R),
   sub: (x, y) => add(R)(x, inverse(R)(y)),
   zero: zero(),
@@ -266,7 +292,7 @@ export const Contravariant: Cnvt.Contravariant2<URI> = {
  */
 export const evaluate: <R>(
   R: Rng.Ring<R>,
-  expR: Ex.Exp<R>
+  expR: TC.Exp<R>
 ) => <C>(fa: Polynomial<R, C>, x: C) => R = (R, expR) => (xs, x) =>
   pipe(
     xs,
@@ -281,7 +307,7 @@ export const evaluate: <R>(
  */
 export const toExpression: <T, R>(
   R: Rng.Ring<R>,
-  expR: Ex.Exp<R>,
+  expR: TC.Exp<R>,
   symbolize: (sP: [R, number]) => T
 ) => <C>(ps: Polynomial<R, C>) => Exp.Expression<T, C, R> = (R, expR, symbolize) =>
   RA.map(({ symbol: [coefficient, power], evaluate }) => ({
@@ -378,3 +404,92 @@ export const inverse: <R>(
     })),
     wrap
   )
+
+/**
+ * Use number.differentiate instead
+ *
+ * @deprecated
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const getDifferentiateNumber =
+  () =>
+  (x: Polynomial<number, number>): Polynomial<number, number> =>
+    pipe(
+      x,
+      RA.filterMap(({ symbol: [coefficient, power], evaluate }) =>
+        pipe(
+          monomial(tuple(coefficient * power, power - 1), evaluate),
+          O.fromPredicate(() => power >= 1)
+        )
+      ),
+      a => wrap(a),
+      combineLikeTerms(N.Field)
+    )
+
+/**
+ * Use number.indefiniteIntegral instead
+ *
+ * @deprecated
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const getIndefiniteIntegralNumber =
+  () =>
+  (constantTerm: number) =>
+  (x: Polynomial<number, number>): Polynomial<number, number> =>
+    pipe(
+      x,
+      RA.map(({ symbol: [coefficient, power], evaluate }) =>
+        monomial(tuple(coefficient / (power + 1), power + 1), evaluate)
+      ),
+      RA.prepend(monomial(tuple(constantTerm, 0), identity)),
+      a => wrap(a),
+      combineLikeTerms(N.Field)
+    )
+
+/**
+ * Use complex.differentiate instead
+ *
+ * @deprecated
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const getDifferentiateComplex =
+  <R>(Mod: TC.LeftModule<number, R>, F: Fld.Field<R>) =>
+  (x: Polynomial<R, R>): Polynomial<R, R> =>
+    pipe(
+      x,
+      RA.filterMap(({ symbol: [coefficient, power], evaluate }) =>
+        pipe(
+          monomial(tuple(Mod.leftScalarMul(power, coefficient), power - 1), evaluate),
+          O.fromPredicate(() => power >= 1)
+        )
+      ),
+      a => wrap(a),
+      combineLikeTerms(F)
+    )
+
+/**
+ * Use complex.indefiniteIntegral instead
+ *
+ * @deprecated
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const getIndefiniteIntegralComplex =
+  <R>(Mod: TC.LeftModule<number, R>, F: Fld.Field<R>) =>
+  (constantTerm: R) =>
+  (x: Polynomial<R, R>): Polynomial<R, R> =>
+    pipe(
+      x,
+      RA.map(({ symbol: [coefficient, power], evaluate }) =>
+        monomial(
+          tuple(Mod.leftScalarMul(1 / (power + 1), coefficient), power + 1),
+          evaluate
+        )
+      ),
+      RA.prepend(monomial(tuple(constantTerm, 1), identity)),
+      a => wrap(a),
+      combineLikeTerms(F)
+    )

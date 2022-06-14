@@ -17,11 +17,7 @@ import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
 import { flow, pipe, tuple } from 'fp-ts/function'
 
-import * as Mod from './Module'
-import * as Comm from './Commutative'
-import * as VecSpc from './VectorSpace'
-import * as InPrSp from './InnerProductSpace'
-import * as Conj from './Conjugate'
+import * as TC from './typeclasses'
 import * as U from './lib/utilities'
 
 // #############
@@ -185,7 +181,7 @@ export const liftA2: <N, A>(
  */
 export const getAbGroup: <A>(
   R: Rng.Ring<A>
-) => <N extends number>(n: N) => Comm.AbelianGroup<VecC<N, A>> = R => n => ({
+) => <N extends number>(n: N) => TC.AbelianGroup<VecC<N, A>> = R => n => ({
   concat: liftA2(R.add),
   inverse: map(x => R.sub(R.zero, x)),
   empty: repeat(n, R.zero),
@@ -197,7 +193,7 @@ export const getAbGroup: <A>(
  */
 export const getBimodule: <R>(
   R: Rng.Ring<R>
-) => <N extends number>(n: N) => Mod.Bimodule<R, VecC<N, R>> = R => n => ({
+) => <N extends number>(n: N) => TC.Bimodule<R, VecC<N, R>> = R => n => ({
   ...getAbGroup(R)(n),
   leftScalarMul: (r, v) =>
     pipe(
@@ -217,7 +213,7 @@ export const getBimodule: <R>(
  */
 export const getVectorSpace: <F>(
   F: Fld.Field<F>
-) => <N extends number>(n: N) => VecSpc.VectorSpace<F, VecC<N, F>> = F => n => ({
+) => <N extends number>(n: N) => TC.VectorSpace<F, VecC<N, F>> = F => n => ({
   ...getBimodule(F)(n),
   _F: F,
 })
@@ -228,8 +224,8 @@ export const getVectorSpace: <F>(
  */
 export const getInnerProductSpace: <F>(
   F: Fld.Field<F>,
-  conj: Conj.Conjugate<F>
-) => <N extends number>(n: N) => InPrSp.InnerProductSpace<F, VecC<N, F>> =
+  conj: TC.Conjugate<F>
+) => <N extends number>(n: N) => TC.InnerProductSpace<F, VecC<N, F>> =
   (F, { conj }) =>
   n => ({
     ...getVectorSpace(F)(n),

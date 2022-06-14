@@ -1,18 +1,31 @@
-import * as N from 'fp-ts/number'
-
 import * as Poly from '../Polynomial'
-import * as Exp from '../Exponentiate'
+import * as N from '../number'
 
 const construct = Poly.fromCoefficientArray
 const R = Poly.getRing<number>(N.Field)
 const G = Poly.getAdditiveAbelianGroup<number>(N.Field)
-const evaluate = Poly.evaluate(N.Field, Exp.ExpNumber)
+const evaluate = Poly.evaluate(N.Field, N.Exp)
+const { equals } = Poly.getPolynomialEq<number, number>(N.Field)
 
 describe('Polynomial', () => {
   describe('evaluation', () => {
     it('evaluates a polynomial', () => {
       const p = construct([1, 2, 3])
       expect(evaluate(p, 5)).toBe(86)
+    })
+  })
+  describe('calculus', () => {
+    it('differentiates a polynomial', () => {
+      const a = construct([1, 2, 3])
+      const aP = N.differentiate(a)
+      const expected = construct([2, 6])
+      expect(equals(aP, expected)).toBe(true)
+    })
+    it('integrates a polynomial', () => {
+      const a = construct([1, 2, 3])
+      const aP = N.indefiniteIntegral(1)(a)
+      const expected = construct([1, 1, 1, 1])
+      expect(equals(aP, expected)).toBe(true)
     })
   })
   describe('Ring', () => {

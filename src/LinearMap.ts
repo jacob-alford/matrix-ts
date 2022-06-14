@@ -1,22 +1,71 @@
 /**
  * Linear maps (over the category of vector-spaces) preserve the structure of the
- * underlying vector space.
+ * underlying vector space. This is equivalent to the existence of an ismorphism between
+ * the two vector spaces belonging to the domain / codomain of the linear map.
+ *
+ * In practice, it'd be quite tricky to implement an isomorphism between two vector
+ * spaces. However, the identity Isomorphism is a perfectly valid use case for linear maps
+ * over identical types.
  */
-import * as Cat from 'fp-ts/Category'
-import * as Sgd from 'fp-ts/Semigroupoid'
+import { HKT, Kind, Kind2, Kind3, Kind4, URIS, URIS2, URIS3, URIS4 } from 'fp-ts/HKT'
 import { flow, identity } from 'fp-ts/function'
 
-// #############
-// ### Model ###
-// #############
+import * as Iso from './Iso'
+import * as TC from './typeclasses'
+
+// ###################
+// ### Typeclasses ###
+// ###################
 
 /**
  * @since 1.0.0
- * @category Model
+ * @category Typeclasses
  */
+export interface LinearMap<F, A, B> {
+  isoV: Iso.Iso<TC.VectorSpace<A, HKT<F, A>>, TC.VectorSpace<B, HKT<F, B>>>
+  mapL: (a: HKT<F, A>) => HKT<F, B>
+}
 
-export interface LinearMap<A, B> {
-  mapL: (a: A) => B
+/**
+ * @since 1.0.0
+ * @category Typeclasses
+ */
+export interface LinearMap1<F extends URIS, A, B> {
+  isoV: Iso.Iso0<TC.VectorSpace<A, Kind<F, A>>, TC.VectorSpace<B, Kind<F, B>>>
+  mapL: (a: Kind<F, A>) => Kind<F, B>
+}
+
+/**
+ * @since 1.0.0
+ * @category Typeclasses
+ */
+export interface LinearMap2<F extends URIS2, E, A, B> {
+  isoV: Iso.Iso0<TC.VectorSpace<A, Kind2<F, E, A>>, TC.VectorSpace<B, Kind2<F, E, B>>>
+  mapL: (a: Kind2<F, E, A>) => Kind2<F, E, B>
+}
+
+/**
+ * @since 1.0.0
+ * @category Typeclasses
+ */
+export interface LinearMap3<F extends URIS3, R, E, A, B> {
+  isoV: Iso.Iso0<
+    TC.VectorSpace<A, Kind3<F, R, E, A>>,
+    TC.VectorSpace<B, Kind3<F, R, E, B>>
+  >
+  mapL: (a: Kind3<F, R, E, A>) => Kind3<F, R, E, B>
+}
+
+/**
+ * @since 1.0.0
+ * @category Typeclasses
+ */
+export interface LinearMap4<F extends URIS4, S, R, E, A, B> {
+  isoV: Iso.Iso0<
+    TC.VectorSpace<A, Kind4<F, S, R, E, A>>,
+    TC.VectorSpace<B, Kind4<F, S, R, E, B>>
+  >
+  mapL: (a: Kind4<F, S, R, E, A>) => Kind4<F, S, R, E, B>
 }
 
 // #################
@@ -25,41 +74,84 @@ export interface LinearMap<A, B> {
 
 /**
  * @since 1.0.0
- * @category Instances
+ * @category Instance Operations
  */
-export const URI = 'LinearMap'
+export const compose1: <F extends URIS, A, B, C>(
+  f: LinearMap1<F, A, B>,
+  g: LinearMap1<F, B, C>
+) => LinearMap1<F, A, C> = (f, g) => ({
+  isoV: Iso.compose0(f.isoV, g.isoV),
+  mapL: flow(f.mapL, g.mapL),
+})
 
 /**
  * @since 1.0.0
- * @category Instances
+ * @category Instance Operations
  */
-export type URI = typeof URI
-
-declare module 'fp-ts/HKT' {
-  interface URItoKind2<E, A> {
-    readonly [URI]: LinearMap<E, A>
-  }
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Semigroupoid: Sgd.Semigroupoid2<URI> = {
-  URI,
-  compose: (f, g) => ({
-    mapL: flow(g.mapL, f.mapL),
-  }),
-}
+export const compose2: <F extends URIS2, E, A, B, C>(
+  f: LinearMap2<F, E, A, B>,
+  g: LinearMap2<F, E, B, C>
+) => LinearMap2<F, E, A, C> = (f, g) => ({
+  isoV: Iso.compose0(f.isoV, g.isoV),
+  mapL: flow(f.mapL, g.mapL),
+})
 
 /**
  * @since 1.0.0
- * @category Instances
+ * @category Instance Operations
  */
-export const Category: Cat.Category2<URI> = {
-  ...Semigroupoid,
-  id: () => ({
-    _V: {},
-    mapL: identity,
-  }),
-}
+export const compose3: <F extends URIS3, R, E, A, B, C>(
+  f: LinearMap3<F, R, E, A, B>,
+  g: LinearMap3<F, R, E, B, C>
+) => LinearMap3<F, R, E, A, C> = (f, g) => ({
+  isoV: Iso.compose0(f.isoV, g.isoV),
+  mapL: flow(f.mapL, g.mapL),
+})
+
+/**
+ * @since 1.0.0
+ * @category Instance Operations
+ */
+export const compose4: <F extends URIS4, S, R, E, A, B, C>(
+  f: LinearMap4<F, S, R, E, A, B>,
+  g: LinearMap4<F, S, R, E, B, C>
+) => LinearMap4<F, S, R, E, A, C> = (f, g) => ({
+  isoV: Iso.compose0(f.isoV, g.isoV),
+  mapL: flow(f.mapL, g.mapL),
+})
+
+/**
+ * @since 1.0.0
+ * @category Instance Operations
+ */
+export const getId1 = <F extends URIS, A>(): LinearMap1<F, A, A> => ({
+  isoV: Iso.getId(),
+  mapL: identity,
+})
+
+/**
+ * @since 1.0.0
+ * @category Instance Operations
+ */
+export const getId2 = <F extends URIS2, E, A>(): LinearMap2<F, E, A, A> => ({
+  isoV: Iso.getId(),
+  mapL: identity,
+})
+
+/**
+ * @since 1.0.0
+ * @category Instance Operations
+ */
+export const getId3 = <F extends URIS3, R, E, A>(): LinearMap3<F, R, E, A, A> => ({
+  isoV: Iso.getId(),
+  mapL: identity,
+})
+
+/**
+ * @since 1.0.0
+ * @category Instance Operations
+ */
+export const getId4 = <F extends URIS4, S, R, E, A>(): LinearMap4<F, S, R, E, A, A> => ({
+  isoV: Iso.getId(),
+  mapL: identity,
+})
