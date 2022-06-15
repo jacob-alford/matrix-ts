@@ -36,6 +36,24 @@ export interface Complex {
  * @since 1.0.0
  * @category Constructors
  */
+export const zero: Complex = { Re: 0, Im: 0 }
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const one: Complex = { Re: 1, Im: 0 }
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const scalar: (a: number) => Complex = a => ({ Re: a, Im: 0 })
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
 export const of: (Re: number, Im: number) => Complex = (Re, Im) => ({ Re, Im })
 
 /**
@@ -110,10 +128,7 @@ export const SemigroupProduct: Sg.Semigroup<Complex> = {
  */
 export const MonoidSum: Mn.Monoid<Complex> = {
   ...SemigroupSum,
-  empty: {
-    Re: 0,
-    Im: 0,
-  },
+  empty: zero,
 }
 
 /**
@@ -122,10 +137,7 @@ export const MonoidSum: Mn.Monoid<Complex> = {
  */
 export const MonoidProduct: Mn.Monoid<Complex> = {
   ...SemigroupProduct,
-  empty: {
-    Re: 1,
-    Im: 0,
-  },
+  empty: one,
 }
 
 /**
