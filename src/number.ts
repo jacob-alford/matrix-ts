@@ -97,7 +97,7 @@ export const AbelianGroup1d: TC.AbelianGroup<Vec1d> = V.getAbGroup(Field)(1)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule1d: TC.Bimodule<number, Vec1d> = V.getBimodule(Field)(1)
+export const Bimodule1d: TC.Bimodule<Vec1d, number> = V.getBimodule(Field)(1)
 
 /**
  * @since 1.0.0
@@ -132,7 +132,7 @@ export const AbelianGroup2d: TC.AbelianGroup<Vec2d> = V.getAbGroup(Field)(2)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule2d: TC.Bimodule<number, Vec2d> = V.getBimodule(Field)(2)
+export const Bimodule2d: TC.Bimodule<Vec2d, number> = V.getBimodule(Field)(2)
 
 /**
  * @since 1.0.0
@@ -190,7 +190,7 @@ export const AdditiveAbelianGroup22: TC.AbelianGroup<Mat22> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule22: TC.Bimodule<number, Mat22> = M.getBimodule(Field)(2, 2)
+export const Bimodule22: TC.Bimodule<Mat22, number> = M.getBimodule(Field)(2, 2)
 
 /**
  * @since 1.0.0
@@ -222,7 +222,7 @@ export const AbelianGroup3d: TC.AbelianGroup<Vec3d> = V.getAbGroup(Field)(3)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule3d: TC.Bimodule<number, Vec3d> = V.getBimodule(Field)(3)
+export const Bimodule3d: TC.Bimodule<Vec3d, number> = V.getBimodule(Field)(3)
 
 /**
  * @since 1.0.0
@@ -317,7 +317,7 @@ export const AdditiveAbelianGroup33: TC.AbelianGroup<Mat33> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule33: TC.Bimodule<number, Mat33> = M.getBimodule(Field)(3, 3)
+export const Bimodule33: TC.Bimodule<Mat33, number> = M.getBimodule(Field)(3, 3)
 
 // ##############
 // ### Vec4d ####
@@ -339,7 +339,7 @@ export const AbelianGroup4d: TC.AbelianGroup<Vec4d> = V.getAbGroup(Field)(4)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule4d: TC.Bimodule<number, Vec4d> = V.getBimodule(Field)(4)
+export const Bimodule4d: TC.Bimodule<Vec4d, number> = V.getBimodule(Field)(4)
 
 /**
  * @since 1.0.0
@@ -383,7 +383,7 @@ export const AdditiveAbelianGroup44: TC.AbelianGroup<Mat44> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule44: TC.Bimodule<number, Mat44> = M.getBimodule(Field)(4, 4)
+export const Bimodule44: TC.Bimodule<Mat44, number> = M.getBimodule(Field)(4, 4)
 
 // ##############
 // ### Vec5d ####
@@ -405,7 +405,7 @@ export const AbelianGroup5d: TC.AbelianGroup<Vec5d> = V.getAbGroup(Field)(5)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule5d: TC.Bimodule<number, Vec5d> = V.getBimodule(Field)(5)
+export const Bimodule5d: TC.Bimodule<Vec5d, number> = V.getBimodule(Field)(5)
 
 /**
  * @since 1.0.0
@@ -449,7 +449,7 @@ export const AdditiveAbelianGroup55: TC.AbelianGroup<Mat55> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule55: TC.Bimodule<number, Mat55> = M.getBimodule(Field)(5, 5)
+export const Bimodule55: TC.Bimodule<Mat55, number> = M.getBimodule(Field)(5, 5)
 
 // ##############
 // ### Vec6d ####
@@ -471,7 +471,7 @@ export const AbelianGroup6d: TC.AbelianGroup<Vec6d> = V.getAbGroup(Field)(6)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule6d: TC.Bimodule<number, Vec6d> = V.getBimodule(Field)(6)
+export const Bimodule6d: TC.Bimodule<Vec6d, number> = V.getBimodule(Field)(6)
 
 /**
  * @since 1.0.0
@@ -515,7 +515,7 @@ export const AdditiveAbelianGroup66: TC.AbelianGroup<Mat66> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule66: TC.Bimodule<number, Mat66> = M.getBimodule(Field)(6, 6)
+export const Bimodule66: TC.Bimodule<Mat66, number> = M.getBimodule(Field)(6, 6)
 
 // #############################
 // ### Polynomial Operations ###

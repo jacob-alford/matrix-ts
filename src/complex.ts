@@ -179,7 +179,7 @@ export const ComplexAdditiveAbelianGroup: TC.AbelianGroup<Complex> = {
  * @since 1.0.0
  * @category Instances
  */
-export const ComplexBimodule: TC.Bimodule<number, Complex> = {
+export const ComplexBimodule: TC.Bimodule<Complex, number> = {
   ...ComplexAdditiveAbelianGroup,
   leftScalarMul: (r, x) => ({ Re: r * x.Re, Im: r * x.Im }),
   rightScalarMul: (x, r) => ({ Re: r * x.Re, Im: r * x.Im }),
@@ -279,7 +279,7 @@ export const AbelianGroup1d: TC.AbelianGroup<Vec1d> = V.getAbGroup(Field)(1)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule1d: TC.Bimodule<Complex, Vec1d> = V.getBimodule(Field)(1)
+export const Bimodule1d: TC.Bimodule<Vec1d, Complex> = V.getBimodule(Field)(1)
 
 /**
  * @since 1.0.0
@@ -314,7 +314,7 @@ export const AbelianGroup2d: TC.AbelianGroup<Vec2d> = V.getAbGroup(Field)(2)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule2d: TC.Bimodule<Complex, Vec2d> = V.getBimodule(Field)(2)
+export const Bimodule2d: TC.Bimodule<Vec2d, Complex> = V.getBimodule(Field)(2)
 
 /**
  * @since 1.0.0
@@ -351,7 +351,7 @@ export const AdditiveAbelianGroup22: TC.AbelianGroup<Mat22> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule22: TC.Bimodule<Complex, Mat22> = M.getBimodule(Field)(2, 2)
+export const Bimodule22: TC.Bimodule<Mat22, Complex> = M.getBimodule(Field)(2, 2)
 
 // #############
 // ### Vec3d ####
@@ -373,7 +373,7 @@ export const AbelianGroup3d: TC.AbelianGroup<Vec3d> = V.getAbGroup(Field)(3)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule3d: TC.Bimodule<Complex, Vec3d> = V.getBimodule(Field)(3)
+export const Bimodule3d: TC.Bimodule<Vec3d, Complex> = V.getBimodule(Field)(3)
 
 /**
  * @since 1.0.0
@@ -416,7 +416,7 @@ export const AdditiveAbelianGroup33: TC.AbelianGroup<Mat33> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule33: TC.Bimodule<Complex, Mat33> = M.getBimodule(Field)(3, 3)
+export const Bimodule33: TC.Bimodule<Mat33, Complex> = M.getBimodule(Field)(3, 3)
 
 // #############
 // ### Vec4d ####
@@ -438,7 +438,7 @@ export const AbelianGroup4d: TC.AbelianGroup<Vec4d> = V.getAbGroup(Field)(4)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule4d: TC.Bimodule<Complex, Vec4d> = V.getBimodule(Field)(4)
+export const Bimodule4d: TC.Bimodule<Vec4d, Complex> = V.getBimodule(Field)(4)
 
 /**
  * @since 1.0.0
@@ -475,7 +475,7 @@ export const AdditiveAbelianGroup44: TC.AbelianGroup<Mat44> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule44: TC.Bimodule<Complex, Mat44> = M.getBimodule(Field)(4, 4)
+export const Bimodule44: TC.Bimodule<Mat44, Complex> = M.getBimodule(Field)(4, 4)
 
 // #############
 // ### Vec5d ####
@@ -497,7 +497,7 @@ export const AbelianGroup5d: TC.AbelianGroup<Vec5d> = V.getAbGroup(Field)(5)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule5d: TC.Bimodule<Complex, Vec5d> = V.getBimodule(Field)(5)
+export const Bimodule5d: TC.Bimodule<Vec5d, Complex> = V.getBimodule(Field)(5)
 
 /**
  * @since 1.0.0
@@ -534,7 +534,7 @@ export const AdditiveAbelianGroup55: TC.AbelianGroup<Mat55> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule55: TC.Bimodule<Complex, Mat55> = M.getBimodule(Field)(5, 5)
+export const Bimodule55: TC.Bimodule<Mat55, Complex> = M.getBimodule(Field)(5, 5)
 
 // #############
 // ### Vec6d ####
@@ -556,7 +556,7 @@ export const AbelianGroup6d: TC.AbelianGroup<Vec6d> = V.getAbGroup(Field)(6)
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule6d: TC.Bimodule<Complex, Vec6d> = V.getBimodule(Field)(6)
+export const Bimodule6d: TC.Bimodule<Vec6d, Complex> = V.getBimodule(Field)(6)
 
 /**
  * @since 1.0.0
@@ -593,7 +593,7 @@ export const AdditiveAbelianGroup66: TC.AbelianGroup<Mat66> = M.getAdditiveAbeli
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule66: TC.Bimodule<Complex, Mat66> = M.getBimodule(Field)(6, 6)
+export const Bimodule66: TC.Bimodule<Mat66, Complex> = M.getBimodule(Field)(6, 6)
 
 // #############################
 // ### Polynomial Operations ###

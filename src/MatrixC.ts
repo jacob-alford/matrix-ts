@@ -290,7 +290,7 @@ export const getAdditiveAbelianGroup =
  */
 export const getBimodule: <A>(
   R: Rng.Ring<A>
-) => <M extends number, N extends number>(m: M, n: N) => TC.Bimodule<A, MatC<M, N, A>> =
+) => <M extends number, N extends number>(m: M, n: N) => TC.Bimodule<MatC<M, N, A>, A> =
   R => (m, n) => ({
     ...getAdditiveAbelianGroup(R)(m, n),
     leftScalarMul: (r, x) =>
@@ -547,7 +547,7 @@ export const addRows =
  * @category Matrix Operations
  */
 export const scaleRow: <A, N>(
-  M: TC.LeftModule<A, V.VecC<N, A>>
+  M: TC.LeftModule<V.VecC<N, A>, A>
 ) => (i: number, a: A) => <M>(vs: MatC<M, N, A>) => O.Option<MatC<M, N, A>> =
   M => (i, a) =>
     replaceRow(i)(as => M.leftScalarMul(a, as))

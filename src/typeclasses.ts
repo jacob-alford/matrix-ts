@@ -9,9 +9,6 @@ import * as Rng from 'fp-ts/Ring'
 /**
  * An `AbelianGroup` is a `Group` that abides the following laws:
  *
- * - Associativity: `(a * b) * c = a * (b * c)`
- * - Left / Right Unitor: `1 * a = a * 1 = a`
- * - Inverse Element: `a * a⁻¹ = 1`
  * - Commutativity: `a * b = b * a`
  *
  * @since 1.0.0
@@ -20,10 +17,46 @@ import * as Rng from 'fp-ts/Ring'
 export interface AbelianGroup<A> extends Grp.Group<A> {}
 
 /**
+ * Adapted from:
+ * https://pursuit.purescript.org/packages/purescript-prelude/6.0.0/docs/Data.DivisionRing
+ *
+ * A ring structure with division
+ *
+ * - One != zero
+ * - Nonzero multiplicative inverse
+ *
+ * @since 1.0.0
+ * @category Type classes
+ */
+export interface DivisionRing<A> extends Rng.Ring<A> {
+  readonly div: (x: A, y: A) => A
+}
+
+/**
+ * Adapted from:
+ * https://pursuit.purescript.org/packages/purescript-prelude/6.0.0/docs/Data.CommutativeRing
+ *
+ * A Ring structure with commutativity of multiplcation
+ *
+ * - Commutativity: `a * b = b * a`
+ *
  * @since 1.0.0
  * @category Type classes
  */
 export interface CommutativeRing<A> extends Rng.Ring<A> {}
+
+/**
+ * Adapted from:
+ * https://pursuit.purescript.org/packages/purescript-prelude/6.0.0/docs/Data.EuclideanRing
+ *
+ * @since 1.0.0
+ * @category Type classes
+ */
+export interface EuclidianRing<A> extends CommutativeRing<A> {
+  readonly degree: (a: A) => number
+  readonly div: (x: A, y: A) => A
+  readonly mod: (x: A, y: A) => A
+}
 
 /**
  * `Conjugate A` over a Field F contains conj which abides the following laws:
@@ -39,7 +72,7 @@ export interface CommutativeRing<A> extends Rng.Ring<A> {}
  * @category Type classes
  */
 export interface Conjugate<A> {
-  conj: (x: A) => A
+  readonly conj: (x: A) => A
 }
 
 /**
@@ -51,7 +84,7 @@ export interface Conjugate<A> {
  * @category Model
  */
 export interface Exp<A> {
-  exp: (a: A, n: number) => A
+  readonly exp: (a: A, n: number) => A
 }
 
 /**
@@ -66,7 +99,7 @@ export interface Exp<A> {
  * @category Type classes
  */
 export interface InnerProductSpace<F, A> extends VectorSpace<F, A>, Conjugate<F> {
-  dot: (x: A, y: A) => F
+  readonly dot: (x: A, y: A) => F
 }
 
 /**
@@ -81,8 +114,8 @@ export interface InnerProductSpace<F, A> extends VectorSpace<F, A>, Conjugate<F>
  * @since 1.0.0
  * @category Type classes
  */
-export interface LeftModule<R, A> extends AbelianGroup<A> {
-  leftScalarMul: (r: R, x: A) => A
+export interface LeftModule<A, L> extends AbelianGroup<A> {
+  readonly leftScalarMul: (r: L, x: A) => A
 }
 
 /**
@@ -91,15 +124,15 @@ export interface LeftModule<R, A> extends AbelianGroup<A> {
  * @since 1.0.0
  * @category Type classes
  */
-export interface RightModule<R, A> extends AbelianGroup<A> {
-  rightScalarMul: (x: A, r: R) => A
+export interface RightModule<A, R> extends AbelianGroup<A> {
+  readonly rightScalarMul: (x: A, r: R) => A
 }
 
 /**
  * @since 1.0.0
  * @category Type classes
  */
-export interface Bimodule<R, A> extends LeftModule<R, A>, RightModule<R, A> {}
+export interface Bimodule<A, L, R = L> extends LeftModule<A, L>, RightModule<A, R> {}
 
 /**
  * A `VectorSpace A` over a `Field F` extends a `Module F A` abides Module laws:
@@ -107,6 +140,6 @@ export interface Bimodule<R, A> extends LeftModule<R, A>, RightModule<R, A> {}
  * @since 1.0.0
  * @category Type classes
  */
-export interface VectorSpace<F, A> extends LeftModule<F, A> {
-  _F: Fld.Field<F>
+export interface VectorSpace<F, A> extends LeftModule<A, F> {
+  readonly _F: Fld.Field<F>
 }

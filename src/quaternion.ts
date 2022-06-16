@@ -166,15 +166,13 @@ export const inverse: (q: Quaternion) => Quaternion = ({ a, b, c, d }) =>
  * @since 1.0.0
  * @category Instances
  */
-export const Field: Fld.Field<Quaternion> = {
+export const DivisionRing: TC.DivisionRing<Quaternion> = {
   add: MonoidSum.concat,
   zero: MonoidSum.empty,
   mul: MonoidProduct.concat,
   one: MonoidProduct.empty,
   sub: MagmaSub.concat,
   div: (a, b) => MonoidProduct.concat(a, inverse(b)),
-  mod: () => MonoidSum.empty,
-  degree: () => 1,
 }
 
 /**
@@ -191,14 +189,14 @@ export const Show: Sh.Show<Quaternion> = {
  */
 export const AdditiveAbelianGroup: TC.AbelianGroup<Quaternion> = {
   ...MonoidSum,
-  inverse: a => Field.sub(MonoidSum.empty, a),
+  inverse: a => DivisionRing.sub(MonoidSum.empty, a),
 }
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule: TC.Bimodule<number, Quaternion> = {
+export const Bimodule: TC.Bimodule<Quaternion, number> = {
   ...AdditiveAbelianGroup,
   leftScalarMul: (r, x) => ({ a: r * x.a, b: r * x.b, c: r * x.c, d: r * x.d }),
   rightScalarMul: (x, r) => ({ a: r * x.a, b: r * x.b, c: r * x.c, d: r * x.d }),
@@ -231,7 +229,7 @@ export const rotateVector: (
 ) => (v: V.VecC<3, number>) => V.VecC<3, number> = (axis, theta) => {
   const q = getRotationQuaternion(axis)(theta)
   const qi = inverse(q)
-  return p => pipe(Field.mul(q, Field.mul(fromVector3(p), qi)), toVector3)
+  return p => pipe(DivisionRing.mul(q, DivisionRing.mul(fromVector3(p), qi)), toVector3)
 }
 
 /**
@@ -336,7 +334,7 @@ export const asUnit: (q: Quaternion) => Quaternion = q =>
 export const getRotationQuaternion: (
   axis: V.VecC<3, number>
 ) => (theta: number) => Quaternion = axis => theta =>
-  Field.add(
+  DivisionRing.add(
     scalar(Math.cos(theta / 2)),
     Bimodule.leftScalarMul(Math.sin(theta / 2), asUnit(fromVector3(axis)))
   )

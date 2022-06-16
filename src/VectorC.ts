@@ -193,7 +193,7 @@ export const getAbGroup: <A>(
  */
 export const getBimodule: <R>(
   R: Rng.Ring<R>
-) => <N extends number>(n: N) => TC.Bimodule<R, VecC<N, R>> = R => n => ({
+) => <N extends number>(n: N) => TC.Bimodule<VecC<N, R>, R> = R => n => ({
   ...getAbGroup(R)(n),
   leftScalarMul: (r, v) =>
     pipe(

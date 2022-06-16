@@ -207,7 +207,7 @@ const scaleMonomialCoefficient: <R>(
  */
 export const getBimodule: <R>(
   R: Rng.Ring<R>
-) => TC.Bimodule<R, Polynomial<R, R>> = R => ({
+) => TC.Bimodule<Polynomial<R, R>, R> = R => ({
   ...getAdditiveAbelianGroup(R),
   leftScalarMul: (n, as) => pipe(as, RA.map(scaleMonomialCoefficient(R)(n)), wrap),
   rightScalarMul: (as, n) => pipe(as, RA.map(scaleMonomialCoefficient(R)(n)), wrap),
@@ -456,7 +456,7 @@ export const getIndefiniteIntegralNumber =
  * @category Polynomial Operations
  */
 export const getDifferentiateComplex =
-  <R>(Mod: TC.LeftModule<number, R>, F: Fld.Field<R>) =>
+  <R>(Mod: TC.LeftModule<R, number>, F: Fld.Field<R>) =>
   (x: Polynomial<R, R>): Polynomial<R, R> =>
     pipe(
       x,
@@ -478,7 +478,7 @@ export const getDifferentiateComplex =
  * @category Polynomial Operations
  */
 export const getIndefiniteIntegralComplex =
-  <R>(Mod: TC.LeftModule<number, R>, F: Fld.Field<R>) =>
+  <R>(Mod: TC.LeftModule<R, number>, F: Fld.Field<R>) =>
   (constantTerm: R) =>
   (x: Polynomial<R, R>): Polynomial<R, R> =>
     pipe(
