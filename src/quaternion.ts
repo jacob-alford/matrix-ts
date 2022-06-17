@@ -1,8 +1,8 @@
 import * as Eq_ from 'fp-ts/Eq'
+import * as IO from 'fp-ts/IO'
 import * as Mg from 'fp-ts/Magma'
 import * as Mn from 'fp-ts/Monoid'
 import * as Sg from 'fp-ts/Semigroup'
-import * as Fld from 'fp-ts/Field'
 import * as Sh from 'fp-ts/Show'
 import * as N from 'fp-ts/number'
 import { pipe } from 'fp-ts/function'
@@ -13,6 +13,7 @@ import * as LM from './LinearMap'
 import * as M from './MatrixC'
 import * as TC from './typeclasses'
 import * as V from './VectorC'
+import * as Inf from './infix'
 
 // #############
 // ### Model ###
@@ -96,6 +97,23 @@ export const fromVector3: (v: V.VecC<3, number>) => Quaternion = a =>
 
 /**
  * @since 1.0.0
+ * @category Constructors
+ */
+export const randQuaternion: (min: number, max: number) => IO.IO<Quaternion> =
+  (low, high) => () =>
+    of(
+      (high - low + 1) * Math.random() + low,
+      (high - low + 1) * Math.random() + low,
+      (high - low + 1) * Math.random() + low,
+      (high - low + 1) * Math.random() + low
+    )
+
+// #################
+// ### Instances ###
+// #################
+
+/**
+ * @since 1.0.0
  * @category Instances
  */
 export const Eq: Eq_.Eq<Quaternion> = Eq_.struct({
@@ -172,7 +190,7 @@ export const DivisionRing: TC.DivisionRing<Quaternion> = {
   mul: MonoidProduct.concat,
   one: MonoidProduct.empty,
   sub: MagmaSub.concat,
-  div: (a, b) => MonoidProduct.concat(a, inverse(b)),
+  inverse,
 }
 
 /**
@@ -243,6 +261,34 @@ export const getRotationLinearMap: (
   isoV: Iso.getId(),
   mapL: rotateVector(axis, theta),
 })
+
+// #############
+// ### Infix ###
+// #############
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const _ = Inf.getDivisionRingInfix(DivisionRing)
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const __ = Inf.getDivisionRingPolishInfix(DivisionRing)
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const _eq = Inf.getEqInfix(Eq)
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const __eq = Inf.getEqPolishInfix(Eq)
 
 // ###################
 // ### Destructors ###

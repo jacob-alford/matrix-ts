@@ -10,7 +10,7 @@ import * as Mn from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
-import { flow, identity, pipe } from 'fp-ts/function'
+import { flow, identity, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as LM from './LinearMap'
 import * as Iso from './Iso'
@@ -39,19 +39,14 @@ export interface MatC<M, N, A> extends V.VecC<M, V.VecC<N, A>> {
  * @since 1.0.0
  * @category Internal
  */
-const wrap: <M, N, A>(ks: ReadonlyArray<ReadonlyArray<A>>) => MatC<M, N, A> = ks =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ks as any
+const wrap: <M, N, A>(ks: ReadonlyArray<ReadonlyArray<A>>) => MatC<M, N, A> = unsafeCoerce
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const from2dVectors: <M, N, A>(
-  ks: V.VecC<M, V.VecC<N, A>>
-) => MatC<M, N, A> = ks =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ks as any
+export const from2dVectors: <M, N, A>(ks: V.VecC<M, V.VecC<N, A>>) => MatC<M, N, A> =
+  unsafeCoerce
 
 /**
  * @since 1.0.0

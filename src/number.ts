@@ -2,6 +2,7 @@ import * as N from 'fp-ts/number'
 import { identity } from 'fp-ts/function'
 
 import * as C from './complex'
+import * as Inf from './infix'
 import * as Iso from './Iso'
 import * as LM from './LinearMap'
 import * as M from './MatrixC'
@@ -18,6 +19,18 @@ import * as V from './VectorC'
  * @category Instances
  */
 export const Eq = N.Eq
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Ord = N.Ord
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Bounded = N.Bounded
 
 /**
  * @since 1.0.0
@@ -76,6 +89,22 @@ export const Exp: TC.Exp<number> = {
 export const Conjugate: TC.Conjugate<number> = {
   conj: identity,
 }
+
+// #############
+// ### Infix ###
+// #############
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const _ = Inf.getFieldPolishInfix(Field)
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const _ord = Inf.getOrdPolishInfix(Ord)
 
 // ##############
 // ### Vec1d ####

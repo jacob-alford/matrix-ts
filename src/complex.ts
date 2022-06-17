@@ -1,4 +1,5 @@
 import * as Eq_ from 'fp-ts/Eq'
+import * as IO from 'fp-ts/IO'
 import * as Mg from 'fp-ts/Magma'
 import * as Mn from 'fp-ts/Monoid'
 import * as Sg from 'fp-ts/Semigroup'
@@ -14,6 +15,7 @@ import * as M from './MatrixC'
 import * as Poly from './Polynomial'
 import * as TC from './typeclasses'
 import * as V from './VectorC'
+import * as Inf from './infix'
 
 // #############
 // ### Model ###
@@ -85,6 +87,14 @@ export const fromPolarDegrees: (r: number, psi: number) => Complex = (r, psi) =>
 export const fromVector: (v: V.VecC<2, number>) => Complex = as =>
   pipe(V.toTuple(as), ([Re, Im]) => of(Re, Im))
 
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const randComplex: (min: number, max: number) => IO.IO<Complex> =
+  (low, high) => () =>
+    of((high - low + 1) * Math.random() + low, (high - low + 1) * Math.random() + low)
+
 // #################
 // ### Instances ###
 // #################
@@ -119,7 +129,10 @@ export const SemigroupSum: Sg.Semigroup<Complex> = {
  * @category Instances
  */
 export const SemigroupProduct: Sg.Semigroup<Complex> = {
-  concat: (x, y) => ({ Re: x.Re * y.Re - x.Im * y.Im, Im: x.Im * y.Re + y.Im * x.Re }),
+  concat: ({ Re: a, Im: b }, { Re: c, Im: d }) => ({
+    Re: a * c - b * d,
+    Im: a * d + b * c,
+  }),
 }
 
 /**
@@ -207,6 +220,34 @@ export const Exp: TC.Exp<Complex> = {
       )
     ),
 }
+
+// #############
+// ### Infix ###
+// #############
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const _ = Inf.getFieldInfix(Field)
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const __ = Inf.getFieldPolishInfix(Field)
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const _eq = Inf.getEqInfix(Eq)
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const __eq = Inf.getEqPolishInfix(Eq)
 
 // ###################
 // ### Destructors ###

@@ -29,7 +29,7 @@ export interface AbelianGroup<A> extends Grp.Group<A> {}
  * @category Type classes
  */
 export interface DivisionRing<A> extends Rng.Ring<A> {
-  readonly div: (x: A, y: A) => A
+  readonly inverse: (x: A) => A
 }
 
 /**

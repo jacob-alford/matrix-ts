@@ -1,53 +1,71 @@
-import * as laws from 'fp-ts-laws'
-import * as fc from 'fast-check'
-
 import * as C from '../complex'
 
-const fcComplex: fc.Arbitrary<C.Complex> = fc.record({
-  Re: fc.float(),
-  Im: fc.float(),
-})
+const { _ } = C
 
 describe('Complex', () => {
-  describe('Field', () => {
-    it('adds', () => {
-      expect(C.Field.add(C.of(1, 2), C.of(3, 4))).toStrictEqual(C.of(4, 6))
+  describe('Field laws', () => {
+    const rand = C.randComplex(-5_000, 5_000)
+    it('abides additive unitor', () => {
+      const test = rand()
+      expect(_(test, '+', C.zero)).toStrictEqual(test)
+      expect(_(C.zero, '+', test)).toStrictEqual(test)
     })
-    it('subtracts', () => {
-      expect(C.Field.sub(C.of(1, 2), C.of(3, 4))).toStrictEqual(C.of(-2, -2))
+    it('abides multiplicative unitor', () => {
+      const test = rand()
+      expect(_(test, '*', C.one)).toStrictEqual(test)
+      expect(_(C.one, '*', test)).toStrictEqual(test)
     })
-    it('multiplies', () => {
-      expect(C.Field.mul(C.of(1, 2), C.of(3, 4))).toStrictEqual(C.of(-5, 10))
+    /** This appears to fail with large numbers */
+    it('associates with addition', () => {
+      const a = rand()
+      const b = rand()
+      const c = rand()
+      const { Re: Re1, Im: Im1 } = _(a, '+', _(b, '+', c))
+      const { Re: Re2, Im: Im2 } = _(_(a, '+', b), '+', c)
+      expect(Re1).toBeCloseTo(Re2)
+      expect(Im1).toBeCloseTo(Im2)
     })
-    it('divides', () => {
-      expect(C.Field.div(C.of(1, 2), C.of(3, 4))).toStrictEqual(C.of(0.44, 0.08))
+    /** This appears to fail with large numbers */
+    it('associates with multiplication', () => {
+      const a = rand()
+      const b = rand()
+      const c = rand()
+      const { Re: Re1, Im: Im1 } = _(_(a, '*', b), '*', c)
+      const { Re: Re2, Im: Im2 } = _(a, '*', _(b, '*', c))
+      expect(Re1).toBeCloseTo(Re2)
+      expect(Im1).toBeCloseTo(Im2)
     })
-    /** Likely unlawful due to floating point imprecision */
-    it.skip('follows Field laws', () => {
-      laws.field(C.Field, C.Eq, fcComplex)
+    it('commutes with addition', () => {
+      const a = rand()
+      const b = rand()
+      expect(_(a, '+', b)).toStrictEqual(_(b, '+', a))
     })
-  })
-  describe('Eq', () => {
-    it('follows Eq laws', () => {
-      laws.eq(C.Eq, fcComplex)
+    it('commutes with multiplication', () => {
+      const a = rand()
+      const b = rand()
+      expect(_(a, '*', b)).toStrictEqual(_(b, '*', a))
     })
-  })
-  describe('Monoid', () => {
-    it('follows Monoid Laws for MonoidSum', () => {
-      laws.monoid(C.MonoidSum, C.Eq, fcComplex)
+    it('distributes multiplication over addition', () => {
+      const a = rand()
+      const b = rand()
+      const c = rand()
+      const { Re: Re1l, Im: Im1l } = _(a, '*', _(b, '+', c))
+      const { Re: Re2l, Im: Im2l } = _(_(a, '*', b), '+', _(a, '*', c))
+      const { Re: Re1r, Im: Im1r } = _(_(a, '+', b), '*', c)
+      const { Re: Re2r, Im: Im2r } = _(_(a, '*', c), '+', _(b, '*', c))
+
+      expect(Re1l).toBeCloseTo(Re2l)
+      expect(Im1l).toBeCloseTo(Im2l)
+      expect(Re1r).toBeCloseTo(Re2r)
+      expect(Im1r).toBeCloseTo(Im2r)
     })
-    /** Likely unlawful due to floating point imprecision */
-    it.skip('follows Monoid Laws for MonoidProduct', () => {
-      laws.monoid(C.MonoidProduct, C.Eq, fcComplex)
+    it('has an additive inverse', () => {
+      const a = rand()
+      expect(_(a, '-', a)).toStrictEqual(C.zero)
     })
-  })
-  describe('Semigroup', () => {
-    it('follows Semigroup laws for SemigroupSum', () => {
-      laws.semigroup(C.SemigroupSum, C.Eq, fcComplex)
-    })
-    /** Likely unlawful due to floating point imprecision */
-    it.skip('follows Semigroup laws for SemigroupProduct', () => {
-      laws.semigroup(C.SemigroupProduct, C.Eq, fcComplex)
+    it('has a multiplicative inverse', () => {
+      const a = rand()
+      expect(_(a, '/', a)).toStrictEqual(C.one)
     })
   })
 })

@@ -1,6 +1,9 @@
 import * as C from './complex'
 import * as Comp from './Computation'
 import * as Expr from './Expression'
+import * as H from './quaternion'
+import * as Inf from './infix'
+import * as Int from './integer'
 import * as Iso from './Iso'
 import * as FM from './FreeMonoid'
 import * as LM from './LinearMap'
@@ -10,7 +13,8 @@ import * as M from './MatrixC'
 import * as MU from './MatrixU'
 import * as N from './number'
 import * as Poly from './Polynomial'
+import * as Q from './rational'
 import * as TC from './typeclasses'
 import * as V from './VectorC'
 
-export { C, Comp, Expr, Iso, FM, LM, Log, MatOps, M, MU, N, Poly, TC, V }
+export { C, Comp, Expr, H, Inf, Int, Iso, FM, LM, Log, MatOps, M, MU, N, Poly, Q, TC, V }
