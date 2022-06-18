@@ -4,6 +4,8 @@ A mathematics library with vectors, matricies, numerical linear algebra, associa
 
 ## TODO:
 
+- Add property tests for Polynomial
+- General cleanup / Sized vector instances?
 - Refactor Gaussian Elimination to LUP
 - Add `VecU` with useful methods
 
