@@ -139,14 +139,6 @@ export const EuclideanRing: TC.EuclidianRing<Int> = {
  */
 export const Show: Sh.Show<Int> = N.Show
 
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Conjugate: TC.Conjugate<Int> = {
-  conj: identity,
-}
-
 // #############
 // ### Infix ###
 // #############

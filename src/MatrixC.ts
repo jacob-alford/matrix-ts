@@ -13,7 +13,6 @@ import * as Rng from 'fp-ts/Ring'
 import { flow, identity, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as LM from './LinearMap'
-import * as Iso from './Iso'
 import * as TC from './typeclasses'
 import * as V from './VectorC'
 import * as U from './lib/utilities'
@@ -303,13 +302,12 @@ export const getBimodule: <A>(
  * @category Instances
  */
 export const getLinearMap =
-  <M, F>(I: TC.InnerProductSpace<F, V.VecC<M, F>>) =>
-  (A: MatC<M, M, F>): LM.LinearMap2<V.URI, M, F, F> => ({
-    isoV: Iso.getId(),
+  <R>(R: Rng.Ring<R>) =>
+  <M>(A: MatC<M, M, R>): LM.LinearMap2<V.URI, M, R, R> => ({
     mapL: x =>
       pipe(
         A,
-        V.map(y => I.dot(x, y))
+        V.map(y => V.dot(R)(x, y))
       ),
   })
 

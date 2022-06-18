@@ -11,7 +11,7 @@ describe('examples', () => {
     it('dots two vectors', () => {
       const a = V.fromTuple([1, 2, 3, 4, 5, 6])
       const b = V.fromTuple([4, 5, 6, 7, 8, 9])
-      expect(N.InnerProductSpace6d.dot(a, b)).toBe(154)
+      expect(N.dot(a, b)).toBe(154)
     })
     it('crosses two vectors', () => {
       const a = V.fromTuple([0, 2, 1])

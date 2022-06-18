@@ -1,5 +1,4 @@
 import * as N from 'fp-ts/number'
-import { identity } from 'fp-ts/function'
 
 import * as C from './complex'
 import * as Inf from './infix'
@@ -79,9 +78,9 @@ export const Show = N.Show
  * @since 1.0.0
  * @category Instances
  */
-export const Conjugate: TC.Conjugate<number> = {
-  conj: identity,
-}
+export const getLinearMap: <M>(
+  M: M.MatC<M, M, number>
+) => LM.LinearMap2<V.URI, M, number, number> = M.getLinearMap(Field)
 
 // #############
 // ### Infix ###
@@ -98,6 +97,22 @@ export const _ = Inf.getFieldPolishInfix(Field)
  * @category Infix
  */
 export const _ord = Inf.getOrdPolishInfix(Ord)
+
+// #############
+// ### VecN ####
+// #############
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const dot = V.dot(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const norm = V.norm(Field)
 
 // ##############
 // ### Vec1d ####
@@ -120,19 +135,6 @@ export const AbelianGroup1d: TC.AbelianGroup<Vec1d> = V.getAbGroup(Field)(1)
  * @category Instances
  */
 export const Bimodule1d: TC.Bimodule<Vec1d, number> = V.getBimodule(Field)(1)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorField1d: TC.VectorSpace<number, Vec1d> = V.getVectorSpace(Field)(1)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace1d: TC.InnerProductSpace<number, Vec1d> =
-  V.getInnerProductSpace(Field, Conjugate)(1)
 
 // ##############
 // ### Vec2d ####
@@ -160,36 +162,16 @@ export const Bimodule2d: TC.Bimodule<Vec2d, number> = V.getBimodule(Field)(2)
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField2d: TC.VectorSpace<number, Vec2d> = V.getVectorSpace(Field)(2)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace2d: TC.InnerProductSpace<number, Vec2d> =
-  V.getInnerProductSpace(Field, Conjugate)(2)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getLinearMap2d: (M: Mat22) => LM.LinearMap2<V.URI, 2, number, number> =
-  M.getLinearMap(InnerProductSpace2d)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
 export const getRotationMap2d: (
   theta: number
 ) => LI.LinearIsomorphism2<V.URI, 2, number, number> = theta => {
-  const to = getLinearMap2d(
+  const to = getLinearMap(
     M.fromNestedTuples([
       [Math.cos(theta), -Math.sin(theta)],
       [Math.sin(theta), Math.cos(theta)],
     ])
   )
-  const from = getLinearMap2d(
+  const from = getLinearMap(
     M.fromNestedTuples([
       [Math.cos(theta), Math.sin(theta)],
       [-Math.sin(theta), Math.cos(theta)],
@@ -260,37 +242,17 @@ export const Bimodule3d: TC.Bimodule<Vec3d, number> = V.getBimodule(Field)(3)
  * @since 1.0.0
  * @category Instances
  */
-export const VectorField3d: TC.VectorSpace<number, Vec3d> = V.getVectorSpace(Field)(3)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace3d: TC.InnerProductSpace<number, Vec3d> =
-  V.getInnerProductSpace(Field, Conjugate)(3)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getLinearMap3d: (M: Mat33) => LM.LinearMap2<V.URI, 3, number, number> =
-  M.getLinearMap(InnerProductSpace3d)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
 export const getXRotationMap3d: (
   theta: number
 ) => LI.LinearIsomorphism2<V.URI, 3, number, number> = theta => {
-  const to = getLinearMap3d(
+  const to = getLinearMap(
     M.fromNestedTuples([
       [1, 0, 0],
       [0, Math.cos(theta), -Math.sin(theta)],
       [0, Math.sin(theta), Math.cos(theta)],
     ])
   )
-  const from = getLinearMap3d(
+  const from = getLinearMap(
     M.fromNestedTuples([
       [1, 0, 0],
       [0, Math.cos(theta), Math.sin(theta)],
@@ -310,14 +272,14 @@ export const getXRotationMap3d: (
 export const getYRotationMap3d: (
   theta: number
 ) => LI.LinearIsomorphism2<V.URI, 3, number, number> = theta => {
-  const to = getLinearMap3d(
+  const to = getLinearMap(
     M.fromNestedTuples([
       [Math.cos(theta), 0, Math.sin(theta)],
       [0, 1, 0],
       [-Math.sin(theta), 0, Math.cos(theta)],
     ])
   )
-  const from = getLinearMap3d(
+  const from = getLinearMap(
     M.fromNestedTuples([
       [Math.cos(theta), 0, -Math.sin(theta)],
       [0, 1, 0],
@@ -337,14 +299,14 @@ export const getYRotationMap3d: (
 export const getZRotationMap3d: (
   theta: number
 ) => LI.LinearIsomorphism2<V.URI, 3, number, number> = theta => {
-  const to = getLinearMap3d(
+  const to = getLinearMap(
     M.fromNestedTuples([
       [Math.cos(theta), -Math.sin(theta), 0],
       [Math.sin(theta), Math.cos(theta), 0],
       [0, 0, 1],
     ])
   )
-  const from = getLinearMap3d(
+  const from = getLinearMap(
     M.fromNestedTuples([
       [Math.cos(theta), Math.sin(theta), 0],
       [-Math.sin(theta), Math.cos(theta), 0],
@@ -409,26 +371,6 @@ export const AbelianGroup4d: TC.AbelianGroup<Vec4d> = V.getAbGroup(Field)(4)
  */
 export const Bimodule4d: TC.Bimodule<Vec4d, number> = V.getBimodule(Field)(4)
 
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorField4d: TC.VectorSpace<number, Vec4d> = V.getVectorSpace(Field)(4)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace4d: TC.InnerProductSpace<number, Vec4d> =
-  V.getInnerProductSpace(Field, Conjugate)(4)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getLinearMap4dd: (M: Mat44) => LM.LinearMap2<V.URI, 4, number, number> =
-  M.getLinearMap(InnerProductSpace4d)
-
 // ###############
 // ### Mat 4x4 ###
 // ###############
@@ -475,26 +417,6 @@ export const AbelianGroup5d: TC.AbelianGroup<Vec5d> = V.getAbGroup(Field)(5)
  */
 export const Bimodule5d: TC.Bimodule<Vec5d, number> = V.getBimodule(Field)(5)
 
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorField5d: TC.VectorSpace<number, Vec5d> = V.getVectorSpace(Field)(5)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace5d: TC.InnerProductSpace<number, Vec5d> =
-  V.getInnerProductSpace(Field, Conjugate)(5)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getLinearMap5d: (M: Mat55) => LM.LinearMap2<V.URI, 5, number, number> =
-  M.getLinearMap(InnerProductSpace5d)
-
 // ###############
 // ### Mat 5x5 ###
 // ###############
@@ -540,26 +462,6 @@ export const AbelianGroup6d: TC.AbelianGroup<Vec6d> = V.getAbGroup(Field)(6)
  * @category Instances
  */
 export const Bimodule6d: TC.Bimodule<Vec6d, number> = V.getBimodule(Field)(6)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorField6d: TC.VectorSpace<number, Vec6d> = V.getVectorSpace(Field)(6)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace6d: TC.InnerProductSpace<number, Vec6d> =
-  V.getInnerProductSpace(Field, Conjugate)(6)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getLinearMap6d: (M: Mat66) => LM.LinearMap2<V.URI, 6, number, number> =
-  M.getLinearMap(InnerProductSpace6d)
 
 // ###############
 // ### Mat 6x6 ###
@@ -618,12 +520,6 @@ export const getAntiderivative = Poly.getAntiderivative(Field.mul, Field)
  * @category Instances
  */
 export const PolynomialRing = Poly.getRing(Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialVectorSpace = Poly.getVectorSpace(Field)
 
 /**
  * @since 1.0.0

@@ -1,4 +1,3 @@
-import * as Fld from 'fp-ts/Field'
 import * as Grp from 'fp-ts/Group'
 import * as Rng from 'fp-ts/Ring'
 
@@ -59,38 +58,6 @@ export interface EuclidianRing<A> extends CommutativeRing<A> {
 }
 
 /**
- * `Conjugate A` over a Field F contains conj which abides the following laws:
- *
- * - Distributivity over Addtion, Subtraction, Multiplication and Division:
- *
- *   - `conj(a + b) = conj(a) + conj(b)`
- *   - `conj(a - b) = conj(a) - conj(b)`
- *   - `conj(a * b) = conj(a) * conj(b)`
- *   - `conj(a / b) = conj(a) / conj(b)`
- *
- * @since 1.0.0
- * @category Type classes
- */
-export interface Conjugate<A> {
-  readonly conj: (x: A) => A
-}
-
-/**
- * An `InnerProductSpace F A` over a `Field F` extends a `VectorSpace F A` with a notion
- * of inner product, and abides the following laws:
- *
- * - Conjugate Symmetry: <x, y> = conj(<y, x>)
- * - Positive Definiteness: <x,x> = 0 for x = 0; <x,x> > 0 = for x != 0
- * - Linearity in the first argument: a * <x, y> + b * <y, z> = <ax + by, z>
- *
- * @since 1.0.0
- * @category Type classes
- */
-export interface InnerProductSpace<F, A> extends VectorSpace<F, A>, Conjugate<F> {
-  readonly dot: (x: A, y: A) => F
-}
-
-/**
  * A `Module` over a Ring R extends an Abelian Group A follows all the laws for an Abelian
  * Group and the following:
  *
@@ -121,13 +88,3 @@ export interface RightModule<A, R> extends AbelianGroup<A> {
  * @category Type classes
  */
 export interface Bimodule<A, L, R = L> extends LeftModule<A, L>, RightModule<A, R> {}
-
-/**
- * A `VectorSpace A` over a `Field F` extends a `Module F A` abides Module laws:
- *
- * @since 1.0.0
- * @category Type classes
- */
-export interface VectorSpace<F, A> extends LeftModule<A, F> {
-  readonly _F: Fld.Field<F>
-}

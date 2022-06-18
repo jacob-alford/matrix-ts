@@ -10,9 +10,6 @@
 import { HKT, Kind, Kind2, Kind3, Kind4, URIS, URIS2, URIS3, URIS4 } from 'fp-ts/HKT'
 import { flow, identity } from 'fp-ts/function'
 
-import * as Iso from './Iso'
-import * as TC from './typeclasses'
-
 // ###################
 // ### Typeclasses ###
 // ###################
@@ -22,7 +19,6 @@ import * as TC from './typeclasses'
  * @category Typeclasses
  */
 export interface LinearMap<F, A, B> {
-  isoV: Iso.Iso<TC.VectorSpace<A, HKT<F, A>>, TC.VectorSpace<B, HKT<F, B>>>
   mapL: (a: HKT<F, A>) => HKT<F, B>
 }
 
@@ -31,7 +27,6 @@ export interface LinearMap<F, A, B> {
  * @category Typeclasses
  */
 export interface LinearMap1<F extends URIS, A, B> {
-  isoV: Iso.Iso0<TC.VectorSpace<A, Kind<F, A>>, TC.VectorSpace<B, Kind<F, B>>>
   mapL: (a: Kind<F, A>) => Kind<F, B>
 }
 
@@ -40,7 +35,6 @@ export interface LinearMap1<F extends URIS, A, B> {
  * @category Typeclasses
  */
 export interface LinearMap2<F extends URIS2, E, A, B> {
-  isoV: Iso.Iso0<TC.VectorSpace<A, Kind2<F, E, A>>, TC.VectorSpace<B, Kind2<F, E, B>>>
   mapL: (a: Kind2<F, E, A>) => Kind2<F, E, B>
 }
 
@@ -49,10 +43,6 @@ export interface LinearMap2<F extends URIS2, E, A, B> {
  * @category Typeclasses
  */
 export interface LinearMap3<F extends URIS3, R, E, A, B> {
-  isoV: Iso.Iso0<
-    TC.VectorSpace<A, Kind3<F, R, E, A>>,
-    TC.VectorSpace<B, Kind3<F, R, E, B>>
-  >
   mapL: (a: Kind3<F, R, E, A>) => Kind3<F, R, E, B>
 }
 
@@ -61,10 +51,6 @@ export interface LinearMap3<F extends URIS3, R, E, A, B> {
  * @category Typeclasses
  */
 export interface LinearMap4<F extends URIS4, S, R, E, A, B> {
-  isoV: Iso.Iso0<
-    TC.VectorSpace<A, Kind4<F, S, R, E, A>>,
-    TC.VectorSpace<B, Kind4<F, S, R, E, B>>
-  >
   mapL: (a: Kind4<F, S, R, E, A>) => Kind4<F, S, R, E, B>
 }
 
@@ -93,7 +79,6 @@ export function compose<F extends URIS, A, B, C>(
   g: LinearMap1<F, B, C>
 ): LinearMap1<F, A, C> {
   return {
-    isoV: Iso.compose0(f.isoV, g.isoV),
     mapL: flow(f.mapL, g.mapL),
   }
 }
@@ -107,7 +92,6 @@ export function id<F extends URIS3, R, E, A>(): LinearMap3<F, R, E, A, A>
 export function id<F extends URIS2, E, A>(): LinearMap2<F, E, A, A>
 export function id<F extends URIS, A>(): LinearMap1<F, A, A> {
   return {
-    isoV: Iso.getId(),
     mapL: identity,
   }
 }

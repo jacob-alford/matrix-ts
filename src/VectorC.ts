@@ -38,7 +38,7 @@ export interface VecC<N, A> extends ReadonlyArray<A> {
 // ####################
 
 /**
- * @since 1.0.0
+ * @since 1.0.0x
  * @category Internal
  */
 const wrap: <N, A>(ks: ReadonlyArray<A>) => VecC<N, A> = ks =>
@@ -206,37 +206,6 @@ export const getBimodule: <R>(
       map(x => R.mul(x, r))
     ),
 })
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getVectorSpace: <F>(
-  F: Fld.Field<F>
-) => <N extends number>(n: N) => TC.VectorSpace<F, VecC<N, F>> = F => n => ({
-  ...getBimodule(F)(n),
-  _F: F,
-})
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getInnerProductSpace: <F>(
-  F: Fld.Field<F>,
-  conj: TC.Conjugate<F>
-) => <N extends number>(n: N) => TC.InnerProductSpace<F, VecC<N, F>> =
-  (F, { conj }) =>
-  n => ({
-    ...getVectorSpace(F)(n),
-    conj,
-    dot: (x, y) =>
-      pipe(
-        x,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        foldMapWithIndex(U.getAdditionMonoid(F))((i, a) => F.mul(a, y[i] as any))
-      ),
-  })
 
 /**
  * @since 1.0.0
@@ -507,10 +476,6 @@ export const TraversableWithIndex: TrI.TraversableWithIndex2<URI, number> = {
  * @since 1.0.0
  * @category Destructors
  */
-/**
- * @since 1.0.0
- * @category Constructors
- */
 export const toTuple: {
   <A>(t: VecC<0, A>): []
   <A>(t: VecC<1, A>): [A]
@@ -525,6 +490,13 @@ export const toTuple: {
   <A>(t: VecC<10, A>): [A, A, A, A, A, A, A, A, A, A]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } = unwrap as any
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const norm: <A>(R: Rng.Ring<A>) => <N>(x: VecC<N, A>) => A = R =>
+  foldMap(U.getAdditiveAbelianGroup(R))(x => R.mul(x, x))
 
 // #########################
 // ### Vector Operations ###
@@ -570,6 +542,16 @@ export const crossProduct: <A>(
       F.sub(F.mul(a3, b1), F.mul(a1, b3)),
       F.sub(F.mul(a1, b2), F.mul(a2, b1)),
     ])
+  )
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const dot: <A>(R: Rng.Ring<A>) => <N>(x: VecC<N, A>, y: VecC<N, A>) => A = R =>
+  flow(
+    zipVectors,
+    foldMap(U.getAdditionMonoid(R))(([a, b]) => R.mul(a, b))
   )
 
 // ###################

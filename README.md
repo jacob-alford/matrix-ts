@@ -2,6 +2,14 @@
 
 A mathematics library with vectors, matricies, numerical linear algebra, associated algebraic constructions, and polynomials.
 
+## TODO:
+
+- Remove Expression
+- Refactor Polynomial to `ReadonlyArray<R>`
+- Refactor Gaussian Elimination to LUP
+- Add `VecU` with useful methods
+- Replace Vector/InnerProduct spaces with plain functions
+
 ## Data types:
 
 - `complex.ts` – Complex data type with typeclass instances

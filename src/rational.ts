@@ -8,11 +8,10 @@ import * as N from 'fp-ts/number'
 import * as Ord_ from 'fp-ts/Ord'
 import * as O from 'fp-ts/Option'
 import * as Sh from 'fp-ts/Show'
-import { identity, pipe, unsafeCoerce } from 'fp-ts/function'
+import { pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as Inf from './infix'
 import * as Int from './integer'
-import * as TC from './typeclasses'
 
 const RationalSymbol = Symbol('Rational')
 type RationalSymbol = typeof RationalSymbol
@@ -162,13 +161,15 @@ export const Show: Sh.Show<Rational> = {
   show: ({ top, bottom }) => `${top}/${bottom}`,
 }
 
+// ###################
+// ### Destructors ###
+// ###################
+
 /**
  * @since 1.0.0
- * @category Instances
+ * @category Destructors
  */
-export const Conjugate: TC.Conjugate<Rational> = {
-  conj: identity,
-}
+export const toNumber: (r: Rational) => number = ({ top, bottom }) => top / bottom
 
 // #############
 // ### Infix ###

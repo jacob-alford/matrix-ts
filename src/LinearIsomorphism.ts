@@ -1,7 +1,6 @@
 import { HKT, Kind, Kind2, Kind3, Kind4, URIS, URIS2, URIS3, URIS4 } from 'fp-ts/HKT'
 import { flow, identity } from 'fp-ts/function'
 
-import * as Iso from './Iso'
 import * as LM from './LinearMap'
 
 // ###################
@@ -76,7 +75,6 @@ export function compose<F extends URIS, A, B, C>(
   g: LinearIsomorphism1<F, B, C>
 ): LinearIsomorphism1<F, A, C> {
   return {
-    isoV: Iso.compose0(f.isoV, g.isoV),
     mapL: flow(f.mapL, g.mapL),
     reverseMapL: flow(g.reverseMapL, f.reverseMapL),
   }
@@ -91,7 +89,6 @@ export function id<F extends URIS3, R, E, A>(): LinearIsomorphism3<F, R, E, A, A
 export function id<F extends URIS2, E, A>(): LinearIsomorphism2<F, E, A, A>
 export function id<F extends URIS, A>(): LinearIsomorphism1<F, A, A> {
   return {
-    isoV: Iso.getId(),
     mapL: identity,
     reverseMapL: identity,
   }

@@ -173,10 +173,7 @@ export const MonoidProduct: Mn.Monoid<Quaternion> = {
  * @category Instance Operations
  */
 export const recip: (q: Quaternion) => Quaternion = ({ a, b, c, d }) =>
-  Bimodule.leftScalarMul(
-    1 / (a ** 2 + b ** 2 + c ** 2 + d ** 2),
-    Conjugate.conj({ a, b, c, d })
-  )
+  Bimodule.leftScalarMul(1 / (a ** 2 + b ** 2 + c ** 2 + d ** 2), conj({ a, b, c, d }))
 
 /**
  * @since 1.0.0
@@ -216,23 +213,6 @@ export const Bimodule: TC.Bimodule<Quaternion, number> = {
   ...AdditiveAbelianGroup,
   leftScalarMul: (r, x) => ({ a: r * x.a, b: r * x.b, c: r * x.c, d: r * x.d }),
   rightScalarMul: (x, r) => ({ a: r * x.a, b: r * x.b, c: r * x.c, d: r * x.d }),
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorSpace: TC.VectorSpace<number, Quaternion> = {
-  ...Bimodule,
-  _F: N.Field,
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Conjugate: TC.Conjugate<Quaternion> = {
-  conj: ({ a, b, c, d }) => of(a, -b, -c, -d),
 }
 
 /**
@@ -356,3 +336,18 @@ export const getRotationQuaternion: (
     scalar(Math.cos(theta / 2)),
     Bimodule.leftScalarMul(Math.sin(theta / 2), asUnit(fromVector3(axis)))
   )
+
+/**
+ * @since 1.0.0
+ * @category Quaternion Ops
+ */
+export const conj: (q: Quaternion) => Quaternion = ({ a, b, c, d }) => of(a, -b, -c, -d)
+
+/**
+ * @since 1.0.0
+ * @category Quaternion Ops
+ */
+export const dot: (x: Quaternion, y: Quaternion) => number = (
+  { a, b, c, d },
+  { a: e, b: f, c: g, d: h }
+) => a * e + b * f + c * g + d * h

@@ -216,17 +216,6 @@ export const getBimodule: <R>(
  * @since 1.0.0
  * @category Instances
  */
-export const getVectorSpace: <F>(
-  F: Fld.Field<F>
-) => TC.VectorSpace<F, Polynomial<F, F>> = F => ({
-  ...getBimodule(F),
-  _F: F,
-})
-
-/**
- * @since 1.0.0
- * @category Instances
- */
 export const getRing = <R>(R: Rng.Ring<R>): TC.CommutativeRing<Polynomial<R, R>> => ({
   add: add(R),
   sub: (x, y) => add(R)(x, inverse(R)(y)),

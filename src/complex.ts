@@ -198,13 +198,15 @@ export const ComplexBimodule: TC.Bimodule<Complex, number> = {
   rightScalarMul: (x, r) => ({ Re: r * x.Re, Im: r * x.Im }),
 }
 
+// ###################
+// ### Complex Ops ###
+// ###################
+
 /**
  * @since 1.0.0
- * @category Instances
+ * @category Complex Ops
  */
-export const Conjugate: TC.Conjugate<Complex> = {
-  conj: ({ Re, Im }) => ({ Re, Im: -Im }),
-}
+export const conj: (c: Complex) => Complex = ({ Re, Im }) => ({ Re, Im: -Im })
 
 // ##################
 // ### Vector Ops ###
@@ -303,8 +305,24 @@ export const IsoVector: Iso.Iso0<Complex, V.VecC<2, number>> = {
 }
 
 // #############
-// ### Vec1d ####
+// ### VecN ####
 // #############
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const dot = V.dot(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const norm = V.norm(Field)
+
+// ##############
+// ### Vec1d ####
+// ##############
 
 /**
  * @since 1.0.0
@@ -324,22 +342,9 @@ export const AbelianGroup1d: TC.AbelianGroup<Vec1d> = V.getAbGroup(Field)(1)
  */
 export const Bimodule1d: TC.Bimodule<Vec1d, Complex> = V.getBimodule(Field)(1)
 
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorSpace1d: TC.VectorSpace<Complex, Vec1d> = V.getVectorSpace(Field)(1)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace1d: TC.InnerProductSpace<Complex, Vec1d> =
-  V.getInnerProductSpace(Field, Conjugate)(1)
-
-// #############
+// ##############
 // ### Vec2d ####
-// #############
+// ##############
 
 /**
  * @since 1.0.0
@@ -358,19 +363,6 @@ export const AbelianGroup2d: TC.AbelianGroup<Vec2d> = V.getAbGroup(Field)(2)
  * @category Instances
  */
 export const Bimodule2d: TC.Bimodule<Vec2d, Complex> = V.getBimodule(Field)(2)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorSpace2d: TC.VectorSpace<Complex, Vec2d> = V.getVectorSpace(Field)(2)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace2d: TC.InnerProductSpace<Complex, Vec2d> =
-  V.getInnerProductSpace(Field, Conjugate)(2)
 
 // ###############
 // ### Mat 2x2 ###
@@ -396,9 +388,9 @@ export const AdditiveAbelianGroup22: TC.AbelianGroup<Mat22> = M.getAdditiveAbeli
  */
 export const Bimodule22: TC.Bimodule<Mat22, Complex> = M.getBimodule(Field)(2, 2)
 
-// #############
+// ##############
 // ### Vec3d ####
-// #############
+// ##############
 
 /**
  * @since 1.0.0
@@ -417,19 +409,6 @@ export const AbelianGroup3d: TC.AbelianGroup<Vec3d> = V.getAbGroup(Field)(3)
  * @category Instances
  */
 export const Bimodule3d: TC.Bimodule<Vec3d, Complex> = V.getBimodule(Field)(3)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorSpace3d: TC.VectorSpace<Complex, Vec3d> = V.getVectorSpace(Field)(3)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace3d: TC.InnerProductSpace<Complex, Vec3d> =
-  V.getInnerProductSpace(Field, Conjugate)(3)
 
 /**
  * @since 1.0.0
@@ -461,9 +440,9 @@ export const AdditiveAbelianGroup33: TC.AbelianGroup<Mat33> = M.getAdditiveAbeli
  */
 export const Bimodule33: TC.Bimodule<Mat33, Complex> = M.getBimodule(Field)(3, 3)
 
-// #############
+// ##############
 // ### Vec4d ####
-// #############
+// ##############
 
 /**
  * @since 1.0.0
@@ -482,19 +461,6 @@ export const AbelianGroup4d: TC.AbelianGroup<Vec4d> = V.getAbGroup(Field)(4)
  * @category Instances
  */
 export const Bimodule4d: TC.Bimodule<Vec4d, Complex> = V.getBimodule(Field)(4)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorSpace4d: TC.VectorSpace<Complex, Vec4d> = V.getVectorSpace(Field)(4)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace4d: TC.InnerProductSpace<Complex, Vec4d> =
-  V.getInnerProductSpace(Field, Conjugate)(4)
 
 // ###############
 // ### Mat 4x4 ###
@@ -520,9 +486,9 @@ export const AdditiveAbelianGroup44: TC.AbelianGroup<Mat44> = M.getAdditiveAbeli
  */
 export const Bimodule44: TC.Bimodule<Mat44, Complex> = M.getBimodule(Field)(4, 4)
 
-// #############
+// ##############
 // ### Vec5d ####
-// #############
+// ##############
 
 /**
  * @since 1.0.0
@@ -541,19 +507,6 @@ export const AbelianGroup5d: TC.AbelianGroup<Vec5d> = V.getAbGroup(Field)(5)
  * @category Instances
  */
 export const Bimodule5d: TC.Bimodule<Vec5d, Complex> = V.getBimodule(Field)(5)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorSpace5d: TC.VectorSpace<Complex, Vec5d> = V.getVectorSpace(Field)(5)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace5d: TC.InnerProductSpace<Complex, Vec5d> =
-  V.getInnerProductSpace(Field, Conjugate)(5)
 
 // ###############
 // ### Mat 5x5 ###
@@ -579,9 +532,9 @@ export const AdditiveAbelianGroup55: TC.AbelianGroup<Mat55> = M.getAdditiveAbeli
  */
 export const Bimodule55: TC.Bimodule<Mat55, Complex> = M.getBimodule(Field)(5, 5)
 
-// #############
+// ##############
 // ### Vec6d ####
-// #############
+// ##############
 
 /**
  * @since 1.0.0
@@ -600,19 +553,6 @@ export const AbelianGroup6d: TC.AbelianGroup<Vec6d> = V.getAbGroup(Field)(6)
  * @category Instances
  */
 export const Bimodule6d: TC.Bimodule<Vec6d, Complex> = V.getBimodule(Field)(6)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const VectorSpace6d: TC.VectorSpace<Complex, Vec6d> = V.getVectorSpace(Field)(6)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const InnerProductSpace6d: TC.InnerProductSpace<Complex, Vec6d> =
-  V.getInnerProductSpace(Field, Conjugate)(6)
 
 // ###############
 // ### Mat 6x6 ###
@@ -678,12 +618,6 @@ export const PolynomialBimodule = Poly.getBimodule(Field)
  * @category Instances
  */
 export const PolynomialRing = Poly.getRing(Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialVectorSpace = Poly.getVectorSpace(Field)
 
 /**
  * @since 1.0.0
