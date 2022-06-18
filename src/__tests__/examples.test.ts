@@ -21,14 +21,14 @@ describe('examples', () => {
   })
   describe('linear maps', () => {
     it('differentiates and integrates polynomials', () => {
-      const { equals } = Poly.getPolynomialEq<number, number>(N.Field)
+      const { equals } = Poly.getPolynomialEq<number>(N.Eq)
 
       const { mapL, reverseMapL } = N.getDifferentialLinearIsomorphism(1)
 
       const thereAndBack = flow(mapL, reverseMapL)
       const hereAndThere = flow(reverseMapL, mapL)
 
-      const a = Poly.fromCoefficientArray([1, 2, 3])
+      const a = Poly.fromCoefficientArray(N.Eq, N.Field)([1, 2, 3])
 
       expect(equals(thereAndBack(a), a)).toBe(true)
       expect(equals(hereAndThere(a), a)).toBe(true)

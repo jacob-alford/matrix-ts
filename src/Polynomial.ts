@@ -1,28 +1,23 @@
 /**
- * A polynomial expression type.
- *
- * In order for algebraic instances to be lawful, all like terms must have identical
- * evaluation functions. But this is baked into the definition of a polynomial.
- *
- * In other words, the polynomial described here is not a sum of mixed Symbols. This is
- * enforced with a branded newtype
+ * Adapted from:
+ * https://pursuit.purescript.org/packages/purescript-polynomials/1.0.1/docs/Data.Polynomial#t:Polynomial
  */
-
-import * as Cnvt from 'fp-ts/Contravariant'
+import * as ChnRec from 'fp-ts/ChainRec'
 import * as Eq from 'fp-ts/Eq'
+import * as E from 'fp-ts/Either'
 import * as Fld from 'fp-ts/Field'
-import * as Mg from 'fp-ts/Magma'
-import * as N from 'fp-ts/number'
+import * as Fun from 'fp-ts/Functor'
+import * as FunI from 'fp-ts/FunctorWithIndex'
+import { Monoid } from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
 import * as Ord from 'fp-ts/Ord'
 import * as RA from 'fp-ts/ReadonlyArray'
-import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
 import * as Rng from 'fp-ts/Ring'
-import * as Z from 'fp-ts/Zero'
-import { flow, identity, pipe, tuple } from 'fp-ts/function'
+import { Semigroup } from 'fp-ts/Semigroup'
+import { flow, identity as id, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
-import * as Exp from './Expression'
 import * as TC from './typeclasses'
+import * as Int from './integer'
 
 const PolynomialSymbol = Symbol('Polynomial')
 type PolynomialSymbol = typeof PolynomialSymbol
@@ -35,13 +30,7 @@ type PolynomialSymbol = typeof PolynomialSymbol
  * @since 1.0.0
  * @category Model
  */
-export type Monomial<R, C> = Exp.Term<[R, number], C, R>
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export interface Polynomial<R, C> extends Exp.Expression<[R, number], C, R> {
+export interface Polynomial<R> extends ReadonlyArray<R> {
   _URI: PolynomialSymbol
 }
 
@@ -53,41 +42,51 @@ export interface Polynomial<R, C> extends Exp.Expression<[R, number], C, R> {
  * @since 1.0.0
  * @category Internal
  */
-const wrap: <R, C>(exp: Exp.Expression<[R, number], C, R>) => Polynomial<R, C> =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  identity as any
-
-/**
- * @since 1.0.0
- * @category Internal
- */
-const monomial: <R, C>(symbol: [R, number], evaluate: (c: C) => R) => Monomial<R, C> = (
-  symbol,
-  evaluate
-) => ({ symbol, evaluate })
+const wrap: <R>(as: ReadonlyArray<R>) => Polynomial<R> = unsafeCoerce
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const fromCoefficientArray = <R>(rs: ReadonlyArray<R>): Polynomial<R, R> =>
-  pipe(
-    rs,
-    RA.mapWithIndex(
-      (i, coefficient): Monomial<R, R> => ({
-        symbol: tuple(coefficient, i),
-        evaluate: identity,
-      })
-    ),
-    a => wrap(a)
-  )
+export const fromCoefficientArray =
+  <R>(Eq: Eq.Eq<R>, R: Rng.Ring<R>) =>
+  (rs: ReadonlyArray<R>): Polynomial<R> => {
+    const go: (
+      acc: ReadonlyArray<R>
+    ) => E.Either<ReadonlyArray<R>, Polynomial<R>> = acc => {
+      const last = RA.last(acc)
+
+      // Base case: array is empty
+      if (O.isNone(last)) return E.right(wrap(acc))
+
+      // Base case: ends in non-zero coefficient
+      if (!Eq.equals(R.zero, last.value)) return E.right(wrap(acc))
+
+      // Continue dropping the zerod-value ending coefficient
+      return pipe(acc, RA.dropRight(1), E.left)
+    }
+    return ChnRec.tailRec(rs, go)
+  }
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const one: <R>(R: Rng.Ring<R>) => Polynomial<R> = R => wrap([R.one])
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const zero = <R>(): Polynomial<R> => wrap(RA.zero())
 
 // #####################
 // ### Non-Pipeables ###
 // #####################
 
-export const _contramap: Cnvt.Contravariant2<URI>['contramap'] = (fa, f) =>
-  pipe(fa, contramap(f))
+const _map: Fun.Functor1<URI>['map'] = (fa, a) => pipe(fa, map(a))
+const _mapWithIndex: FunI.FunctorWithIndex1<URI, number>['mapWithIndex'] = (fa, f) =>
+  pipe(fa, mapWithIndex(f))
 
 // #################
 // ### Instances ###
@@ -106,11 +105,8 @@ export const URI = 'Polynomial'
 export type URI = typeof URI
 
 declare module 'fp-ts/HKT' {
-  interface URItoKind2<E, A> {
-    readonly [URI]: Polynomial<E, A>
-  }
   interface URItoKind<A> {
-    readonly [URI]: Polynomial<A, A>
+    readonly [URI]: Polynomial<A>
   }
 }
 
@@ -118,157 +114,184 @@ declare module 'fp-ts/HKT' {
  * @since 1.0.0
  * @category Instances
  */
-export const getMonomialEq: <R, C>() => Eq.Eq<Monomial<R, C>> = () =>
-  pipe(
-    Eq.tuple(Ord.trivial, N.Eq),
-    Eq.contramap(({ symbol }) => symbol)
-  )
+export const getPolynomialEq: <R>(Eq: Eq.Eq<R>) => Eq.Eq<Polynomial<R>> = RA.getEq
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const getMonomialOrd: <R, C>() => Ord.Ord<Monomial<R, C>> = () =>
-  pipe(
-    Ord.tuple(Ord.trivial, N.Ord),
-    Ord.contramap(({ symbol }) => symbol)
-  )
+export const getPolynomialOrd: <R>(Eq: Ord.Ord<R>) => Ord.Ord<Polynomial<R>> = RA.getOrd
 
 /**
  * @since 1.0.0
- * @category Instances
+ * @category Instance Operations
  */
-export const getPolynomialEq = <R, C>(R: Rng.Ring<R>): Eq.Eq<Polynomial<R, C>> =>
-  pipe(RA.getEq(getMonomialEq<R, C>()), Eq.contramap(combineLikeTerms(R)))
-
-/**
- * Monomial addition is only a Magma, because it assumes that the two terms added are of
- * the same symbol (and hence evaluate function). But this means that it is not
- * commutative, and doesn't follow Semigroup laws
- *
- * @since 1.0.0
- * @category Instances
- */
-export const getMonomialAdditiveMagma: <R, C>(
+export const add: <R>(
+  Eq: Eq.Eq<R>,
   R: Rng.Ring<R>
-) => Mg.Magma<Monomial<R, C>> = R => ({
-  concat: (x, y) => ({
-    evaluate: x.evaluate,
-    symbol: [R.add(x.symbol[0], y.symbol[0]), x.symbol[1]],
-  }),
-})
+) => (x: Polynomial<R>, y: Polynomial<R>) => Polynomial<R> = (E, R) =>
+  flow(preservingZipWith(R.add, R.zero), fromCoefficientArray(E, R))
 
 /**
- * Monomial multiplication is only a Magma, because it can't be guaranteed that the two
- * monomials being multipled are of the same symbol. And thus fail to satisfy Semigroup laws.
- *
  * @since 1.0.0
- * @category Instances
+ * @category Instance Operations
  */
-export const getMonomialMultiplicativeMagma: <R, C>(
+export const sub: <R>(
+  Eq: Eq.Eq<R>,
   R: Rng.Ring<R>
-) => Mg.Magma<Monomial<R, C>> = R => ({
-  concat: (x, y) => ({
-    evaluate: x.evaluate,
-    symbol: [R.mul(x.symbol[0], y.symbol[0]), x.symbol[1] + y.symbol[1]],
-  }),
-})
+) => (x: Polynomial<R>, y: Polynomial<R>) => Polynomial<R> = (E, R) =>
+  flow(preservingZipWith(R.sub, R.zero), fromCoefficientArray(E, R))
+
+/**
+ * @since 1.0.0
+ * @category Instance Operations
+ */
+export const mul =
+  <R>(Eq: Eq.Eq<R>, R: Rng.Ring<R>) =>
+  (xs: Polynomial<R>, ys: Polynomial<R>): Polynomial<R> =>
+    pipe(
+      xs,
+      RA.mapWithIndex((i, a) =>
+        pipe(
+          ys,
+          shiftBy(i, R.zero),
+          RA.map(y => R.mul(y, a))
+        )
+      ),
+      RA.reduceRight(RA.zero<R>(), preservingZipWith(R.add, R.zero)),
+      fromCoefficientArray(Eq, R)
+    )
 
 /**
  * @since 1.0.0
  * @category Instances
  */
 export const getAdditiveAbelianGroup = <R>(
+  Eq: Eq.Eq<R>,
   R: Rng.Ring<R>
-): TC.AbelianGroup<Polynomial<R, R>> => ({
-  concat: add(R),
-  inverse: inverse(R),
+): TC.AbelianGroup<Polynomial<R>> => ({
+  concat: add(Eq, R),
   empty: zero(),
+  inverse: a => sub(Eq, R)(zero(), a),
 })
 
 /**
  * @since 1.0.0
- * @category Internal
+ * @category Instances
  */
-const scaleMonomialCoefficient: <R>(
+export const getCommutativeRing = <R>(
+  E: Eq.Eq<R>,
   R: Rng.Ring<R>
-) => (scalar: R) => <C>(fa: Monomial<R, C>) => Monomial<R, C> =
-  R =>
-  scalar =>
-  ({ symbol, evaluate }) => ({
-    symbol: [R.mul(scalar, symbol[0]), symbol[1]],
-    evaluate,
-  })
+): TC.CommutativeRing<Polynomial<R>> => ({
+  add: add(E, R),
+  sub: sub(E, R),
+  zero: zero(),
+  mul: mul(E, R),
+  one: one(R),
+})
 
 /**
  * @since 1.0.0
  * @category Instances
  */
 export const getBimodule: <R>(
+  E: Eq.Eq<R>,
   R: Rng.Ring<R>
-) => TC.Bimodule<Polynomial<R, R>, R> = R => ({
-  ...getAdditiveAbelianGroup(R),
-  leftScalarMul: (n, as) => pipe(as, RA.map(scaleMonomialCoefficient(R)(n)), wrap),
-  rightScalarMul: (as, n) => pipe(as, RA.map(scaleMonomialCoefficient(R)(n)), wrap),
+) => TC.Bimodule<Polynomial<R>, R> = (E, R) => ({
+  ...getAdditiveAbelianGroup(E, R),
+  leftScalarMul: (n, as) =>
+    pipe(
+      as,
+      RA.map(a => R.mul(n, a)),
+      wrap
+    ),
+  rightScalarMul: (as, n) =>
+    pipe(
+      as,
+      RA.map(a => R.mul(a, n)),
+      wrap
+    ),
 })
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const getRing = <R>(R: Rng.Ring<R>): TC.CommutativeRing<Polynomial<R, R>> => ({
-  add: add(R),
-  sub: (x, y) => add(R)(x, inverse(R)(y)),
-  zero: zero(),
-  mul: mul(R),
-  one: one(R),
+export const getEuclidianRing = <F>(
+  E: Eq.Eq<F>,
+  F: Fld.Field<F>
+): TC.EuclidianRing<Polynomial<F>> => ({
+  ...getCommutativeRing(E, F),
+  div: (x, y) => polynomialDivMod(E, F)(x, y).div,
+  mod: (x, y) => polynomialDivMod(E, F)(x, y).mod,
+  degree: polynomialDegree,
 })
-
-/**
- * @since 1.0.0
- * @category Instance Operations
- */
-export const zero = <R, C>(): Polynomial<R, C> => pipe(RA.zero<Monomial<R, C>>(), wrap)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Zero: Z.Zero2<URI> = {
-  URI,
-  zero,
-}
-
-/**
- * @since 1.0.0
- * @category Internal
- */
-const contramapEvaluate: <C, R, D>(
-  f: (x: D) => C
-) => (t: Monomial<R, C>) => Monomial<R, D> = f => t => ({
-  ...t,
-  evaluate: flow(f, t.evaluate),
+export const getCompositionSemigroup: <R>(
+  Eq_: Eq.Eq<R>,
+  R: Rng.Ring<R>
+) => Semigroup<Polynomial<R>> = (E, R) => ({
+  concat: (x, y) => polynomialCompose(E, R)(x)(y),
 })
 
 /**
- * Can be used for change-of-variables, or any generic change of domain
- *
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getCompositionMonoid: <R>(
+  Eq_: Eq.Eq<R>,
+  R: Rng.Ring<R>
+) => Monoid<Polynomial<R>> = (E, R) => ({
+  ...getCompositionSemigroup(E, R),
+  empty: identity(R),
+})
+
+/**
  * @since 1.0.0
  * @category Instance operations
  */
-export const contramap: <R, C, D>(
-  f: (d: D) => C
-) => (fa: Polynomial<R, C>) => Polynomial<R, D> = f =>
-  flow(RA.map(contramapEvaluate(f)), wrap)
+export const map: <A, B>(f: (a: A) => B) => (fa: Polynomial<A>) => Polynomial<B> = f =>
+  flow(RA.map(f), wrap)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Contravariant: Cnvt.Contravariant2<URI> = {
+export const Functor: Fun.Functor1<URI> = {
   URI,
-  contramap: _contramap,
+  map: _map,
 }
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const mapWithIndex: <A, B>(
+  f: (i: number, a: A) => B
+) => (fa: Polynomial<A>) => Polynomial<B> = f => flow(RA.mapWithIndex(f), wrap)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const FunctorWithIndex: FunI.FunctorWithIndex1<URI, number> = {
+  ...Functor,
+  mapWithIndex: _mapWithIndex,
+}
+
+// ###################
+// ### Destructors ###
+// ###################
+
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+export const coefficients: <R>(p: Polynomial<R>) => ReadonlyArray<R> = id
 
 // #############################
 // ### Polynomial Operations ###
@@ -276,87 +299,68 @@ export const Contravariant: Cnvt.Contravariant2<URI> = {
 
 /**
  * @since 1.0.0
- * @category Internal
+ * @category Polynomial Operations
  */
-const concatPolynomials = <R, C>(
-  x: Polynomial<R, C>,
-  y: Polynomial<R, C>
-): Polynomial<R, C> => pipe(x, RA.concat(y), wrap)
+export const identity: <R>(R: Rng.Ring<R>) => Polynomial<R> = R => wrap([R.zero, R.one])
 
 /**
  * @since 1.0.0
- * @category Internal
+ * @category Polynomial Operations
  */
-const combineLikeTerms =
+export const constant: <R>(Eq: Eq.Eq<R>, R: Rng.Ring<R>) => (a: R) => Polynomial<R> = (
+  Eq,
+  R
+) => flow(RA.of, fromCoefficientArray(Eq, R))
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const evaluate =
   <R>(R: Rng.Ring<R>) =>
-  <C>(x: Polynomial<R, C>): Polynomial<R, C> =>
+  (p: Polynomial<R>) =>
+  (x: R): R =>
     pipe(
-      x,
-      RNEA.fromReadonlyArray,
-      O.map(flow(RNEA.sort(getMonomialOrd<R, C>()), RNEA.group(getMonomialEq<R, C>()))),
-      O.fold(
-        () => zero(),
-        flow(
-          RA.map(likeTerms => {
-            const { evaluate, symbol } = RNEA.head(likeTerms)
-            const zero: Monomial<R, C> = {
-              evaluate,
-              symbol: [R.zero, symbol[1]],
-            }
-            return pipe(
-              likeTerms,
-              RNEA.reduce(zero, getMonomialAdditiveMagma<R, C>(R).concat)
-            )
-          }),
-          wrap
-        )
-      )
+      p,
+      RA.reduce(tuple(R.zero, R.one), ([acc, val], coeff) => {
+        const newVal = R.mul(val, x)
+        const term = R.mul(coeff, val)
+        return tuple(R.add(acc, term), newVal)
+      }),
+      ([acc]) => acc
     )
 
 /**
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const one = <R>(R: Rng.Ring<R>): Polynomial<R, R> =>
-  pipe(RA.of<Monomial<R, R>>({ symbol: tuple(R.one, 0), evaluate: identity }), wrap)
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const add =
-  <R>(R: Rng.Ring<R>) =>
-  <C>(x: Polynomial<R, C>, y: Polynomial<R, C>): Polynomial<R, C> =>
-    pipe(concatPolynomials(x, y), combineLikeTerms(R))
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const mul =
-  <R>(R: Rng.Ring<R>) =>
-  <C>(x: Polynomial<R, C>, y: Polynomial<R, C>): Polynomial<R, C> =>
-    pipe(
-      RA.Do,
-      RA.apS('a', x),
-      RA.apS('b', y),
-      RA.map(({ a, b }) => getMonomialMultiplicativeMagma<R, C>(R).concat(a, b)),
-      wrap,
-      combineLikeTerms(R)
-    )
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const inverse: <R>(
+export const polynomialCompose: <R>(
+  Eq: Eq.Eq<R>,
   R: Rng.Ring<R>
-) => <C>(x: Polynomial<R, C>) => Polynomial<R, C> = R =>
+) => (x: Polynomial<R>) => (y: Polynomial<R>) => Polynomial<R> = (Eq, R) => x =>
+  pipe(x, map(constant(Eq, R)), evaluate(getCommutativeRing(Eq, R)))
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const polynomialDegree: <R>(p: Polynomial<R>) => Int.Int = flow(
+  coefficients,
+  RA.size,
+  n => n - 1,
+  Int.fromNumber
+)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const derivative: <R>(
+  scale: (n: number, r: R) => R
+) => (coeffs: Polynomial<R>) => Polynomial<R> = scale =>
   flow(
-    RA.map(({ evaluate, symbol }) => ({
-      evaluate,
-      symbol: tuple(R.sub(R.zero, symbol[0]), symbol[1]),
-    })),
+    RA.mapWithIndex((i, coeff) => scale(i, coeff)),
+    RA.dropLeft(1),
     wrap
   )
 
@@ -364,35 +368,117 @@ export const inverse: <R>(
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const getDerivative =
-  <R>(scale: (power: number, coeff: R) => R, F: Fld.Field<R>) =>
-  (x: Polynomial<R, R>): Polynomial<R, R> =>
-    pipe(
-      x,
-      RA.filterMap(({ symbol: [coefficient, power], evaluate }) =>
-        pipe(
-          monomial(tuple(scale(power, coefficient), power - 1), evaluate),
-          O.fromPredicate(() => power >= 1)
-        )
-      ),
-      a => wrap(a),
-      combineLikeTerms(F)
-    )
+export const antiderivative: <R>(
+  constantTerm: R,
+  scaleLeft: (n: number, r: R) => R
+) => (p: Polynomial<R>) => Polynomial<R> = (constantTerm, scaleLeft) =>
+  flow(
+    RA.mapWithIndex((i, coeff) => scaleLeft(1 / (i + 1), coeff)),
+    RA.prepend(constantTerm),
+    wrap
+  )
 
 /**
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const getAntiderivative =
-  <R>(scale: (power: number, coeff: R) => R, F: Fld.Field<R>) =>
-  (constantTerm: R) =>
-  (x: Polynomial<R, R>): Polynomial<R, R> =>
-    pipe(
-      x,
-      RA.map(({ symbol: [coefficient, power], evaluate }) =>
-        monomial(tuple(scale(1 / (power + 1), coefficient), power + 1), evaluate)
-      ),
-      RA.prepend(monomial(tuple(constantTerm, 0), identity)),
-      a => wrap(a),
-      combineLikeTerms(F)
+export const innerProduct: <R>(
+  Eq_: Eq.Eq<R>,
+  R: Rng.Ring<R>,
+  scaleLeft: (n: number, r: R) => R
+) => (p: Polynomial<R>, q: Polynomial<R>) => R = (Eq_, R, scaleLeft) => (p, q) => {
+  const RP = getCommutativeRing(Eq_, R)
+  const evaluateR = evaluate(R)
+  const convolution = antiderivative(R.zero, scaleLeft)(RP.mul(p, q))
+  return evaluateR(convolution)(R.one)
+}
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const norm: <R>(
+  Eq_: Eq.Eq<R>,
+  R: Rng.Ring<R>,
+  scaleLeft: (n: number, r: R) => R,
+  sqrt: (r: R) => R
+) => (p: Polynomial<R>) => R = (Eq_, R, scaleLeft, sqrt) => p =>
+  sqrt(innerProduct(Eq_, R, scaleLeft)(p, p))
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const projection: <R>(
+  Eq_: Eq.Eq<R>,
+  F: Fld.Field<R>,
+  scaleLeft: (n: number, r: R) => R
+) => (p: Polynomial<R>, q: Polynomial<R>) => Polynomial<R> =
+  (Eq_, F, scaleLeft) => (p, q) => {
+    const ER = getEuclidianRing(Eq_, F)
+    const ipF = innerProduct(Eq_, F, scaleLeft)
+    return ER.mul(constant(Eq_, F)(F.div(ipF(p, q), ipF(p, p))), p)
+  }
+
+// ################
+// ### Internal ###
+// ################
+
+/**
+ * @since 1.0.0
+ * @category Internal
+ */
+const preservingZipWith =
+  <R>(f: (x: R, y: R) => R, def: R) =>
+  (xs: ReadonlyArray<R>, ys: ReadonlyArray<R>): ReadonlyArray<R> => {
+    const go: (
+      acc: [ReadonlyArray<R>, number]
+    ) => E.Either<[ReadonlyArray<R>, number], ReadonlyArray<R>> = ([zs, i]) => {
+      const x = RA.lookup(i)(xs)
+      const y = RA.lookup(i)(ys)
+
+      if (O.isSome(x) && O.isSome(y))
+        return E.left(tuple(pipe(zs, RA.concat(RA.of(f(x.value, y.value))), wrap), i + 1))
+      if (O.isSome(x) && O.isNone(y))
+        return E.left(tuple(pipe(zs, RA.concat(RA.of(f(x.value, def))), wrap), i + 1))
+      if (O.isNone(x) && O.isSome(y))
+        return E.left(tuple(pipe(zs, RA.concat(RA.of(f(def, y.value))), wrap), i + 1))
+      return E.right(zs)
+    }
+    return ChnRec.tailRec(tuple(RA.zero<R>(), 0), go)
+  }
+
+/**
+ * @since 1.0.0
+ * @category Internal
+ */
+export const shiftBy: <R>(n: number, r: R) => (p: ReadonlyArray<R>) => ReadonlyArray<R> =
+  (n, x) => xs =>
+    pipe(RA.replicate(n, x), RA.concat(xs))
+
+/**
+ * @since 1.0.0
+ * @category Internal
+ */
+const polynomialDivMod =
+  <R>(Eq_: Eq.Eq<R>, F: Fld.Field<R>) =>
+  (a: Polynomial<R>, b: Polynomial<R>): { div: Polynomial<R>; mod: Polynomial<R> } => {
+    const lc: (as: ReadonlyArray<R>) => R = unsafeCoerce(
+      (a: ReadonlyArray<R>) => a[a.length - 1]
     )
+    const d = polynomialDegree(b)
+    const c = lc(b)
+    const R = getCommutativeRing(Eq_, F)
+    const go: (
+      acc: [Polynomial<R>, Polynomial<R>]
+    ) => E.Either<
+      [Polynomial<R>, Polynomial<R>],
+      { div: Polynomial<R>; mod: Polynomial<R> }
+    > = ([q, r]) => {
+      const degreeDiff = polynomialDegree(r) - d
+      if (degreeDiff < 0) return E.right({ div: q, mod: r })
+      const s = wrap(pipe([F.div(lc(r), c)], shiftBy(degreeDiff, F.zero)))
+      return E.left([R.add(q, s), R.sub(r, R.mul(s, b))])
+    }
+    return ChnRec.tailRec(tuple(R.zero, a), go)
+  }

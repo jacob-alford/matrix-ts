@@ -307,7 +307,7 @@ export const getLinearMap =
     mapL: x =>
       pipe(
         A,
-        V.map(y => V.dot(R)(x, y))
+        V.map(y => V.innerProduct(R)(x, y))
       ),
   })
 

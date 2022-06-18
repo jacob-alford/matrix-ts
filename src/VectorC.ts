@@ -548,7 +548,9 @@ export const crossProduct: <A>(
  * @since 1.0.0
  * @category Vector Operations
  */
-export const dot: <A>(R: Rng.Ring<A>) => <N>(x: VecC<N, A>, y: VecC<N, A>) => A = R =>
+export const innerProduct: <A>(
+  R: Rng.Ring<A>
+) => <N>(x: VecC<N, A>, y: VecC<N, A>) => A = R =>
   flow(
     zipVectors,
     foldMap(U.getAdditionMonoid(R))(([a, b]) => R.mul(a, b))

@@ -208,6 +208,15 @@ export const ComplexBimodule: TC.Bimodule<Complex, number> = {
  */
 export const conj: (c: Complex) => Complex = ({ Re, Im }) => ({ Re, Im: -Im })
 
+/**
+ * @since 1.0.0
+ * @category Complex Ops
+ */
+export const sqrt: (c: Complex) => Complex = ({ Re, Im }) => ({
+  Re: Math.sqrt((Re + Math.sqrt(Re ** 2 + Im ** 2)) / 2),
+  Im: Math.sign(Im) * Math.sqrt((-Re + Math.sqrt(Re ** 2 + Im ** 2)) / 2),
+})
+
 // ##################
 // ### Vector Ops ###
 // ##################
@@ -312,7 +321,7 @@ export const IsoVector: Iso.Iso0<Complex, V.VecC<2, number>> = {
  * @since 1.0.0
  * @category Vector Operations
  */
-export const dot = V.dot(Field)
+export const dot = V.innerProduct(Field)
 
 /**
  * @since 1.0.0
@@ -586,15 +595,42 @@ export const Bimodule66: TC.Bimodule<Mat66, Complex> = M.getBimodule(Field)(6, 6
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const derivative = Poly.getDerivative(ComplexBimodule.leftScalarMul, Field)
+export const derivative = Poly.derivative(ComplexBimodule.leftScalarMul)
 
 /**
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const getAntiderivative = Poly.getAntiderivative(
-  ComplexBimodule.leftScalarMul,
-  Field
+export const getAntiderivative: (
+  constantTerm: Complex
+) => (p: Poly.Polynomial<Complex>) => Poly.Polynomial<Complex> = (
+  constantTerm: Complex
+) => Poly.antiderivative(constantTerm, ComplexBimodule.leftScalarMul)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const polynomialInnerProdct = Poly.innerProduct(
+  Eq,
+  Field,
+  ComplexBimodule.leftScalarMul
+)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const polynomialNorm = Poly.norm(Eq, Field, ComplexBimodule.leftScalarMul, sqrt)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const polynomialProjection = Poly.projection(
+  Eq,
+  Field,
+  ComplexBimodule.leftScalarMul
 )
 
 // ############################
@@ -605,19 +641,25 @@ export const getAntiderivative = Poly.getAntiderivative(
  * @since 1.0.0
  * @category Instances
  */
-export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(Field)
+export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(Eq, Field)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const PolynomialBimodule = Poly.getBimodule(Field)
+export const PolynomialBimodule = Poly.getBimodule(Eq, Field)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const PolynomialRing = Poly.getRing(Field)
+export const PolynomialRing = Poly.getCommutativeRing(Eq, Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, Field)
 
 /**
  * @since 1.0.0
@@ -625,7 +667,7 @@ export const PolynomialRing = Poly.getRing(Field)
  */
 export const getDifferentialLinearIsomorphism: (
   constantTerm: Complex
-) => LI.LinearIsomorphism2<Poly.URI, Complex, Complex, Complex> = constantTerm => ({
+) => LI.LinearIsomorphism1<Poly.URI, Complex, Complex> = constantTerm => ({
   isoV: Iso.getId(),
   mapL: derivative,
   reverseMapL: getAntiderivative(constantTerm),
