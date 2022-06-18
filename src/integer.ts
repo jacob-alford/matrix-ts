@@ -143,14 +143,6 @@ export const Show: Sh.Show<Int> = N.Show
  * @since 1.0.0
  * @category Instances
  */
-export const Exp: TC.Exp<Int> = {
-  exp: (a, n) => fromNumber(Math.pow(a, n)),
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
 export const Conjugate: TC.Conjugate<Int> = {
   conj: identity,
 }

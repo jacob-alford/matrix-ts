@@ -206,20 +206,22 @@ export const Conjugate: TC.Conjugate<Complex> = {
   conj: ({ Re, Im }) => ({ Re, Im: -Im }),
 }
 
+// ##################
+// ### Vector Ops ###
+// ##################
+
 /**
  * @since 1.0.0
- * @category Instances
+ * @category Vector Ops
  */
-export const Exp: TC.Exp<Complex> = {
-  exp: (c, n) =>
-    pipe(
-      argumentRadians(c),
-      O.fold(
-        () => of(0, 0),
-        psi => fromPolarRadians(modulus(c) ** n, psi * n)
-      )
-    ),
-}
+export const pow: (c: Complex, n: number) => Complex = (c, n) =>
+  pipe(
+    argumentRadians(c),
+    O.fold(
+      () => of(0, 0),
+      psi => fromPolarRadians(modulus(c) ** n, psi * n)
+    )
+  )
 
 // #############
 // ### Infix ###
@@ -694,22 +696,3 @@ export const getDifferentialLinearIsomorphism: (
   mapL: derivative,
   reverseMapL: getAntiderivative(constantTerm),
 })
-
-// ##############################
-// ### Polynomial Destructors ###
-// ##############################
-
-/**
- * @since 1.0.0
- * @category Destructors
- */
-export const evaluatePolynomial = Poly.evaluate(Field, Exp)
-
-/**
- * @since 1.0.0
- * @category Destructors
- */
-export const polynomialToExpression = Poly.toExpression<
-  `(${string})z^${number}`,
-  Complex
->(Field, Exp, ([coefficient, power]) => `(${Show.show(coefficient)})z^${power}`)

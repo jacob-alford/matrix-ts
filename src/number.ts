@@ -79,14 +79,6 @@ export const Show = N.Show
  * @since 1.0.0
  * @category Instances
  */
-export const Exp: TC.Exp<number> = {
-  exp: (a, n) => Math.pow(a, n),
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
 export const Conjugate: TC.Conjugate<number> = {
   conj: identity,
 }
@@ -644,23 +636,3 @@ export const getDifferentialLinearIsomorphism: (
   mapL: derivative,
   reverseMapL: getAntiderivative(constantTerm),
 })
-
-// ##############################
-// ### Polynomial Destructors ###
-// ##############################
-
-/**
- * @since 1.0.0
- * @category Destructors
- */
-export const evaluatePolynomial = Poly.evaluate(Field, Exp)
-
-/**
- * @since 1.0.0
- * @category Destructors
- */
-export const polynomialToExpression = Poly.toExpression<`${number}x^${number}`, number>(
-  Field,
-  Exp,
-  ([coefficient, power]) => `${coefficient}x^${power}`
-)

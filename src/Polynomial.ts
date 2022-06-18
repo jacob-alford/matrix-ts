@@ -23,7 +23,6 @@ import { flow, identity, pipe, tuple } from 'fp-ts/function'
 
 import * as Exp from './Expression'
 import * as TC from './typeclasses'
-import * as U from './lib/utilities'
 
 const PolynomialSymbol = Symbol('Polynomial')
 type PolynomialSymbol = typeof PolynomialSymbol
@@ -281,39 +280,6 @@ export const Contravariant: Cnvt.Contravariant2<URI> = {
   URI,
   contramap: _contramap,
 }
-
-// ###################
-// ### Destructors ###
-// ###################
-
-/**
- * @since 1.0.0
- * @category Destructors
- */
-export const evaluate: <R>(
-  R: Rng.Ring<R>,
-  expR: TC.Exp<R>
-) => <C>(fa: Polynomial<R, C>, x: C) => R = (R, expR) => (xs, x) =>
-  pipe(
-    xs,
-    RA.foldMap(U.getAdditionMonoid(R))(({ evaluate, symbol: [coefficient, power] }) =>
-      R.mul(coefficient, expR.exp(evaluate(x), power))
-    )
-  )
-
-/**
- * @since 1.0.0
- * @category Destructors
- */
-export const toExpression: <T, R>(
-  R: Rng.Ring<R>,
-  expR: TC.Exp<R>,
-  symbolize: (sP: [R, number]) => T
-) => <C>(ps: Polynomial<R, C>) => Exp.Expression<T, C, R> = (R, expR, symbolize) =>
-  RA.map(({ symbol: [coefficient, power], evaluate }) => ({
-    evaluate: x => R.mul(coefficient, expR.exp(evaluate(x), power)),
-    symbol: symbolize([coefficient, power]),
-  }))
 
 // #############################
 // ### Polynomial Operations ###

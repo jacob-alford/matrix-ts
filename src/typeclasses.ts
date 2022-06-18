@@ -76,18 +76,6 @@ export interface Conjugate<A> {
 }
 
 /**
- * Technically, exponentiation can be derived from a plain ring structure, but given a
- * Monoid M (positive integers), you ought to be able to construct exponetiation for any
- * Ring R This is to avoid unnecessary complexity
- *
- * @since 1.0.0
- * @category Model
- */
-export interface Exp<A> {
-  readonly exp: (a: A, n: number) => A
-}
-
-/**
  * An `InnerProductSpace F A` over a `Field F` extends a `VectorSpace F A` with a notion
  * of inner product, and abides the following laws:
  *
