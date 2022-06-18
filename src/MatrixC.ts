@@ -246,11 +246,9 @@ export const URI = 'MatC'
 export type URI = typeof URI
 
 declare module 'fp-ts/HKT' {
-  /** Rectangular matricies */
   interface URItoKind3<R, E, A> {
     readonly [URI]: MatC<R, E, A>
   }
-  /** Square Matricies */
   interface URItoKind2<E, A> {
     readonly [URI]: MatC<E, E, A>
   }

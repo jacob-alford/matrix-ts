@@ -76,82 +76,38 @@ export interface LinearMap4<F extends URIS4, S, R, E, A, B> {
  * @since 1.0.0
  * @category Instance Operations
  */
-export const compose1: <F extends URIS, A, B, C>(
-  f: LinearMap1<F, A, B>,
-  g: LinearMap1<F, B, C>
-) => LinearMap1<F, A, C> = (f, g) => ({
-  isoV: Iso.compose0(f.isoV, g.isoV),
-  mapL: flow(f.mapL, g.mapL),
-})
-
-/**
- * @since 1.0.0
- * @category Instance Operations
- */
-export const compose2: <F extends URIS2, E, A, B, C>(
-  f: LinearMap2<F, E, A, B>,
-  g: LinearMap2<F, E, B, C>
-) => LinearMap2<F, E, A, C> = (f, g) => ({
-  isoV: Iso.compose0(f.isoV, g.isoV),
-  mapL: flow(f.mapL, g.mapL),
-})
-
-/**
- * @since 1.0.0
- * @category Instance Operations
- */
-export const compose3: <F extends URIS3, R, E, A, B, C>(
-  f: LinearMap3<F, R, E, A, B>,
-  g: LinearMap3<F, R, E, B, C>
-) => LinearMap3<F, R, E, A, C> = (f, g) => ({
-  isoV: Iso.compose0(f.isoV, g.isoV),
-  mapL: flow(f.mapL, g.mapL),
-})
-
-/**
- * @since 1.0.0
- * @category Instance Operations
- */
-export const compose4: <F extends URIS4, S, R, E, A, B, C>(
+export function compose<F extends URIS4, S, R, E, A, B, C>(
   f: LinearMap4<F, S, R, E, A, B>,
   g: LinearMap4<F, S, R, E, B, C>
-) => LinearMap4<F, S, R, E, A, C> = (f, g) => ({
-  isoV: Iso.compose0(f.isoV, g.isoV),
-  mapL: flow(f.mapL, g.mapL),
-})
+): LinearMap4<F, S, R, E, A, C>
+export function compose<F extends URIS3, R, E, A, B, C>(
+  f: LinearMap3<F, R, E, A, B>,
+  g: LinearMap3<F, R, E, B, C>
+): LinearMap3<F, R, E, A, C>
+export function compose<F extends URIS2, E, A, B, C>(
+  f: LinearMap2<F, E, A, B>,
+  g: LinearMap2<F, E, B, C>
+): LinearMap2<F, E, A, C>
+export function compose<F extends URIS, A, B, C>(
+  f: LinearMap1<F, A, B>,
+  g: LinearMap1<F, B, C>
+): LinearMap1<F, A, C> {
+  return {
+    isoV: Iso.compose0(f.isoV, g.isoV),
+    mapL: flow(f.mapL, g.mapL),
+  }
+}
 
 /**
  * @since 1.0.0
  * @category Instance Operations
  */
-export const getId1 = <F extends URIS, A>(): LinearMap1<F, A, A> => ({
-  isoV: Iso.getId(),
-  mapL: identity,
-})
-
-/**
- * @since 1.0.0
- * @category Instance Operations
- */
-export const getId2 = <F extends URIS2, E, A>(): LinearMap2<F, E, A, A> => ({
-  isoV: Iso.getId(),
-  mapL: identity,
-})
-
-/**
- * @since 1.0.0
- * @category Instance Operations
- */
-export const getId3 = <F extends URIS3, R, E, A>(): LinearMap3<F, R, E, A, A> => ({
-  isoV: Iso.getId(),
-  mapL: identity,
-})
-
-/**
- * @since 1.0.0
- * @category Instance Operations
- */
-export const getId4 = <F extends URIS4, S, R, E, A>(): LinearMap4<F, S, R, E, A, A> => ({
-  isoV: Iso.getId(),
-  mapL: identity,
-})
+export function id<F extends URIS4, S, R, E, A>(): LinearMap4<F, S, R, E, A, A>
+export function id<F extends URIS3, R, E, A>(): LinearMap3<F, R, E, A, A>
+export function id<F extends URIS2, E, A>(): LinearMap2<F, E, A, A>
+export function id<F extends URIS, A>(): LinearMap1<F, A, A> {
+  return {
+    isoV: Iso.getId(),
+    mapL: identity,
+  }
+}

@@ -406,63 +406,17 @@ export const inverse: <R>(
   )
 
 /**
- * Use number.differentiate instead
- *
- * @deprecated
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const getDifferentiateNumber =
-  () =>
-  (x: Polynomial<number, number>): Polynomial<number, number> =>
-    pipe(
-      x,
-      RA.filterMap(({ symbol: [coefficient, power], evaluate }) =>
-        pipe(
-          monomial(tuple(coefficient * power, power - 1), evaluate),
-          O.fromPredicate(() => power >= 1)
-        )
-      ),
-      a => wrap(a),
-      combineLikeTerms(N.Field)
-    )
-
-/**
- * Use number.indefiniteIntegral instead
- *
- * @deprecated
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const getIndefiniteIntegralNumber =
-  () =>
-  (constantTerm: number) =>
-  (x: Polynomial<number, number>): Polynomial<number, number> =>
-    pipe(
-      x,
-      RA.map(({ symbol: [coefficient, power], evaluate }) =>
-        monomial(tuple(coefficient / (power + 1), power + 1), evaluate)
-      ),
-      RA.prepend(monomial(tuple(constantTerm, 0), identity)),
-      a => wrap(a),
-      combineLikeTerms(N.Field)
-    )
-
-/**
- * Use complex.differentiate instead
- *
- * @deprecated
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const getDifferentiateComplex =
-  <R>(Mod: TC.LeftModule<R, number>, F: Fld.Field<R>) =>
+export const getDerivative =
+  <R>(scale: (power: number, coeff: R) => R, F: Fld.Field<R>) =>
   (x: Polynomial<R, R>): Polynomial<R, R> =>
     pipe(
       x,
       RA.filterMap(({ symbol: [coefficient, power], evaluate }) =>
         pipe(
-          monomial(tuple(Mod.leftScalarMul(power, coefficient), power - 1), evaluate),
+          monomial(tuple(scale(power, coefficient), power - 1), evaluate),
           O.fromPredicate(() => power >= 1)
         )
       ),
@@ -471,25 +425,19 @@ export const getDifferentiateComplex =
     )
 
 /**
- * Use complex.indefiniteIntegral instead
- *
- * @deprecated
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const getIndefiniteIntegralComplex =
-  <R>(Mod: TC.LeftModule<R, number>, F: Fld.Field<R>) =>
+export const getAntiderivative =
+  <R>(scale: (power: number, coeff: R) => R, F: Fld.Field<R>) =>
   (constantTerm: R) =>
   (x: Polynomial<R, R>): Polynomial<R, R> =>
     pipe(
       x,
       RA.map(({ symbol: [coefficient, power], evaluate }) =>
-        monomial(
-          tuple(Mod.leftScalarMul(1 / (power + 1), coefficient), power + 1),
-          evaluate
-        )
+        monomial(tuple(scale(1 / (power + 1), coefficient), power + 1), evaluate)
       ),
-      RA.prepend(monomial(tuple(constantTerm, 1), identity)),
+      RA.prepend(monomial(tuple(constantTerm, 0), identity)),
       a => wrap(a),
       combineLikeTerms(F)
     )

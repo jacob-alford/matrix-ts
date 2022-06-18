@@ -63,64 +63,97 @@ it('crosses two vectors', () => {
 })
 ```
 
-### Linear maps of a Polynomial
+### Linear Isomprohisms of a Polynomial
 
 ```ts
 import * as Poly from 'matrix-ts/Polynomial'
-import * as LM from 'matrix-ts/LinearMap'
+import * as LI from 'matrix-ts/LinearIsomorphism'
 
 it('differentiates and integrates polynomials', () => {
   const { equals } = Poly.getPolynomialEq<number, number>(N.Field)
 
-  const differentiateThenIntegrate = LM.compose2(
-    N.DifferentialLinearMap,
-    N.getDefiniteIntegralLinearMap(1)
-  )
-  const integrateThenDifferentiate = LM.compose2(
-    N.getDefiniteIntegralLinearMap(1),
-    N.DifferentialLinearMap
-  )
+  const { mapL, reverseMapL } = N.getDifferentialLinearIsomorphism(1)
+
+  const thereAndBack = flow(mapL, reverseMapL)
+  const hereAndThere = flow(reverseMapL, mapL)
 
   const a = Poly.fromCoefficientArray([1, 2, 3])
 
-  expect(equals(differentiateThenIntegrate.mapL(a), a)).toBe(true)
-  expect(equals(integrateThenDifferentiate.mapL(a), a)).toBe(true)
+  expect(equals(thereAndBack(a), a)).toBe(true)
+  expect(equals(hereAndThere(a), a)).toBe(true)
 })
 ```
 
-### Linear maps of matricies
+### Linear Isomorpisms of matricies
 
 ```ts
 import * as LM from 'matrix-ts/LinearMap'
+import * as LI from 'matrix-ts/LinearIsomorphism'
 import * as M from 'matrix-ts/MatrixC'
 import * as V from 'matrix-ts/VectorC'
 
-it('rotates a 2d vector 270 degrees', () => {
+it('rotates a 2d vector and back 270 degrees', () => {
   const rotate90Degrees = N.getRotationMap2d(Math.PI / 2)
   const rotate180Degres = N.getRotationMap2d(Math.PI)
 
-  const rotate270Degrees = LM.compose2(rotate90Degrees, rotate180Degres)
+  const rotate270Degrees = LI.compose(rotate90Degrees, rotate180Degres)
 
   const initial = V.fromTuple([1, 0])
   const rotated = rotate270Degrees.mapL(initial)
+  const reversed = rotate270Degrees.reverseMapL(rotated)
   const expected = V.fromTuple([0, -1])
 
   for (const [a, b] of V.zipVectors(rotated, expected)) {
     expect(a).toBeCloseTo(b)
   }
+  for (const [a, b] of V.zipVectors(reversed, initial)) {
+    expect(a).toBeCloseTo(b)
+  }
 })
-it('rotates a 3d vector along three axies', () => {
+it('rotates a 3d vector and back along three axies', () => {
   const rotateX45 = N.getXRotationMap3d(Math.PI / 4)
   const rotateY180 = N.getYRotationMap3d(Math.PI)
   const rotateZ90 = N.getZRotationMap3d(Math.PI / 2)
 
-  const rotate = LM.compose2(rotateX45, LM.compose2(rotateY180, rotateZ90))
+  const rotate = LI.compose(rotateX45, LI.compose(rotateY180, rotateZ90))
 
   const initial = V.fromTuple([0, 0, 1])
   const rotated = rotate.mapL(initial)
+  const reversed = rotate.reverseMapL(rotated)
   const expected = V.fromTuple([1 / Math.sqrt(2), 0, -1 / Math.sqrt(2)])
 
   for (const [a, b] of V.zipVectors(rotated, expected)) {
+    expect(a).toBeCloseTo(b)
+  }
+  for (const [a, b] of V.zipVectors(reversed, initial)) {
+    expect(a).toBeCloseTo(b)
+  }
+})
+```
+
+### Linear Isomorpisms of quaternion rotation
+
+```ts
+import * as Poly from 'matrix-ts/Polynomial'
+import * as LI from 'matrix-ts/LinearIsomorphism'
+
+it('rotates a 3d vector using quaternions', () => {
+  const { mapL, reverseMapL } = H.getRotationLinearIsomorpism(
+    // Around axis:
+    V.fromTuple([1, 1, 1]),
+    // By angle:
+    (2 * Math.PI) / 3
+  )
+
+  const initial = V.fromTuple([1, 0, 0])
+  const rotated = mapL(initial)
+  const reversed = reverseMapL(rotated)
+  const expected = V.fromTuple([0, 1, 0])
+
+  for (const [a, b] of V.zipVectors(rotated, expected)) {
+    expect(a).toBeCloseTo(b)
+  }
+  for (const [a, b] of V.zipVectors(reversed, initial)) {
     expect(a).toBeCloseTo(b)
   }
 })

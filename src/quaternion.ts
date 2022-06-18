@@ -7,10 +7,9 @@ import * as Sh from 'fp-ts/Show'
 import * as N from 'fp-ts/number'
 import { pipe } from 'fp-ts/function'
 
-import * as C from './complex'
 import * as Iso from './Iso'
 import * as LM from './LinearMap'
-import * as M from './MatrixC'
+import * as LI from './LinearIsomorphism'
 import * as TC from './typeclasses'
 import * as V from './VectorC'
 import * as Inf from './infix'
@@ -254,13 +253,19 @@ export const rotateVector: (
  * @since 1.0.0
  * @category Instances
  */
-export const getRotationLinearMap: (
+export const getRotationLinearIsomorpism: (
   axis: V.VecC<3, number>,
   theta: number
-) => LM.LinearMap2<V.URI, 3, number, number> = (axis, theta) => ({
-  isoV: Iso.getId(),
-  mapL: rotateVector(axis, theta),
-})
+) => LI.LinearIsomorphism2<V.URI, 3, number, number> = (axis, theta) => {
+  const q = getRotationQuaternion(axis)(theta)
+  const qi = inverse(q)
+  return {
+    isoV: Iso.getId(),
+    mapL: p => pipe(DivisionRing.mul(q, DivisionRing.mul(fromVector3(p), qi)), toVector3),
+    reverseMapL: p =>
+      pipe(DivisionRing.mul(qi, DivisionRing.mul(fromVector3(p), q)), toVector3),
+  }
+}
 
 // #############
 // ### Infix ###
@@ -309,38 +314,6 @@ export const toVector4: (q: Quaternion) => V.VecC<4, number> = ({ a, b, c, d }) 
  */
 export const toVector3: (q: Quaternion) => V.VecC<3, number> = ({ b, c, d }) =>
   V.fromTuple([b, c, d])
-
-/**
- * @since 1.0.0
- * @category Destructors
- */
-export const toComplexMatrix: (q: Quaternion) => M.MatC<2, 2, C.Complex> = ({
-  a,
-  b,
-  c,
-  d,
-}) =>
-  M.fromNestedTuples([
-    [C.of(a, b), C.of(c, d)],
-    [C.of(-c, d), C.of(a, -b)],
-  ])
-
-/**
- * @since 1.0.0
- * @category Destructors
- */
-export const toNumericMatrix: (q: Quaternion) => M.MatC<4, 4, number> = ({
-  a,
-  b,
-  c,
-  d,
-}) =>
-  M.fromNestedTuples([
-    [a, -b, -c, -d],
-    [b, a, -d, c],
-    [c, d, a, -b],
-    [d, -c, b, a],
-  ])
 
 /**
  * @since 1.0.0

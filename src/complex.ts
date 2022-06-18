@@ -644,8 +644,8 @@ export const Bimodule66: TC.Bimodule<Mat66, Complex> = M.getBimodule(Field)(6, 6
  * @since 1.0.0
  * @category Operations
  */
-export const differentiatePolynomial = Poly.getDifferentiateComplex(
-  ComplexBimodule,
+export const differentiatePolynomial = Poly.getDerivative(
+  ComplexBimodule.leftScalarMul,
   Field
 )
 
@@ -653,8 +653,8 @@ export const differentiatePolynomial = Poly.getDifferentiateComplex(
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const indefiniteIntegral = Poly.getIndefiniteIntegralComplex(
-  ComplexBimodule,
+export const indefiniteIntegral = Poly.getAntiderivative(
+  ComplexBimodule.leftScalarMul,
   Field
 )
 

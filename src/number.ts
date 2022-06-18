@@ -4,6 +4,7 @@ import { identity } from 'fp-ts/function'
 import * as C from './complex'
 import * as Inf from './infix'
 import * as Iso from './Iso'
+import * as LI from './LinearIsomorphism'
 import * as LM from './LinearMap'
 import * as M from './MatrixC'
 import * as Poly from './Polynomial'
@@ -189,14 +190,24 @@ export const getLinearMap2d: (M: Mat22) => LM.LinearMap2<V.URI, 2, number, numbe
  */
 export const getRotationMap2d: (
   theta: number
-) => LM.LinearMap2<V.URI, 2, number, number> = theta =>
-  getLinearMap2d(
+) => LI.LinearIsomorphism2<V.URI, 2, number, number> = theta => {
+  const to = getLinearMap2d(
     M.fromNestedTuples([
       [Math.cos(theta), -Math.sin(theta)],
       [Math.sin(theta), Math.cos(theta)],
     ])
   )
-
+  const from = getLinearMap2d(
+    M.fromNestedTuples([
+      [Math.cos(theta), Math.sin(theta)],
+      [-Math.sin(theta), Math.cos(theta)],
+    ])
+  )
+  return {
+    ...to,
+    reverseMapL: from.mapL,
+  }
+}
 // ###############
 // ### Mat 2x2 ###
 // ###############
@@ -279,14 +290,26 @@ export const getLinearMap3d: (M: Mat33) => LM.LinearMap2<V.URI, 3, number, numbe
  */
 export const getXRotationMap3d: (
   theta: number
-) => LM.LinearMap2<V.URI, 3, number, number> = theta =>
-  getLinearMap3d(
+) => LI.LinearIsomorphism2<V.URI, 3, number, number> = theta => {
+  const to = getLinearMap3d(
     M.fromNestedTuples([
       [1, 0, 0],
       [0, Math.cos(theta), -Math.sin(theta)],
       [0, Math.sin(theta), Math.cos(theta)],
     ])
   )
+  const from = getLinearMap3d(
+    M.fromNestedTuples([
+      [1, 0, 0],
+      [0, Math.cos(theta), Math.sin(theta)],
+      [0, -Math.sin(theta), Math.cos(theta)],
+    ])
+  )
+  return {
+    ...to,
+    reverseMapL: from.mapL,
+  }
+}
 
 /**
  * @since 1.0.0
@@ -294,14 +317,26 @@ export const getXRotationMap3d: (
  */
 export const getYRotationMap3d: (
   theta: number
-) => LM.LinearMap2<V.URI, 3, number, number> = theta =>
-  getLinearMap3d(
+) => LI.LinearIsomorphism2<V.URI, 3, number, number> = theta => {
+  const to = getLinearMap3d(
     M.fromNestedTuples([
       [Math.cos(theta), 0, Math.sin(theta)],
       [0, 1, 0],
       [-Math.sin(theta), 0, Math.cos(theta)],
     ])
   )
+  const from = getLinearMap3d(
+    M.fromNestedTuples([
+      [Math.cos(theta), 0, -Math.sin(theta)],
+      [0, 1, 0],
+      [Math.sin(theta), 0, Math.cos(theta)],
+    ])
+  )
+  return {
+    ...to,
+    reverseMapL: from.mapL,
+  }
+}
 
 /**
  * @since 1.0.0
@@ -309,14 +344,26 @@ export const getYRotationMap3d: (
  */
 export const getZRotationMap3d: (
   theta: number
-) => LM.LinearMap2<V.URI, 3, number, number> = theta =>
-  getLinearMap3d(
+) => LI.LinearIsomorphism2<V.URI, 3, number, number> = theta => {
+  const to = getLinearMap3d(
     M.fromNestedTuples([
       [Math.cos(theta), -Math.sin(theta), 0],
       [Math.sin(theta), Math.cos(theta), 0],
       [0, 0, 1],
     ])
   )
+  const from = getLinearMap3d(
+    M.fromNestedTuples([
+      [Math.cos(theta), Math.sin(theta), 0],
+      [-Math.sin(theta), Math.cos(theta), 0],
+      [0, 0, 1],
+    ])
+  )
+  return {
+    ...to,
+    reverseMapL: from.mapL,
+  }
+}
 
 /**
  * @since 1.0.0
@@ -546,22 +593,6 @@ export const AdditiveAbelianGroup66: TC.AbelianGroup<Mat66> = M.getAdditiveAbeli
  */
 export const Bimodule66: TC.Bimodule<Mat66, number> = M.getBimodule(Field)(6, 6)
 
-// #############################
-// ### Polynomial Operations ###
-// #############################
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const differentiate = Poly.getDifferentiateNumber()
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const indefiniteIntegral = Poly.getIndefiniteIntegralNumber()
-
 // ############################
 // ### Polynomial Instances ###
 // ############################
@@ -580,6 +611,18 @@ export const PolynomialBimodule = Poly.getBimodule(Field)
 
 /**
  * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const derivative = Poly.getDerivative(Field.mul, Field)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const getAntiderivative = Poly.getAntiderivative(Field.mul, Field)
+
+/**
+ * @since 1.0.0
  * @category Instances
  */
 export const PolynomialRing = Poly.getRing(Field)
@@ -594,20 +637,12 @@ export const PolynomialVectorSpace = Poly.getVectorSpace(Field)
  * @since 1.0.0
  * @category Instances
  */
-export const DifferentialLinearMap: LM.LinearMap2<Poly.URI, number, number, number> = {
-  isoV: Iso.getId(),
-  mapL: differentiate,
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getDefiniteIntegralLinearMap: (
+export const getDifferentialLinearIsomorphism: (
   constantTerm: number
-) => LM.LinearMap2<Poly.URI, number, number, number> = constantTerm => ({
+) => LI.LinearIsomorphism2<Poly.URI, number, number, number> = constantTerm => ({
   isoV: Iso.getId(),
-  mapL: indefiniteIntegral(constantTerm),
+  mapL: derivative,
+  reverseMapL: getAntiderivative(constantTerm),
 })
 
 // ##############################

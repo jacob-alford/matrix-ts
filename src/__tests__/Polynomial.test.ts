@@ -17,13 +17,13 @@ describe('Polynomial', () => {
   describe('calculus', () => {
     it('differentiates a polynomial', () => {
       const a = construct([1, 2, 3])
-      const aP = N.differentiate(a)
+      const aP = N.derivative(a)
       const expected = construct([2, 6])
       expect(equals(aP, expected)).toBe(true)
     })
     it('integrates a polynomial', () => {
       const a = construct([1, 2, 3])
-      const aP = N.indefiniteIntegral(1)(a)
+      const aP = N.getAntiderivative(1)(a)
       const expected = construct([1, 1, 1, 1])
       expect(equals(aP, expected)).toBe(true)
     })
