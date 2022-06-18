@@ -10,7 +10,7 @@ import * as N from 'fp-ts/number'
 import { flow, pipe } from 'fp-ts/function'
 
 import * as Iso from './Iso'
-import * as LM from './LinearMap'
+import * as LI from './LinearIsomorphism'
 import * as M from './MatrixC'
 import * as Poly from './Polynomial'
 import * as TC from './typeclasses'
@@ -642,18 +642,15 @@ export const Bimodule66: TC.Bimodule<Mat66, Complex> = M.getBimodule(Field)(6, 6
 
 /**
  * @since 1.0.0
- * @category Operations
+ * @category Polynomial Operations
  */
-export const differentiatePolynomial = Poly.getDerivative(
-  ComplexBimodule.leftScalarMul,
-  Field
-)
+export const derivative = Poly.getDerivative(ComplexBimodule.leftScalarMul, Field)
 
 /**
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const indefiniteIntegral = Poly.getAntiderivative(
+export const getAntiderivative = Poly.getAntiderivative(
   ComplexBimodule.leftScalarMul,
   Field
 )
@@ -690,20 +687,12 @@ export const PolynomialVectorSpace = Poly.getVectorSpace(Field)
  * @since 1.0.0
  * @category Instances
  */
-export const DifferentialLinearMap: LM.LinearMap2<Poly.URI, Complex, Complex, Complex> = {
-  isoV: Iso.getId(),
-  mapL: differentiatePolynomial,
-}
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getDefiniteIntegralLinearMap: (
+export const getDifferentialLinearIsomorphism: (
   constantTerm: Complex
-) => LM.LinearMap2<Poly.URI, Complex, Complex, Complex> = constantTerm => ({
+) => LI.LinearIsomorphism2<Poly.URI, Complex, Complex, Complex> = constantTerm => ({
   isoV: Iso.getId(),
-  mapL: indefiniteIntegral(constantTerm),
+  mapL: derivative,
+  reverseMapL: getAntiderivative(constantTerm),
 })
 
 // ##############################
