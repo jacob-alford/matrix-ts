@@ -200,8 +200,8 @@ export const getDivisionRingPolishInfix: <A>(
     '+': F.add,
     '-': F.sub,
     '*': F.mul,
-    '/.': (a, b) => F.mul(a, F.inverse(b)),
-    './': (a, b) => F.mul(F.inverse(a), b),
+    '/.': (a, b) => F.mul(a, F.recip(b)),
+    './': (a, b) => F.mul(F.recip(a), b),
   })
 
 /**
@@ -215,8 +215,8 @@ export const getDivisionRingInfix: <A>(
     '+': F.add,
     '-': F.sub,
     '*': F.mul,
-    '/.': (a, b) => F.mul(a, F.inverse(b)),
-    './': (a, b) => F.mul(F.inverse(a), b),
+    '/.': (a, b) => F.mul(a, F.recip(b)),
+    './': (a, b) => F.mul(F.recip(a), b),
   })
 
 /**

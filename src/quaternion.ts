@@ -172,7 +172,7 @@ export const MonoidProduct: Mn.Monoid<Quaternion> = {
  * @since 1.0.0
  * @category Instance Operations
  */
-export const inverse: (q: Quaternion) => Quaternion = ({ a, b, c, d }) =>
+export const recip: (q: Quaternion) => Quaternion = ({ a, b, c, d }) =>
   Bimodule.leftScalarMul(
     1 / (a ** 2 + b ** 2 + c ** 2 + d ** 2),
     Conjugate.conj({ a, b, c, d })
@@ -188,7 +188,7 @@ export const DivisionRing: TC.DivisionRing<Quaternion> = {
   mul: MonoidProduct.concat,
   one: MonoidProduct.empty,
   sub: MagmaSub.concat,
-  inverse,
+  recip,
 }
 
 /**
@@ -244,7 +244,7 @@ export const rotateVector: (
   theta: number
 ) => (v: V.VecC<3, number>) => V.VecC<3, number> = (axis, theta) => {
   const q = getRotationQuaternion(axis)(theta)
-  const qi = inverse(q)
+  const qi = recip(q)
   return p => pipe(DivisionRing.mul(q, DivisionRing.mul(fromVector3(p), qi)), toVector3)
 }
 
@@ -257,7 +257,7 @@ export const getRotationLinearIsomorpism: (
   theta: number
 ) => LI.LinearIsomorphism2<V.URI, 3, number, number> = (axis, theta) => {
   const q = getRotationQuaternion(axis)(theta)
-  const qi = inverse(q)
+  const qi = recip(q)
   return {
     isoV: Iso.getId(),
     mapL: p => pipe(DivisionRing.mul(q, DivisionRing.mul(fromVector3(p), qi)), toVector3),
