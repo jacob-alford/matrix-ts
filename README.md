@@ -9,34 +9,33 @@ A mathematics library with vectors, matricies, numerical linear algebra, associa
 
 ## Data types:
 
-- `complex.ts` – Complex data type with typeclass instances
+- `integer.ts` – An integral data type with typeclass instances
+- `rational.ts` – A fractional data type with typeclass instances
 - `number.ts` – Typeclass instances for `number`
+- `complex.ts` – Complex data type with typeclass instances
+- `quaternion.ts` – Quaternion data type with typeclass instances
 - `Computation.ts` – Either with logging
-- `Expression.ts` – A summation of shared symbols with shared domain / codomain
 - `FreeMonoid.ts` – Isomorphic to a List / Readonly Array type
 - `MatrixC.ts` – A type-level constrained matrix type
 - `MatrixU.ts` – An unconstrained matrix type
 - `MatrixOps.ts` – Numerical Linear algebra, and some branded newtypes
-- `Polynomial.ts` – A type of expression in the shape `Coefficient * (x) ^ (power)`
+- `Polynomial.ts` – An array without trailing zeros
 - `VectorC.ts` – A type-level constrained vector type
 
 ## HKT Typeclasses
 
 - `Iso.ts` – Higher level isomorphisms
 - `LinearMap.ts` – Linear Maps and composition
+- `LinearIsomorphism.ts` – Linear Maps and composition
 
 ## Typeclasses
 
 - `Logger.ts` – An effectful logger
 - `AbelianGroup` – Commutative group
 - `CommutativeRing` – A commutative ring
-- `Conjugate` – any data-type with the idea of a conjugate
-- `Exp` – any data type that can be raised to a `number`
-- `InnerProductSpace` – A vector-space that has an idea of a dot product
 - `LeftModule` – Left scalar multiplication
 - `RightModule` – Right scalar multiplation
 - `Bimodule` – Left and Right scalar multiplication
-- `VectorSpace` – A left module over a field
 
 ## Examples
 
