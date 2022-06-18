@@ -8,7 +8,6 @@ import * as N from 'fp-ts/number'
 import { pipe } from 'fp-ts/function'
 
 import * as Iso from './Iso'
-import * as LM from './LinearMap'
 import * as LI from './LinearIsomorphism'
 import * as TC from './typeclasses'
 import * as V from './VectorC'
