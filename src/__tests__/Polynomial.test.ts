@@ -1,7 +1,6 @@
 import { tuple } from 'fp-ts/function'
 
 import * as N from '../number'
-import * as C from '../complex'
 import * as Poly from '../Polynomial'
 import * as Inf from '../infix'
 
