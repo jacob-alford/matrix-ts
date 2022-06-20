@@ -393,14 +393,15 @@ export const antiderivative: <R>(
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const innerProduct: <R>(
+export const l2InnerProduct: <R>(
   Eq_: Eq.Eq<R>,
   R: Rng.Ring<R>,
-  scaleLeft: (n: number, r: R) => R
-) => (p: Polynomial<R>, q: Polynomial<R>) => R = (Eq_, R, scaleLeft) => (p, q) => {
+  scaleLeft: (n: number, r: R) => R,
+  conj: (r: R) => R
+) => (p: Polynomial<R>, q: Polynomial<R>) => R = (Eq_, R, scaleLeft, conj) => (p, q) => {
   const RP = getCommutativeRing(Eq_, R)
   const evaluateR = evaluate(R)
-  const convolution = antiderivative(R.zero, scaleLeft)(RP.mul(p, q))
+  const convolution = antiderivative(R.zero, scaleLeft)(RP.mul(p, pipe(q, map(conj))))
   return evaluateR(convolution)(R.one)
 }
 
@@ -412,9 +413,10 @@ export const norm: <R>(
   Eq_: Eq.Eq<R>,
   R: Rng.Ring<R>,
   scaleLeft: (n: number, r: R) => R,
-  sqrt: (r: R) => R
-) => (p: Polynomial<R>) => R = (Eq_, R, scaleLeft, sqrt) => p =>
-  sqrt(innerProduct(Eq_, R, scaleLeft)(p, p))
+  sqrt: (r: R) => R,
+  conj: (r: R) => R
+) => (p: Polynomial<R>) => R = (Eq_, R, scaleLeft, sqrt, conj) => p =>
+  sqrt(l2InnerProduct(Eq_, R, scaleLeft, conj)(p, p))
 
 /**
  * @since 1.0.0
@@ -423,11 +425,12 @@ export const norm: <R>(
 export const projection: <R>(
   Eq_: Eq.Eq<R>,
   F: Fld.Field<R>,
-  scaleLeft: (n: number, r: R) => R
+  scaleLeft: (n: number, r: R) => R,
+  conj: (r: R) => R
 ) => (p: Polynomial<R>, q: Polynomial<R>) => Polynomial<R> =
-  (Eq_, F, scaleLeft) => (p, q) => {
+  (Eq_, F, scaleLeft, conj) => (p, q) => {
     const ER = getEuclidianRing(Eq_, F)
-    const ipF = innerProduct(Eq_, F, scaleLeft)
+    const ipF = l2InnerProduct(Eq_, F, scaleLeft, conj)
     return ER.mul(constant(Eq_, F)(F.div(ipF(p, q), ipF(p, p))), p)
   }
 

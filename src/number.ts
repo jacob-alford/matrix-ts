@@ -1,4 +1,5 @@
 import * as N from 'fp-ts/number'
+import { identity } from 'fp-ts/function'
 
 import * as C from './complex'
 import * as Inf from './infix'
@@ -541,19 +542,19 @@ export const getAntiderivative: (
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialInnerProduct = Poly.innerProduct(Eq, Field, Field.mul)
+export const polynomialInnerProduct = Poly.l2InnerProduct(Eq, Field, Field.mul, identity)
 
 /**
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialNorm = Poly.norm(Eq, Field, Field.mul, Math.sqrt)
+export const polynomialNorm = Poly.norm(Eq, Field, Field.mul, Math.sqrt, identity)
 
 /**
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialProjection = Poly.projection(Eq, Field, Field.mul)
+export const polynomialProjection = Poly.projection(Eq, Field, Field.mul, identity)
 
 // ############################
 // ### Polynomial Instances ###

@@ -8,7 +8,7 @@ import * as N from 'fp-ts/number'
 import * as Ord_ from 'fp-ts/Ord'
 import * as O from 'fp-ts/Option'
 import * as Sh from 'fp-ts/Show'
-import { pipe, unsafeCoerce } from 'fp-ts/function'
+import { identity, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as Inf from './infix'
 import * as Int from './integer'
@@ -241,16 +241,22 @@ export const getAntiderivative: (
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialInnerProdct = Poly.innerProduct(Eq, Field, (n, r) =>
-  Field.mul(fromNumber(n), r)
+export const polynomialInnerProduct = Poly.l2InnerProduct(
+  Eq,
+  Field,
+  (n, r) => Field.mul(fromNumber(n), r),
+  identity
 )
 
 /**
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialProjection = Poly.projection(Eq, Field, (n, r) =>
-  Field.mul(fromNumber(n), r)
+export const polynomialProjection = Poly.projection(
+  Eq,
+  Field,
+  (n, r) => Field.mul(fromNumber(n), r),
+  identity
 )
 
 // ############################

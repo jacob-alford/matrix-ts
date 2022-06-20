@@ -605,17 +605,24 @@ export const getAntiderivative: (
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialInnerProduct = Poly.innerProduct(
+export const polynomialInnerProduct = Poly.l2InnerProduct(
   Eq,
   Field,
-  ComplexBimodule.leftScalarMul
+  ComplexBimodule.leftScalarMul,
+  conj
 )
 
 /**
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialNorm = Poly.norm(Eq, Field, ComplexBimodule.leftScalarMul, sqrt)
+export const polynomialNorm = Poly.norm(
+  Eq,
+  Field,
+  ComplexBimodule.leftScalarMul,
+  sqrt,
+  conj
+)
 
 /**
  * @since 1.0.0
@@ -624,7 +631,8 @@ export const polynomialNorm = Poly.norm(Eq, Field, ComplexBimodule.leftScalarMul
 export const polynomialProjection = Poly.projection(
   Eq,
   Field,
-  ComplexBimodule.leftScalarMul
+  ComplexBimodule.leftScalarMul,
+  conj
 )
 
 // ############################

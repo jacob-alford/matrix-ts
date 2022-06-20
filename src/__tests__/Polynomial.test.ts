@@ -1,5 +1,6 @@
 import { tuple } from 'fp-ts/function'
 
+import * as C from '../complex'
 import * as N from '../number'
 import * as Poly from '../Polynomial'
 import * as Inf from '../infix'
@@ -16,7 +17,9 @@ const zip = Poly.preservingZipWith<number, [number, number]>(tuple, 0)
 
 describe('polynomial', () => {
   const randN = N.randNumber(-10_000, 10_000)
+  const randC = C.randComplex(-10_000, 10_000)
   const rand = Poly.randPolynomial(10, randN)
+  const randCP = Poly.randPolynomial(10, randC)
   describe('EuclidianRing laws', () => {
     const _ = Inf.getEuclideanRingInfix(Poly.getEuclidianRing(N.Eq, N.Field))
     it('abides additive unitor', () => {
@@ -129,13 +132,13 @@ describe('polynomial', () => {
     })
   })
   describe('Inner product laws', () => {
-    // Note: does not appear to fully abide conjugate symmetry
-    it('abides symmetry', () => {
-      const x = rand()
-      const y = rand()
-      const a = N.polynomialInnerProduct(x, y)
-      const b = N.polynomialInnerProduct(y, x)
-      expect(a).toBeCloseTo(b)
+    it('abides conjugate symmetry', () => {
+      const x = randCP()
+      const y = randCP()
+      const { Re: a1, Im: b1 } = C.polynomialInnerProduct(x, y)
+      const { Re: a2, Im: b2 } = C.conj(C.polynomialInnerProduct(y, x))
+      expect(a1).toBeCloseTo(a2)
+      expect(b1).toBeCloseTo(b2)
     })
     it('is linear in its first argument', () => {
       const a = randN()
