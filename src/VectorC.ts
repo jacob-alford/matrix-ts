@@ -534,13 +534,13 @@ export const get: (i: number) => <N, A>(fa: VecC<N, A>) => O.Option<A> = RA.look
  * @category Vector Operations
  */
 export const crossProduct: <A>(
-  F: Fld.Field<A>
-) => (x: VecC<3, A>, y: VecC<3, A>) => VecC<3, A> = F => (x, y) =>
+  R: Rng.Ring<A>
+) => (x: VecC<3, A>, y: VecC<3, A>) => VecC<3, A> = R => (x, y) =>
   pipe(tuple(toTuple(x), toTuple(y)), ([[a1, a2, a3], [b1, b2, b3]]) =>
     fromTuple([
-      F.sub(F.mul(a2, b3), F.mul(a3, b2)),
-      F.sub(F.mul(a3, b1), F.mul(a1, b3)),
-      F.sub(F.mul(a1, b2), F.mul(a2, b1)),
+      R.sub(R.mul(a2, b3), R.mul(a3, b2)),
+      R.sub(R.mul(a3, b1), R.mul(a1, b3)),
+      R.sub(R.mul(a1, b2), R.mul(a2, b1)),
     ])
   )
 

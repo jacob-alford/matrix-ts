@@ -14,8 +14,9 @@ import * as Inf from './infix'
 import * as Int from './integer'
 import * as LI from './LinearIsomorphism'
 import * as Iso from './Iso'
-
+import * as M from './MatrixC'
 import * as Poly from './Polynomial'
+import * as V from './VectorC'
 
 const RationalSymbol = Symbol('Rational')
 type RationalSymbol = typeof RationalSymbol
@@ -216,9 +217,71 @@ export const _$ = Inf.getFieldReversePolishInfix(Field)
  */
 export const toNumber: (r: Rational) => number = ({ top, bottom }) => top / bottom
 
-// #############################
-// ### Polynomial Operations ###
-// #############################
+// #############
+// ### VecN ####
+// #############
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export type Vec<N> = V.VecC<N, Rational>
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const AdditiveAbGrpN = V.getAbGroup(Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const BiModN = V.getBimodule(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const dot = V.innerProduct(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const norm = V.norm(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const cross = V.crossProduct(Field)
+
+// ###############
+// ### Mat MxN ###
+// ###############
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export type Mat<M, N> = M.MatC<M, N, Rational>
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const BiModMN = M.getBimodule(Field)
+
+// ###################
+// ### Polynomials ###
+// ###################
 
 /**
  * @since 1.0.0
@@ -258,10 +321,6 @@ export const polynomialProjection = Poly.projection(
   (n, r) => Field.mul(fromNumber(n), r),
   identity
 )
-
-// ############################
-// ### Polynomial Instances ###
-// ############################
 
 /**
  * @since 1.0.0

@@ -313,6 +313,24 @@ export const IsoVector: Iso.Iso0<Complex, V.VecC<2, number>> = {
 
 /**
  * @since 1.0.0
+ * @category Model
+ */
+export type Vec<N> = V.VecC<N, Complex>
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const AdditiveAbGrpN = V.getAbGroup(Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const BiModN = V.getBimodule(Field)
+
+/**
+ * @since 1.0.0
  * @category Vector Operations
  */
 export const dot = V.innerProduct(Field)
@@ -323,96 +341,6 @@ export const dot = V.innerProduct(Field)
  */
 export const norm = V.norm(Field)
 
-// ##############
-// ### Vec1d ####
-// ##############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Vec1d = V.VecC<1, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AbelianGroup1d: TC.AbelianGroup<Vec1d> = V.getAbGroup(Field)(1)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule1d: TC.Bimodule<Vec1d, Complex> = V.getBimodule(Field)(1)
-
-// ##############
-// ### Vec2d ####
-// ##############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Vec2d = V.VecC<2, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AbelianGroup2d: TC.AbelianGroup<Vec2d> = V.getAbGroup(Field)(2)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule2d: TC.Bimodule<Vec2d, Complex> = V.getBimodule(Field)(2)
-
-// ###############
-// ### Mat 2x2 ###
-// ###############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Mat22 = M.MatC<2, 2, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AdditiveAbelianGroup22: TC.AbelianGroup<Mat22> = M.getAdditiveAbelianGroup(
-  Field
-)(2, 2)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule22: TC.Bimodule<Mat22, Complex> = M.getBimodule(Field)(2, 2)
-
-// ##############
-// ### Vec3d ####
-// ##############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Vec3d = V.VecC<3, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AbelianGroup3d: TC.AbelianGroup<Vec3d> = V.getAbGroup(Field)(3)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule3d: TC.Bimodule<Vec3d, Complex> = V.getBimodule(Field)(3)
-
 /**
  * @since 1.0.0
  * @category Vector Operations
@@ -420,170 +348,30 @@ export const Bimodule3d: TC.Bimodule<Vec3d, Complex> = V.getBimodule(Field)(3)
 export const cross = V.crossProduct(Field)
 
 // ###############
-// ### Mat 3x3 ###
+// ### Mat MxN ###
 // ###############
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type Mat33 = M.MatC<3, 3, Complex>
+export type Mat<M, N> = M.MatC<M, N, Complex>
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbelianGroup33: TC.AbelianGroup<Mat33> = M.getAdditiveAbelianGroup(
-  Field
-)(3, 3)
+export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(Field)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bimodule33: TC.Bimodule<Mat33, Complex> = M.getBimodule(Field)(3, 3)
+export const BiModMN = M.getBimodule(Field)
 
-// ##############
-// ### Vec4d ####
-// ##############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Vec4d = V.VecC<4, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AbelianGroup4d: TC.AbelianGroup<Vec4d> = V.getAbGroup(Field)(4)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule4d: TC.Bimodule<Vec4d, Complex> = V.getBimodule(Field)(4)
-
-// ###############
-// ### Mat 4x4 ###
-// ###############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Mat44 = M.MatC<4, 4, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AdditiveAbelianGroup44: TC.AbelianGroup<Mat44> = M.getAdditiveAbelianGroup(
-  Field
-)(4, 4)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule44: TC.Bimodule<Mat44, Complex> = M.getBimodule(Field)(4, 4)
-
-// ##############
-// ### Vec5d ####
-// ##############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Vec5d = V.VecC<5, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AbelianGroup5d: TC.AbelianGroup<Vec5d> = V.getAbGroup(Field)(5)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule5d: TC.Bimodule<Vec5d, Complex> = V.getBimodule(Field)(5)
-
-// ###############
-// ### Mat 5x5 ###
-// ###############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Mat55 = M.MatC<5, 5, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AdditiveAbelianGroup55: TC.AbelianGroup<Mat55> = M.getAdditiveAbelianGroup(
-  Field
-)(5, 5)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule55: TC.Bimodule<Mat55, Complex> = M.getBimodule(Field)(5, 5)
-
-// ##############
-// ### Vec6d ####
-// ##############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Vec6d = V.VecC<6, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AbelianGroup6d: TC.AbelianGroup<Vec6d> = V.getAbGroup(Field)(6)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule6d: TC.Bimodule<Vec6d, Complex> = V.getBimodule(Field)(6)
-
-// ###############
-// ### Mat 6x6 ###
-// ###############
-
-/**
- * @since 1.0.0
- * @category Model
- */
-export type Mat66 = M.MatC<6, 6, Complex>
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const AdditiveAbelianGroup66: TC.AbelianGroup<Mat66> = M.getAdditiveAbelianGroup(
-  Field
-)(6, 6)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const Bimodule66: TC.Bimodule<Mat66, Complex> = M.getBimodule(Field)(6, 6)
-
-// #############################
-// ### Polynomial Operations ###
-// #############################
+// ###################
+// ### Polynomials ###
+// ###################
 
 /**
  * @since 1.0.0
@@ -634,10 +422,6 @@ export const polynomialProjection = Poly.projection(
   ComplexBimodule.leftScalarMul,
   conj
 )
-
-// ############################
-// ### Polynomial Instances ###
-// ############################
 
 /**
  * @since 1.0.0

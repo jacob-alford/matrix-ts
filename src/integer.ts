@@ -11,6 +11,8 @@ import { identity, unsafeCoerce } from 'fp-ts/function'
 import * as Inf from './infix'
 import * as Iso from './Iso'
 import * as TC from './typeclasses'
+import * as V from './VectorC'
+import * as M from './MatrixC'
 
 const IntegerSymbol = Symbol('Integer')
 type IntegerSymbol = typeof IntegerSymbol
@@ -183,3 +185,65 @@ export const isoNumber: Iso.Iso0<Int, number> = {
   get: toNumber,
   reverseGet: fromNumber,
 }
+
+// #############
+// ### VecN ####
+// #############
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export type Vec<N> = V.VecC<N, Int>
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const AdditiveAbGrpN = V.getAbGroup(EuclideanRing)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const BiModN = V.getBimodule(EuclideanRing)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const dot = V.innerProduct(EuclideanRing)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const norm = V.norm(EuclideanRing)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const cross = V.crossProduct(EuclideanRing)
+
+// ###############
+// ### Mat MxN ###
+// ###############
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export type Mat<M, N> = M.MatC<M, N, Int>
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(EuclideanRing)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const BiModMN = M.getBimodule(EuclideanRing)
