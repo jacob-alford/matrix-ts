@@ -285,6 +285,48 @@ export const BiModMN = M.getBimodule(Field)
 
 /**
  * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(Eq, Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialBimodule = Poly.getBimodule(Eq, Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialRing = Poly.getCommutativeRing(Eq, Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getDifferentialLinearIsomorphism: (
+  constantTerm: Rational
+) => LI.LinearIsomorphism1<Poly.URI, Rational, Rational> = constantTerm => ({
+  isoV: Iso.getId(),
+  mapL: derivative,
+  reverseMapL: getAntiderivative(constantTerm),
+})
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const evaluatePolynomial = Poly.evaluate(Field)
+
+/**
+ * @since 1.0.0
  * @category Polynomial Operations
  */
 export const derivative = Poly.derivative<Rational>((n, r) =>
@@ -321,42 +363,6 @@ export const polynomialProjection = Poly.projection(
   (n, r) => Field.mul(fromNumber(n), r),
   identity
 )
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(Eq, Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialBimodule = Poly.getBimodule(Eq, Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialRing = Poly.getCommutativeRing(Eq, Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getDifferentialLinearIsomorphism: (
-  constantTerm: Rational
-) => LI.LinearIsomorphism1<Poly.URI, Rational, Rational> = constantTerm => ({
-  isoV: Iso.getId(),
-  mapL: derivative,
-  reverseMapL: getAntiderivative(constantTerm),
-})
 
 // ################
 // ### Internal ###

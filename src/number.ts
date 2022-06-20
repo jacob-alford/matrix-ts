@@ -302,39 +302,6 @@ export const BiModMN = M.getBimodule(Field)
 
 /**
  * @since 1.0.0
- * @category Polynomial Operations
- */
-export const derivative = Poly.derivative(Field.mul)
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const getAntiderivative: (
-  constantTerm: number
-) => (p: Poly.Polynomial<number>) => Poly.Polynomial<number> = (constantTerm: number) =>
-  Poly.antiderivative(constantTerm, Field.mul)
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const polynomialInnerProduct = Poly.l2InnerProduct(Eq, Field, Field.mul, identity)
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const polynomialNorm = Poly.norm(Eq, Field, Field.mul, Math.sqrt, identity)
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const polynomialProjection = Poly.projection(Eq, Field, Field.mul, identity)
-
-/**
- * @since 1.0.0
  * @category Instances
  */
 export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(Eq, Field)
@@ -368,3 +335,42 @@ export const getDifferentialLinearIsomorphism: (
   mapL: derivative,
   reverseMapL: getAntiderivative(constantTerm),
 })
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const evaluatePolynomial = Poly.evaluate(Field)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const derivative = Poly.derivative(Field.mul)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const getAntiderivative: (
+  constantTerm: number
+) => (p: Poly.Polynomial<number>) => Poly.Polynomial<number> = (constantTerm: number) =>
+  Poly.antiderivative(constantTerm, Field.mul)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const polynomialInnerProduct = Poly.l2InnerProduct(Eq, Field, Field.mul, identity)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const polynomialNorm = Poly.norm(Eq, Field, Field.mul, Math.sqrt, identity)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const polynomialProjection = Poly.projection(Eq, Field, Field.mul, identity)
