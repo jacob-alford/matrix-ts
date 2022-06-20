@@ -3,12 +3,37 @@ import * as N from 'fp-ts/number'
 import * as C from './complex'
 import * as Inf from './infix'
 import * as Iso from './Iso'
+import * as IO from 'fp-ts/IO'
 import * as LI from './LinearIsomorphism'
 import * as LM from './LinearMap'
 import * as M from './MatrixC'
 import * as Poly from './Polynomial'
 import * as TC from './typeclasses'
 import * as V from './VectorC'
+
+// ####################
+// ### Constructors ###
+// ####################
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const zero = 0
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const one = 1
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const randNumber: (low: number, high: number) => IO.IO<number> =
+  (low, high) => () =>
+    (high - low + 1) * Math.random() + low
 
 // #################
 // ### Instances ###
@@ -90,13 +115,19 @@ export const getLinearMap: <M>(
  * @since 1.0.0
  * @category Infix
  */
-export const _ = Inf.getFieldPolishInfix(Field)
+export const _ = Inf.getFieldInfix(Field)
 
 /**
  * @since 1.0.0
  * @category Infix
  */
-export const _ord = Inf.getOrdPolishInfix(Ord)
+export const $_ = Inf.getFieldPolishInfix(Field)
+
+/**
+ * @since 1.0.0
+ * @category Infix
+ */
+export const _$ = Inf.getFieldReversePolishInfix(Field)
 
 // #############
 // ### VecN ####
@@ -510,7 +541,7 @@ export const getAntiderivative: (
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialInnerProdct = Poly.innerProduct(Eq, Field, Field.mul)
+export const polynomialInnerProduct = Poly.innerProduct(Eq, Field, Field.mul)
 
 /**
  * @since 1.0.0

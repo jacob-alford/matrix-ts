@@ -260,19 +260,13 @@ export const _ = Inf.getDivisionRingInfix(DivisionRing)
  * @since 1.0.0
  * @category Infix
  */
-export const __ = Inf.getDivisionRingPolishInfix(DivisionRing)
+export const $_ = Inf.getDivisionRingPolishInfix(DivisionRing)
 
 /**
  * @since 1.0.0
  * @category Infix
  */
-export const _eq = Inf.getEqInfix(Eq)
-
-/**
- * @since 1.0.0
- * @category Infix
- */
-export const __eq = Inf.getEqPolishInfix(Eq)
+export const _$ = Inf.getDivisionRingReversePolishInfix(DivisionRing)
 
 // ###################
 // ### Destructors ###

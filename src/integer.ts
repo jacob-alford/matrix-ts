@@ -153,19 +153,13 @@ export const _ = Inf.getEuclideanRingInfix(EuclideanRing)
  * @since 1.0.0
  * @category Infix
  */
-export const __ = Inf.getEuclideanRingPolishInfix(EuclideanRing)
+export const $_ = Inf.getEuclideanRingPolishInfix(EuclideanRing)
 
 /**
  * @since 1.0.0
  * @category Infix
  */
-export const _ord = Inf.getOrdInfix(Ord)
-
-/**
- * @since 1.0.0
- * @category Infix
- */
-export const __ord = Inf.getOrdPolishInfix(Ord)
+export const _$ = Inf.getEuclideanRingReversePolishInfix(EuclideanRing)
 
 // ###################
 // ### Destructors ###

@@ -2,6 +2,7 @@ import * as Eq from 'fp-ts/Eq'
 import * as Fld from 'fp-ts/Field'
 import * as Mn from 'fp-ts/Monoid'
 import * as Ord from 'fp-ts/Ord'
+import { flow } from 'fp-ts/function'
 
 import * as TC from './typeclasses'
 
@@ -13,37 +14,55 @@ import * as TC from './typeclasses'
  * @since 1.0.0
  * @category Model
  */
-export type MonoidInfix = '<>'
+export type MonoidSymbol = '<>'
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type DivisionRingInfix = '+' | '-' | '*' | '/.' | './'
+export type AbelianGroupSymbol = '+' | '-' | '*'
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type EuclideanRingInfix = '+' | '-' | '*' | '/'
+export type LeftModuleSymbol = '.*'
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type FieldInfix = EuclideanRingInfix | '%'
+export type RightModuleSymbol = '*.'
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type EqInfix = '==' | '!='
+export type DivisionRingSymbol = AbelianGroupSymbol | '/.' | './'
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type OrdInfix = EqInfix | '<' | '<=' | '>' | '>='
+export type EuclideanRingSymbol = AbelianGroupSymbol | '/'
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export type FieldSymbol = EuclideanRingSymbol | '%'
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export type EqSymbol = '==' | '!='
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export type OrdSymbol = EqSymbol | '<' | '<=' | '>' | '>='
 
 // ####################
 // ### Constructors ###
@@ -54,21 +73,21 @@ export type OrdInfix = EqInfix | '<' | '<=' | '>' | '>='
  *
  * @since 1.0.0
  * @example
- *   import { makePolishBinaryInfix } from 'matrix-ts/infix'
+ *   import { makePolishInfix } from 'matrix-ts/infix'
  *   import * as H from 'matrix-ts/quaternion'
  *
- *   const _ = makePolishBinaryInfix({
+ *   const _ = makePolishInfix({
  *     '+': H.DivisionRing.add,
  *     '-': H.DivisionRing.sub,
  *     '*': H.DivisionRing.mul,
  *     '/': H.DivisionRing.div,
  *   })
  *
- *   const zero = _('+')(H.zero)(H.zero)
+ *   const zero = _('+', H.zero, H.zero)
  */
-export const makePolishBinaryInfix: <S extends string, A, B>(
-  fns: Readonly<Record<S, (x: A, y: A) => B>>
-) => (s: S) => (x: A, y: A) => B = fns => s => (x, y) => {
+export const makePolishInfix: <S extends string, A, B, C>(
+  fns: Readonly<Record<S, (x: A, y: B) => C>>
+) => (s: S, x: A, y: B) => C = fns => (s, x, y) => {
   for (const symbol in fns) {
     if (s === symbol) {
       return fns[symbol](x, y)
@@ -83,10 +102,39 @@ export const makePolishBinaryInfix: <S extends string, A, B>(
  *
  * @since 1.0.0
  * @example
- *   import { makeBinaryInfix } from 'matrix-ts/infix'
+ *   import { makePolishInfix } from 'matrix-ts/infix'
  *   import * as H from 'matrix-ts/quaternion'
  *
- *   const _ = makeBinaryInfix({
+ *   const _ = makePolishInfix({
+ *     '+': H.DivisionRing.add,
+ *     '-': H.DivisionRing.sub,
+ *     '*': H.DivisionRing.mul,
+ *     '/': H.DivisionRing.div,
+ *   })
+ *
+ *   const zero = _(H.zero, H.zero, '+')
+ */
+export const makeReversePolishInfix: <S extends string, A, B, C>(
+  fns: Readonly<Record<S, (x: A, y: B) => C>>
+) => (x: A, y: B, s: S) => C = fns => (x, y, s) => {
+  for (const symbol in fns) {
+    if (s === symbol) {
+      return fns[symbol](x, y)
+    }
+  }
+  // this should never be reached
+  throw new Error(`Unrecognized symbol ${s} supplied to polish infix`)
+}
+
+/**
+ * Infix operators can sometimes be more convenient than using the full typeclass instance
+ *
+ * @since 1.0.0
+ * @example
+ *   import { makeInfix } from 'matrix-ts/infix'
+ *   import * as H from 'matrix-ts/quaternion'
+ *
+ *   const _ = makeInfix({
  *     '+': H.DivisionRing.add,
  *     '-': H.DivisionRing.sub,
  *     '*': H.DivisionRing.mul,
@@ -95,9 +143,9 @@ export const makePolishBinaryInfix: <S extends string, A, B>(
  *
  *   const one = _(H.zero, '+', H.one)
  */
-export const makeBinaryInfix: <S extends string, A, B>(
-  fns: Readonly<Record<S, (x: A, y: A) => B>>
-) => (x: A, s: S, y: A) => B = fns => (x, s, y) => {
+export const makeInfix: <S extends string, A, B, C>(
+  fns: Readonly<Record<S, (x: A, y: B) => C>>
+) => (x: A, s: S, y: B) => C = fns => (x, s, y) => {
   for (const symbol in fns) {
     if (s === symbol) {
       return fns[symbol](x, y)
@@ -107,33 +155,25 @@ export const makeBinaryInfix: <S extends string, A, B>(
   throw new Error(`Unrecognized symbol ${s} supplied to polish infix`)
 }
 
+// ################
+// ### Internal ###
+// ################
+
 /**
- * Infix operators can sometimes be more convenient than using the full typeclass instance
- *
  * @since 1.0.0
- * @example
- *   import { makeUnaryInfix } from 'matrix-ts/infix'
- *   import * as H from 'matrix-ts/quaternion'
- *
- *   type BooleanInfix = '!'
- *
- *   const _ = makeUnaryInfix<BooleanInfix, boolean, boolean>({
- *   '!': b => !b
- *   })
- *
- *   const false = _('!', true)
+ * @category Internal
  */
-export const makeUnaryInfix: <S extends string, A, B>(
-  fns: Readonly<Record<S, (x: A) => B>>
-) => (s: S) => (x: A) => B = fns => s => x => {
-  for (const symbol in fns) {
-    if (s === symbol) {
-      return fns[symbol](x)
-    }
-  }
-  // this should never be reached
-  throw new Error(`Unrecognized symbol ${s} supplied to polish infix`)
-}
+const infixFromPolish: <S extends string, A, B, C>(
+  f: (s: S, a: A, b: B) => C
+) => (a: A, s: S, b: B) => C = f => (a, s, b) => f(s, a, b)
+
+/**
+ * @since 1.0.0
+ * @category Internal
+ */
+const reverseFromPolish: <S extends string, A, B, C>(
+  f: (s: S, a: A, b: B) => C
+) => (a: A, b: B, s: S) => C = f => (a, b, s) => f(s, a, b)
 
 // #################
 // ### Instances ###
@@ -145,8 +185,8 @@ export const makeUnaryInfix: <S extends string, A, B>(
  */
 export const getMonoidPolishInfix: <A>(
   M: Mn.Monoid<A>
-) => (s: MonoidInfix) => (x: A, y: A) => A = M =>
-  makePolishBinaryInfix({
+) => (s: MonoidSymbol, x: A, y: A) => A = M =>
+  makePolishInfix({
     '<>': M.concat,
   })
 
@@ -154,12 +194,13 @@ export const getMonoidPolishInfix: <A>(
  * @since 1.0.0
  * @category Instances
  */
-export const getMonoidInfix: <A>(
-  M: Mn.Monoid<A>
-) => (x: A, s: MonoidInfix, y: A) => A = M =>
-  makeBinaryInfix({
-    '<>': M.concat,
-  })
+export const getMonoidReversePolishInfix = flow(getMonoidPolishInfix, reverseFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getMonoidInfix = flow(getMonoidPolishInfix, infixFromPolish)
 
 /**
  * @since 1.0.0
@@ -167,8 +208,8 @@ export const getMonoidInfix: <A>(
  */
 export const getEuclideanRingPolishInfix: <A>(
   F: TC.EuclidianRing<A>
-) => (s: EuclideanRingInfix) => (x: A, y: A) => A = F =>
-  makePolishBinaryInfix({
+) => (s: EuclideanRingSymbol, x: A, y: A) => A = F =>
+  makePolishInfix({
     '+': F.add,
     '-': F.sub,
     '*': F.mul,
@@ -179,15 +220,16 @@ export const getEuclideanRingPolishInfix: <A>(
  * @since 1.0.0
  * @category Instances
  */
-export const getEuclideanRingInfix: <A>(
-  F: TC.EuclidianRing<A>
-) => (x: A, s: EuclideanRingInfix, y: A) => A = F =>
-  makeBinaryInfix({
-    '+': F.add,
-    '-': F.sub,
-    '*': F.mul,
-    '/': F.div,
-  })
+export const getEuclideanRingReversePolishInfix = flow(
+  getEuclideanRingPolishInfix,
+  reverseFromPolish
+)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getEuclideanRingInfix = flow(getEuclideanRingPolishInfix, infixFromPolish)
 
 /**
  * @since 1.0.0
@@ -195,8 +237,8 @@ export const getEuclideanRingInfix: <A>(
  */
 export const getDivisionRingPolishInfix: <A>(
   F: TC.DivisionRing<A>
-) => (s: DivisionRingInfix) => (x: A, y: A) => A = F =>
-  makePolishBinaryInfix({
+) => (s: DivisionRingSymbol, x: A, y: A) => A = F =>
+  makePolishInfix({
     '+': F.add,
     '-': F.sub,
     '*': F.mul,
@@ -208,16 +250,16 @@ export const getDivisionRingPolishInfix: <A>(
  * @since 1.0.0
  * @category Instances
  */
-export const getDivisionRingInfix: <A>(
-  F: TC.DivisionRing<A>
-) => (x: A, s: DivisionRingInfix, y: A) => A = F =>
-  makeBinaryInfix({
-    '+': F.add,
-    '-': F.sub,
-    '*': F.mul,
-    '/.': (a, b) => F.mul(a, F.recip(b)),
-    './': (a, b) => F.mul(F.recip(a), b),
-  })
+export const getDivisionRingReversePolishInfix = flow(
+  getDivisionRingPolishInfix,
+  reverseFromPolish
+)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getDivisionRingInfix = flow(getDivisionRingPolishInfix, infixFromPolish)
 
 /**
  * @since 1.0.0
@@ -225,8 +267,8 @@ export const getDivisionRingInfix: <A>(
  */
 export const getFieldPolishInfix: <A>(
   F: Fld.Field<A>
-) => (s: FieldInfix) => (x: A, y: A) => A = F =>
-  makePolishBinaryInfix({
+) => (s: FieldSymbol, x: A, y: A) => A = F =>
+  makePolishInfix({
     '+': F.add,
     '-': F.sub,
     '*': F.mul,
@@ -238,16 +280,13 @@ export const getFieldPolishInfix: <A>(
  * @since 1.0.0
  * @category Instances
  */
-export const getFieldInfix: <A>(
-  F: Fld.Field<A>
-) => (x: A, s: FieldInfix, y: A) => A = F =>
-  makeBinaryInfix({
-    '+': F.add,
-    '-': F.sub,
-    '*': F.mul,
-    '/': F.div,
-    '%': F.mod,
-  })
+export const getFieldReversePolishInfix = flow(getFieldPolishInfix, reverseFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getFieldInfix = flow(getFieldPolishInfix, infixFromPolish)
 
 /**
  * @since 1.0.0
@@ -255,8 +294,8 @@ export const getFieldInfix: <A>(
  */
 export const getEqPolishInfix: <A>(
   E: Eq.Eq<A>
-) => (s: EqInfix) => (x: A, y: A) => boolean = E =>
-  makePolishBinaryInfix({
+) => (s: EqSymbol, x: A, y: A) => boolean = E =>
+  makePolishInfix({
     '==': E.equals,
     '!=': (x, y) => !E.equals(x, y),
   })
@@ -265,11 +304,13 @@ export const getEqPolishInfix: <A>(
  * @since 1.0.0
  * @category Instances
  */
-export const getEqInfix: <A>(E: Eq.Eq<A>) => (x: A, s: EqInfix, y: A) => boolean = E =>
-  makeBinaryInfix({
-    '==': E.equals,
-    '!=': (x, y) => !E.equals(x, y),
-  })
+export const getEqReversePolishInfix = flow(getEqPolishInfix, reverseFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getEqInfix = flow(getEqPolishInfix, infixFromPolish)
 
 /**
  * @since 1.0.0
@@ -277,8 +318,8 @@ export const getEqInfix: <A>(E: Eq.Eq<A>) => (x: A, s: EqInfix, y: A) => boolean
  */
 export const getOrdPolishInfix: <A>(
   O: Ord.Ord<A>
-) => (s: OrdInfix) => (x: A, y: A) => boolean = O =>
-  makePolishBinaryInfix({
+) => (s: OrdSymbol, x: A, y: A) => boolean = O =>
+  makePolishInfix({
     '==': O.equals,
     '!=': (x, y) => !O.equals(x, y),
     '<': Ord.lt(O),
@@ -291,14 +332,62 @@ export const getOrdPolishInfix: <A>(
  * @since 1.0.0
  * @category Instances
  */
-export const getOrdInfix: <A>(
-  O: Ord.Ord<A>
-) => (x: A, s: OrdInfix, y: A) => boolean = O =>
-  makeBinaryInfix({
-    '==': O.equals,
-    '!=': (x, y) => !O.equals(x, y),
-    '<': Ord.lt(O),
-    '<=': Ord.leq(O),
-    '>': Ord.gt(O),
-    '>=': Ord.geq(O),
+export const getOrdReverseInfix = flow(getOrdPolishInfix, reverseFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getOrdInfix = flow(getOrdPolishInfix, infixFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getLeftModulePolishInfix: <L, A>(
+  L: TC.LeftModule<A, L>
+) => (s: LeftModuleSymbol, l: L, a: A) => A = L =>
+  makePolishInfix({
+    '.*': L.leftScalarMul,
   })
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getLeftModuleReversePolishInfix = flow(
+  getLeftModulePolishInfix,
+  reverseFromPolish
+)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getLeftModuleInfix = flow(getLeftModulePolishInfix, infixFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getRightModulePolishInfix: <R, A>(
+  L: TC.RightModule<A, R>
+) => (s: RightModuleSymbol, a: A, r: R) => A = R =>
+  makePolishInfix({
+    '*.': R.rightScalarMul,
+  })
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getRightModuleReversePolishInfix = flow(
+  getRightModulePolishInfix,
+  reverseFromPolish
+)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getRightModuleInfix = flow(getLeftModulePolishInfix, infixFromPolish)

@@ -248,19 +248,13 @@ export const _ = Inf.getFieldInfix(Field)
  * @since 1.0.0
  * @category Infix
  */
-export const __ = Inf.getFieldPolishInfix(Field)
+export const $_ = Inf.getFieldPolishInfix(Field)
 
 /**
  * @since 1.0.0
  * @category Infix
  */
-export const _eq = Inf.getEqInfix(Eq)
-
-/**
- * @since 1.0.0
- * @category Infix
- */
-export const __eq = Inf.getEqPolishInfix(Eq)
+export const _$ = Inf.getFieldReversePolishInfix(Field)
 
 // ###################
 // ### Destructors ###
@@ -611,7 +605,7 @@ export const getAntiderivative: (
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialInnerProdct = Poly.innerProduct(
+export const polynomialInnerProduct = Poly.innerProduct(
   Eq,
   Field,
   ComplexBimodule.leftScalarMul

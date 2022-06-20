@@ -12,6 +12,10 @@ import { pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as Inf from './infix'
 import * as Int from './integer'
+import * as LI from './LinearIsomorphism'
+import * as Iso from './Iso'
+
+import * as Poly from './Polynomial'
 
 const RationalSymbol = Symbol('Rational')
 type RationalSymbol = typeof RationalSymbol
@@ -59,6 +63,25 @@ export const zero: Rational = wrap(Int.zero, Int.one)
  * @category Constructors
  */
 export const one: Rational = wrap(Int.one, Int.one)
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const fromInt: (top: Int.Int) => Rational = top => wrap(top, Int.one)
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const fromNumber: (n: number) => Rational = n => {
+  const whole = Int.fromNumber(n)
+  const frac = n - whole
+  return Field.add(
+    fromInt(whole),
+    reduce(Int.fromNumber(frac * Number.MAX_SAFE_INTEGER), Number.MAX_SAFE_INTEGER)
+  )
+}
 
 /**
  * @since 1.0.0
@@ -161,16 +184,6 @@ export const Show: Sh.Show<Rational> = {
   show: ({ top, bottom }) => `${top}/${bottom}`,
 }
 
-// ###################
-// ### Destructors ###
-// ###################
-
-/**
- * @since 1.0.0
- * @category Destructors
- */
-export const toNumber: (r: Rational) => number = ({ top, bottom }) => top / bottom
-
 // #############
 // ### Infix ###
 // #############
@@ -185,19 +198,100 @@ export const _ = Inf.getFieldInfix(Field)
  * @since 1.0.0
  * @category Infix
  */
-export const __ = Inf.getFieldPolishInfix(Field)
+export const $_ = Inf.getFieldPolishInfix(Field)
 
 /**
  * @since 1.0.0
  * @category Infix
  */
-export const _ord = Inf.getOrdInfix(Ord)
+export const _$ = Inf.getFieldReversePolishInfix(Field)
+
+// ###################
+// ### Destructors ###
+// ###################
 
 /**
  * @since 1.0.0
- * @category Infix
+ * @category Destructors
  */
-export const __ord = Inf.getOrdPolishInfix(Ord)
+export const toNumber: (r: Rational) => number = ({ top, bottom }) => top / bottom
+
+// #############################
+// ### Polynomial Operations ###
+// #############################
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const derivative = Poly.derivative<Rational>((n, r) =>
+  Field.mul(wrap(Int.fromNumber(n), Int.one), r)
+)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const getAntiderivative: (
+  constantTerm: Rational
+) => (p: Poly.Polynomial<Rational>) => Poly.Polynomial<Rational> = constantTerm =>
+  Poly.antiderivative(constantTerm, (n, r) => Field.mul(fromNumber(n), r))
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const polynomialInnerProdct = Poly.innerProduct(Eq, Field, (n, r) =>
+  Field.mul(fromNumber(n), r)
+)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const polynomialProjection = Poly.projection(Eq, Field, (n, r) =>
+  Field.mul(fromNumber(n), r)
+)
+
+// ############################
+// ### Polynomial Instances ###
+// ############################
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(Eq, Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialBimodule = Poly.getBimodule(Eq, Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialRing = Poly.getCommutativeRing(Eq, Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, Field)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getDifferentialLinearIsomorphism: (
+  constantTerm: Rational
+) => LI.LinearIsomorphism1<Poly.URI, Rational, Rational> = constantTerm => ({
+  isoV: Iso.getId(),
+  mapL: derivative,
+  reverseMapL: getAntiderivative(constantTerm),
+})
 
 // ################
 // ### Internal ###

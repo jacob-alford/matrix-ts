@@ -8,6 +8,7 @@ import * as E from 'fp-ts/Either'
 import * as Fld from 'fp-ts/Field'
 import * as Fun from 'fp-ts/Functor'
 import * as FunI from 'fp-ts/FunctorWithIndex'
+import * as IO from 'fp-ts/IO'
 import { Monoid } from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
 import * as Ord from 'fp-ts/Ord'
@@ -79,6 +80,16 @@ export const one: <R>(R: Rng.Ring<R>) => Polynomial<R> = R => wrap([R.one])
  * @category Constructors
  */
 export const zero = <R>(): Polynomial<R> => wrap(RA.zero())
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const randPolynomial: <R>(
+  terms: number,
+  make: IO.IO<R>
+) => IO.IO<Polynomial<R>> = (terms, make) =>
+  flow(RA.sequence(IO.Applicative)(RA.replicate(terms, make)), wrap)
 
 // #####################
 // ### Non-Pipeables ###
@@ -356,10 +367,10 @@ export const polynomialDegree: <R>(p: Polynomial<R>) => Int.Int = flow(
  * @category Polynomial Operations
  */
 export const derivative: <R>(
-  scale: (n: number, r: R) => R
-) => (coeffs: Polynomial<R>) => Polynomial<R> = scale =>
+  scaleLeft: (n: Int.Int, r: R) => R
+) => (coeffs: Polynomial<R>) => Polynomial<R> = scaleLeft =>
   flow(
-    RA.mapWithIndex((i, coeff) => scale(i, coeff)),
+    RA.mapWithIndex((i, coeff) => scaleLeft(Int.fromNumber(i), coeff)),
     RA.dropLeft(1),
     wrap
   )
@@ -420,20 +431,20 @@ export const projection: <R>(
     return ER.mul(constant(Eq_, F)(F.div(ipF(p, q), ipF(p, p))), p)
   }
 
-// ################
-// ### Internal ###
-// ################
+// #################
+// ### Utilities ###
+// #################
 
 /**
  * @since 1.0.0
- * @category Internal
+ * @category Utilities
  */
-const preservingZipWith =
-  <R>(f: (x: R, y: R) => R, def: R) =>
-  (xs: ReadonlyArray<R>, ys: ReadonlyArray<R>): ReadonlyArray<R> => {
+export const preservingZipWith =
+  <R, S>(f: (x: R, y: R) => S, def: R) =>
+  (xs: ReadonlyArray<R>, ys: ReadonlyArray<R>): ReadonlyArray<S> => {
     const go: (
-      acc: [ReadonlyArray<R>, number]
-    ) => E.Either<[ReadonlyArray<R>, number], ReadonlyArray<R>> = ([zs, i]) => {
+      acc: [ReadonlyArray<S>, number]
+    ) => E.Either<[ReadonlyArray<S>, number], ReadonlyArray<S>> = ([zs, i]) => {
       const x = RA.lookup(i)(xs)
       const y = RA.lookup(i)(ys)
 
@@ -445,8 +456,12 @@ const preservingZipWith =
         return E.left(tuple(pipe(zs, RA.concat(RA.of(f(def, y.value))), wrap), i + 1))
       return E.right(zs)
     }
-    return ChnRec.tailRec(tuple(RA.zero<R>(), 0), go)
+    return ChnRec.tailRec(tuple(RA.zero<S>(), 0), go)
   }
+
+// ################
+// ### Internal ###
+// ################
 
 /**
  * @since 1.0.0
