@@ -11,10 +11,10 @@ import { flow, pipe } from 'fp-ts/function'
 
 import * as Iso from './Iso'
 import * as LI from './LinearIsomorphism'
-import * as M from './MatrixC'
+import * as M from './Matrix'
 import * as Poly from './Polynomial'
 import * as TC from './typeclasses'
-import * as V from './VectorC'
+import * as V from './Vector'
 import * as Inf from './infix'
 
 // #############
@@ -84,7 +84,7 @@ export const fromPolarDegrees: (r: number, psi: number) => Complex = (r, psi) =>
  * @since 1.0.0
  * @category Constructors
  */
-export const fromVector: (v: V.VecC<2, number>) => Complex = as =>
+export const fromVector: (v: V.Vec<2, number>) => Complex = as =>
   pipe(V.toTuple(as), ([Re, Im]) => of(Re, Im))
 
 /**
@@ -260,7 +260,7 @@ export const _$ = Inf.getFieldReversePolishInfix(Field)
  * @since 1.0.0
  * @category Destructors
  */
-export const toVector: (c: Complex) => V.VecC<2, number> = ({ Re, Im }) =>
+export const toVector: (c: Complex) => V.Vec<2, number> = ({ Re, Im }) =>
   V.fromTuple([Re, Im])
 
 /**
@@ -298,7 +298,7 @@ export const modulus: (c: Complex) => number = ({ Re, Im }) =>
  * @since 1.0.0
  * @category Isomorphisms
  */
-export const IsoVector: Iso.Iso0<Complex, V.VecC<2, number>> = {
+export const IsoVector: Iso.Iso0<Complex, V.Vec<2, number>> = {
   get: toVector,
   reverseGet: fromVector,
 }
@@ -311,7 +311,7 @@ export const IsoVector: Iso.Iso0<Complex, V.VecC<2, number>> = {
  * @since 1.0.0
  * @category Model
  */
-export type Vec<N> = V.VecC<N, Complex>
+export type Vec<N> = V.Vec<N, Complex>
 
 /**
  * @since 1.0.0
@@ -351,7 +351,7 @@ export const cross = V.crossProduct(Field)
  * @since 1.0.0
  * @category Model
  */
-export type Mat<M, N> = M.MatC<M, N, Complex>
+export type Mat<M, N> = M.Mat<M, N, Complex>
 
 /**
  * @since 1.0.0

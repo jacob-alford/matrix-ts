@@ -17,11 +17,11 @@ A mathematics library with vectors, matricies, numerical linear algebra, associa
 - `quaternion.ts` – Quaternion data type with typeclass instances
 - `Computation.ts` – Either with logging
 - `FreeMonoid.ts` – Isomorphic to a List / Readonly Array type
-- `MatrixC.ts` – A type-level constrained matrix type
+- `Matrix.ts` – A type-level constrained matrix type
 - `MatrixU.ts` – An unconstrained matrix type
 - `MatrixOps.ts` – Numerical Linear algebra, and some branded newtypes
 - `Polynomial.ts` – An array without trailing zeros
-- `VectorC.ts` – A type-level constrained vector type
+- `Vector.ts` – A type-level constrained vector type
 
 ## HKT Typeclasses
 
@@ -46,7 +46,7 @@ Find the following examples in `src/__tests__/examples.test.ts`
 
 ```ts
 import * as N from 'matrix-ts/number'
-import * as V from 'matrix-ts/VectorC'
+import * as V from 'matrix-ts/Vector'
 
 it('dots two vectors', () => {
   const a = V.fromTuple([1, 2, 3, 4, 5, 6])
@@ -59,7 +59,7 @@ it('dots two vectors', () => {
 
 ```ts
 import * as N from 'matrix-ts/number'
-import * as V from 'matrix-ts/VectorC'
+import * as V from 'matrix-ts/Vector'
 
 it('crosses two vectors', () => {
   const a = V.fromTuple([0, 2, 1])
@@ -94,8 +94,8 @@ it('differentiates and integrates polynomials', () => {
 ```ts
 import * as LM from 'matrix-ts/LinearMap'
 import * as LI from 'matrix-ts/LinearIsomorphism'
-import * as M from 'matrix-ts/MatrixC'
-import * as V from 'matrix-ts/VectorC'
+import * as M from 'matrix-ts/Matrix'
+import * as V from 'matrix-ts/Vector'
 
 it('rotates a 2d vector and back 270 degrees', () => {
   const rotate90Degrees = N.getRotationMap2d(Math.PI / 2)

@@ -14,7 +14,7 @@ import * as Rng from 'fp-ts/Ring'
 import * as O from 'fp-ts/Option'
 import { flow, identity, pipe, tuple } from 'fp-ts/function'
 
-import * as MC from './MatrixC'
+import * as MC from './Matrix'
 import * as U from './lib/utilities'
 
 const MatrixBrand = Symbol('Matrix')
@@ -84,7 +84,7 @@ export const fromNestedReadonlyArrays: <A>(
  * @category Constructors
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const fromMatC: <A>(as: MC.MatC<unknown, unknown, A>) => Mat<A> = identity as any
+export const fromMat: <A>(as: MC.Mat<unknown, unknown, A>) => Mat<A> = identity as any
 
 /**
  * @since 1.0.0
@@ -97,13 +97,13 @@ export const repeat: <A>(shape: Shape, value: A) => Mat<A> = (shape, value) =>
  * @since 1.0.0
  * @category Constructors
  */
-export const fromRowVector = flow(MC.fromVectorAsRow, fromMatC)
+export const fromRowVector = flow(MC.fromVectorAsRow, fromMat)
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const fromColumnVector = flow(MC.fromVectorAsColumn, fromMatC)
+export const fromColumnVector = flow(MC.fromVectorAsColumn, fromMat)
 
 // #####################
 // ### Non-Pipeables ###
@@ -306,10 +306,10 @@ export const toNestedReadonlyArrays: <A>(as: Mat<A>) => ReadonlyArray<ReadonlyAr
  * @since 1.0.0
  * @category Destructors
  */
-export const toMatC: <M extends number, N extends number>(
+export const toMat: <M extends number, N extends number>(
   m: M,
   n: N
-) => <A>(ma: Mat<A>) => O.Option<MC.MatC<M, N, A>> = (m, n) =>
+) => <A>(ma: Mat<A>) => O.Option<MC.Mat<M, N, A>> = (m, n) =>
   flow(toNestedReadonlyArrays, MC.fromNestedReadonlyArrays(m, n))
 
 // #########################

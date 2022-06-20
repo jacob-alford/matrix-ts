@@ -10,7 +10,7 @@ import { pipe } from 'fp-ts/function'
 import * as Iso from './Iso'
 import * as LI from './LinearIsomorphism'
 import * as TC from './typeclasses'
-import * as V from './VectorC'
+import * as V from './Vector'
 import * as Inf from './infix'
 
 // #############
@@ -83,14 +83,14 @@ export const of: (a: number, b: number, c: number, d: number) => Quaternion = (
  * @since 1.0.0
  * @category Constructors
  */
-export const fromVector4: (v: V.VecC<4, number>) => Quaternion = a =>
+export const fromVector4: (v: V.Vec<4, number>) => Quaternion = a =>
   pipe(V.toTuple(a), ([a, b, c, d]) => ({ a, b, c, d }))
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const fromVector3: (v: V.VecC<3, number>) => Quaternion = a =>
+export const fromVector3: (v: V.Vec<3, number>) => Quaternion = a =>
   pipe(V.toTuple(a), ([b, c, d]) => ({ a: 0, b, c, d }))
 
 /**
@@ -220,9 +220,9 @@ export const Bimodule: TC.Bimodule<Quaternion, number> = {
  * @category Instance Operations
  */
 export const rotateVector: (
-  axis: V.VecC<3, number>,
+  axis: V.Vec<3, number>,
   theta: number
-) => (v: V.VecC<3, number>) => V.VecC<3, number> = (axis, theta) => {
+) => (v: V.Vec<3, number>) => V.Vec<3, number> = (axis, theta) => {
   const q = getRotationQuaternion(axis)(theta)
   const qi = recip(q)
   return p => pipe(DivisionRing.mul(q, DivisionRing.mul(fromVector3(p), qi)), toVector3)
@@ -233,7 +233,7 @@ export const rotateVector: (
  * @category Instances
  */
 export const getRotationLinearIsomorpism: (
-  axis: V.VecC<3, number>,
+  axis: V.Vec<3, number>,
   theta: number
 ) => LI.LinearIsomorphism2<V.URI, 3, number, number> = (axis, theta) => {
   const q = getRotationQuaternion(axis)(theta)
@@ -276,7 +276,7 @@ export const _$ = Inf.getDivisionRingReversePolishInfix(DivisionRing)
  * @since 1.0.0
  * @category Destructors
  */
-export const toVector4: (q: Quaternion) => V.VecC<4, number> = ({ a, b, c, d }) =>
+export const toVector4: (q: Quaternion) => V.Vec<4, number> = ({ a, b, c, d }) =>
   V.fromTuple([a, b, c, d])
 
 /**
@@ -285,7 +285,7 @@ export const toVector4: (q: Quaternion) => V.VecC<4, number> = ({ a, b, c, d }) 
  * @since 1.0.0
  * @category Destructors
  */
-export const toVector3: (q: Quaternion) => V.VecC<3, number> = ({ b, c, d }) =>
+export const toVector3: (q: Quaternion) => V.Vec<3, number> = ({ b, c, d }) =>
   V.fromTuple([b, c, d])
 
 /**
@@ -303,7 +303,7 @@ export const norm: (q: Quaternion) => number = q =>
  * @since 1.0.0
  * @category Destructors
  */
-export const IsoVector4: Iso.Iso0<Quaternion, V.VecC<4, number>> = {
+export const IsoVector4: Iso.Iso0<Quaternion, V.Vec<4, number>> = {
   get: toVector4,
   reverseGet: fromVector4,
 }
@@ -324,7 +324,7 @@ export const asUnit: (q: Quaternion) => Quaternion = q =>
  * @category Quaternion Ops
  */
 export const getRotationQuaternion: (
-  axis: V.VecC<3, number>
+  axis: V.Vec<3, number>
 ) => (theta: number) => Quaternion = axis => theta =>
   DivisionRing.add(
     scalar(Math.cos(theta / 2)),

@@ -4,7 +4,7 @@ import * as LI from '../LinearIsomorphism'
 import * as H from '../quaternion'
 import * as N from '../number'
 import * as Poly from '../Polynomial'
-import * as V from '../VectorC'
+import * as V from '../Vector'
 
 describe('examples', () => {
   describe('vectors', () => {

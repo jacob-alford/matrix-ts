@@ -5,9 +5,9 @@ import { pipe } from 'fp-ts/function'
 
 import * as MatOps from '../MatrixOps'
 import * as Log from '../Logger'
-import * as M from '../MatrixC'
+import * as M from '../Matrix'
 import * as FM from '../FreeMonoid'
-import * as V from '../VectorC'
+import * as V from '../Vector'
 
 describe('Gaussian Elimination with Partial Pivoting', () => {
   it('returns a factorized matrix', () => {

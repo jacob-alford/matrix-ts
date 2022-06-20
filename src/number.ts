@@ -6,9 +6,9 @@ import * as Iso from './Iso'
 import * as IO from 'fp-ts/IO'
 import * as LI from './LinearIsomorphism'
 import * as LM from './LinearMap'
-import * as M from './MatrixC'
+import * as M from './Matrix'
 import * as Poly from './Polynomial'
-import * as V from './VectorC'
+import * as V from './Vector'
 
 // ####################
 // ### Constructors ###
@@ -103,7 +103,7 @@ export const Show = N.Show
  * @category Instances
  */
 export const getLinearMap: <M>(
-  M: M.MatC<M, M, number>
+  M: M.Mat<M, M, number>
 ) => LM.LinearMap2<V.URI, M, number, number> = M.getLinearMap(Field)
 
 // #############
@@ -136,7 +136,7 @@ export const _$ = Inf.getFieldReversePolishInfix(Field)
  * @since 1.0.0
  * @category Model
  */
-export type Vec<N> = V.VecC<N, number>
+export type Vec<N> = V.Vec<N, number>
 
 /**
  * @since 1.0.0
@@ -282,7 +282,7 @@ export const cross = V.crossProduct(Field)
  * @since 1.0.0
  * @category Model
  */
-export type Mat<M, N> = M.MatC<M, N, number>
+export type Mat<M, N> = M.Mat<M, N, number>
 
 /**
  * @since 1.0.0

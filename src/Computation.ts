@@ -9,7 +9,7 @@ import * as Mon from 'fp-ts/Monad'
 import * as MonThrow from 'fp-ts/MonadThrow'
 import * as O from 'fp-ts/Option'
 import * as RTup from 'fp-ts/ReadonlyTuple'
-import { pipe } from 'fp-ts/function'
+import { pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as FM from './FreeMonoid'
 
@@ -416,6 +416,4 @@ export const bindW: <R1, R2, N extends string, A, E2, B>(
   R1 | R2,
   E1 | E2,
   { readonly [K in keyof A | N]: K extends keyof A ? A[K] : B }
-> =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bind as any
+> = unsafeCoerce(bind)

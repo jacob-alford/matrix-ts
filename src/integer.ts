@@ -11,8 +11,8 @@ import { identity, unsafeCoerce } from 'fp-ts/function'
 import * as Inf from './infix'
 import * as Iso from './Iso'
 import * as TC from './typeclasses'
-import * as V from './VectorC'
-import * as M from './MatrixC'
+import * as V from './Vector'
+import * as M from './Matrix'
 
 const IntegerSymbol = Symbol('Integer')
 type IntegerSymbol = typeof IntegerSymbol
@@ -194,7 +194,7 @@ export const isoNumber: Iso.Iso0<Int, number> = {
  * @since 1.0.0
  * @category Model
  */
-export type Vec<N> = V.VecC<N, Int>
+export type Vec<N> = V.Vec<N, Int>
 
 /**
  * @since 1.0.0
@@ -234,7 +234,7 @@ export const cross = V.crossProduct(EuclideanRing)
  * @since 1.0.0
  * @category Model
  */
-export type Mat<M, N> = M.MatC<M, N, Int>
+export type Mat<M, N> = M.Mat<M, N, Int>
 
 /**
  * @since 1.0.0

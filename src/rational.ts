@@ -14,9 +14,9 @@ import * as Inf from './infix'
 import * as Int from './integer'
 import * as LI from './LinearIsomorphism'
 import * as Iso from './Iso'
-import * as M from './MatrixC'
+import * as M from './Matrix'
 import * as Poly from './Polynomial'
-import * as V from './VectorC'
+import * as V from './Vector'
 
 const RationalSymbol = Symbol('Rational')
 type RationalSymbol = typeof RationalSymbol
@@ -225,7 +225,7 @@ export const toNumber: (r: Rational) => number = ({ top, bottom }) => top / bott
  * @since 1.0.0
  * @category Model
  */
-export type Vec<N> = V.VecC<N, Rational>
+export type Vec<N> = V.Vec<N, Rational>
 
 /**
  * @since 1.0.0
@@ -265,7 +265,7 @@ export const cross = V.crossProduct(Field)
  * @since 1.0.0
  * @category Model
  */
-export type Mat<M, N> = M.MatC<M, N, Rational>
+export type Mat<M, N> = M.Mat<M, N, Rational>
 
 /**
  * @since 1.0.0

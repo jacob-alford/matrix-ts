@@ -14,7 +14,7 @@ import * as TrI from 'fp-ts/TraversableWithIndex'
 import * as Pt from 'fp-ts/Pointed'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
-import { flow, pipe, tuple } from 'fp-ts/function'
+import { flow, identity, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as TC from './typeclasses'
 import * as U from './lib/utilities'
@@ -27,8 +27,7 @@ import * as U from './lib/utilities'
  * @since 1.0.0
  * @category Model
  */
-export interface VecC<N, A> extends ReadonlyArray<A> {
-  _over: A
+export interface Vec<N, A> extends ReadonlyArray<A> {
   _length: N
 }
 
@@ -40,41 +39,37 @@ export interface VecC<N, A> extends ReadonlyArray<A> {
  * @since 1.0.0x
  * @category Internal
  */
-const wrap: <N, A>(ks: ReadonlyArray<A>) => VecC<N, A> = ks =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ks as any
+const wrap: <N, A>(ks: ReadonlyArray<A>) => Vec<N, A> = unsafeCoerce
 
 /**
  * @since 1.0.0
  * @category Internal
  */
-const unwrap: <N, A>(ks: VecC<N, A>) => ReadonlyArray<A> = ks =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ks as any
+const unwrap: <N, A>(ks: Vec<N, A>) => ReadonlyArray<A> = identity
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
 export const fromTuple: {
-  <A>(t: []): VecC<0, A>
-  <A>(t: [A]): VecC<1, A>
-  <A>(t: [A, A]): VecC<2, A>
-  <A>(t: [A, A, A]): VecC<3, A>
-  <A>(t: [A, A, A, A]): VecC<4, A>
-  <A>(t: [A, A, A, A, A]): VecC<5, A>
-  <A>(t: [A, A, A, A, A, A]): VecC<6, A>
-  <A>(t: [A, A, A, A, A, A, A]): VecC<7, A>
-  <A>(t: [A, A, A, A, A, A, A, A]): VecC<8, A>
-  <A>(t: [A, A, A, A, A, A, A, A, A]): VecC<9, A>
-  <A>(t: [A, A, A, A, A, A, A, A, A, A]): VecC<10, A>
+  <A>(t: []): Vec<0, A>
+  <A>(t: [A]): Vec<1, A>
+  <A>(t: [A, A]): Vec<2, A>
+  <A>(t: [A, A, A]): Vec<3, A>
+  <A>(t: [A, A, A, A]): Vec<4, A>
+  <A>(t: [A, A, A, A, A]): Vec<5, A>
+  <A>(t: [A, A, A, A, A, A]): Vec<6, A>
+  <A>(t: [A, A, A, A, A, A, A]): Vec<7, A>
+  <A>(t: [A, A, A, A, A, A, A, A]): Vec<8, A>
+  <A>(t: [A, A, A, A, A, A, A, A, A]): Vec<9, A>
+  <A>(t: [A, A, A, A, A, A, A, A, A, A]): Vec<10, A>
 } = wrap
 
 /**
  * @since 1.0.0
  * @category Constructors
  */
-export const repeat: <N extends number, A>(n: N, a: A) => VecC<N, A> = (n, a) =>
+export const repeat: <N extends number, A>(n: N, a: A) => Vec<N, A> = (n, a) =>
   wrap(RA.replicate(n, a))
 
 /**
@@ -83,7 +78,7 @@ export const repeat: <N extends number, A>(n: N, a: A) => VecC<N, A> = (n, a) =>
  */
 export const fromReadonlyArray: <N extends number>(
   n: N
-) => <A>(as: ReadonlyArray<A>) => O.Option<VecC<N, A>> = n =>
+) => <A>(as: ReadonlyArray<A>) => O.Option<Vec<N, A>> = n =>
   flow(
     O.fromPredicate(xs => xs.length === n),
     O.map(a => wrap(a))
@@ -93,7 +88,7 @@ export const fromReadonlyArray: <N extends number>(
  * @since 1.0.0
  * @category Constructors
  */
-export const zero: <A>() => VecC<0, A> = () => wrap([])
+export const zero: <A>() => Vec<0, A> = () => wrap([])
 
 // #####################
 // ### Non-Pipeables ###
@@ -122,7 +117,7 @@ const _reduceRightWithIndex: FlI.FoldableWithIndex2<
 >['reduceRightWithIndex'] = (fa, b, f) => pipe(fa, reduceRightWithIndex(b, f))
 const _traverse: Tr.Traversable2<URI>['traverse'] = <F>(
   F: Apl.Applicative<F>
-): (<N, A, B>(ta: VecC<N, A>, f: (a: A) => HKT<F, B>) => HKT<F, VecC<N, B>>) => {
+): (<N, A, B>(ta: Vec<N, A>, f: (a: A) => HKT<F, B>) => HKT<F, Vec<N, B>>) => {
   const traverseF = traverse(F)
   return (ta, f) => pipe(ta, traverseF(f))
 }
@@ -131,10 +126,7 @@ const _traverseWithIndex: TrI.TraversableWithIndex2<URI, number>['traverseWithIn
   F
 >(
   F: Apl.Applicative<F>
-): (<N, A, B>(
-  ta: VecC<N, A>,
-  f: (i: number, a: A) => HKT<F, B>
-) => HKT<F, VecC<N, B>>) => {
+): (<N, A, B>(ta: Vec<N, A>, f: (i: number, a: A) => HKT<F, B>) => HKT<F, Vec<N, B>>) => {
   const traverseWithIndexF = traverseWithIndex(F)
   return (ta, f) => pipe(ta, traverseWithIndexF(f))
 }
@@ -147,7 +139,7 @@ const _traverseWithIndex: TrI.TraversableWithIndex2<URI, number>['traverseWithIn
  * @since 1.0.0
  * @category Instances
  */
-export const URI = 'VecC'
+export const URI = 'Vec'
 
 /**
  * @since 1.0.0
@@ -157,7 +149,7 @@ export type URI = typeof URI
 
 declare module 'fp-ts/HKT' {
   interface URItoKind2<E, A> {
-    readonly [URI]: VecC<E, A>
+    readonly [URI]: Vec<E, A>
   }
 }
 
@@ -167,12 +159,8 @@ declare module 'fp-ts/HKT' {
  */
 export const liftA2: <N, A>(
   f: (x: A, y: A) => A
-) => (x: VecC<N, A>, y: VecC<N, A>) => VecC<N, A> = f => (x, y) =>
-  pipe(
-    x,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mapWithIndex((i, a) => f(a, y[i] as any))
-  )
+) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, A> = f => (x, y) =>
+  pipe(RA.zipWith(x, y, f), a => wrap(a))
 
 /**
  * @since 1.0.0
@@ -180,7 +168,7 @@ export const liftA2: <N, A>(
  */
 export const getAbGroup: <A>(
   R: Rng.Ring<A>
-) => <N extends number>(n: N) => TC.AbelianGroup<VecC<N, A>> = R => n => ({
+) => <N extends number>(n: N) => TC.AbelianGroup<Vec<N, A>> = R => n => ({
   concat: liftA2(R.add),
   inverse: map(x => R.sub(R.zero, x)),
   empty: repeat(n, R.zero),
@@ -192,7 +180,7 @@ export const getAbGroup: <A>(
  */
 export const getBimodule: <R>(
   R: Rng.Ring<R>
-) => <N extends number>(n: N) => TC.Bimodule<VecC<N, R>, R> = R => n => ({
+) => <N extends number>(n: N) => TC.Bimodule<Vec<N, R>, R> = R => n => ({
   ...getAbGroup(R)(n),
   leftScalarMul: (r, v) =>
     pipe(
@@ -210,7 +198,7 @@ export const getBimodule: <R>(
  * @since 1.0.0
  * @category Instance operations
  */
-export const map: <N, A, B>(f: (a: A) => B) => (v: VecC<N, A>) => VecC<N, B> = f => v =>
+export const map: <N, A, B>(f: (a: A) => B) => (v: Vec<N, A>) => Vec<N, B> = f => v =>
   pipe(v, RA.map(f), a => wrap(a))
 
 /**
@@ -228,7 +216,7 @@ export const Functor: Fun.Functor2<URI> = {
  */
 export const mapWithIndex: <N, A, B>(
   f: (i: number, a: A) => B
-) => (v: VecC<N, A>) => VecC<N, B> = f => v => pipe(v, RA.mapWithIndex(f), a => wrap(a))
+) => (v: Vec<N, A>) => Vec<N, B> = f => v => pipe(v, RA.mapWithIndex(f), a => wrap(a))
 
 /**
  * @since 1.0.0
@@ -243,7 +231,7 @@ export const FunctorWithIndex: FunI.FunctorWithIndex2<URI, number> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const of: <A>(a: A) => VecC<1, A> = a => fromTuple([a])
+export const of: <A>(a: A) => Vec<1, A> = a => fromTuple([a])
 
 /**
  * @since 1.0.0
@@ -259,7 +247,7 @@ export const Pointed: Pt.Pointed2C<URI, 1> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const ap: <N, A, B>(fa: VecC<N, A>) => (fab: VecC<N, (a: A) => B>) => VecC<N, B> =
+export const ap: <N, A, B>(fa: Vec<N, A>) => (fab: Vec<N, (a: A) => B>) => Vec<N, B> =
   fa => fab =>
     pipe(fab, RA.ap(fa), a => wrap(a))
 
@@ -297,9 +285,9 @@ export const Applicative: Apl.Applicative2C<URI, 1> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const chain: <N, A, B>(
-  f: (a: A) => VecC<N, B>
-) => (ma: VecC<N, A>) => VecC<N, B> = f => ma => pipe(ma, RA.chain(f), a => wrap(a))
+export const chain: <N, A, B>(f: (a: A) => Vec<N, B>) => (ma: Vec<N, A>) => Vec<N, B> =
+  f => ma =>
+    pipe(ma, RA.chain(f), a => wrap(a))
 
 /**
  * @since 1.0.0
@@ -329,7 +317,7 @@ export const Monad: Mon.Monad2C<URI, 1> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const reduce: <N, A, B>(b: B, f: (b: B, a: A) => B) => (fa: VecC<N, A>) => B =
+export const reduce: <N, A, B>(b: B, f: (b: B, a: A) => B) => (fa: Vec<N, A>) => B =
   (b, f) => fa =>
     pipe(fa, RA.reduce(b, f))
 
@@ -339,17 +327,16 @@ export const reduce: <N, A, B>(b: B, f: (b: B, a: A) => B) => (fa: VecC<N, A>) =
  */
 export const foldMap: <M>(
   M: Mn.Monoid<M>
-) => <N, A>(f: (a: A) => M) => (fa: VecC<N, A>) => M = M => f => fa =>
+) => <N, A>(f: (a: A) => M) => (fa: Vec<N, A>) => M = M => f => fa =>
   pipe(fa, RA.foldMap(M)(f))
 
 /**
  * @since 1.0.0
  * @category Instance operations
  */
-export const reduceRight: <N, B, A>(
-  b: A,
-  f: (b: B, a: A) => A
-) => (fa: VecC<N, B>) => A = (a, f) => fa => pipe(fa, RA.reduceRight(a, f))
+export const reduceRight: <N, B, A>(b: A, f: (b: B, a: A) => A) => (fa: Vec<N, B>) => A =
+  (a, f) => fa =>
+    pipe(fa, RA.reduceRight(a, f))
 
 /**
  * @since 1.0.0
@@ -369,7 +356,7 @@ export const Foldable: Fl.Foldable2<URI> = {
 export const reduceWithIndex: <N, A, B>(
   b: B,
   f: (i: number, b: B, a: A) => B
-) => (fa: VecC<N, A>) => B = (b, f) => fa => pipe(fa, RA.reduceWithIndex(b, f))
+) => (fa: Vec<N, A>) => B = (b, f) => fa => pipe(fa, RA.reduceWithIndex(b, f))
 
 /**
  * @since 1.0.0
@@ -377,7 +364,7 @@ export const reduceWithIndex: <N, A, B>(
  */
 export const foldMapWithIndex: <M>(
   M: Mn.Monoid<M>
-) => <N, A>(f: (i: number, a: A) => M) => (fa: VecC<N, A>) => M = M => f => fa =>
+) => <N, A>(f: (i: number, a: A) => M) => (fa: Vec<N, A>) => M = M => f => fa =>
   pipe(fa, RA.foldMapWithIndex(M)(f))
 
 /**
@@ -387,7 +374,7 @@ export const foldMapWithIndex: <M>(
 export const reduceRightWithIndex: <N, B, A>(
   b: A,
   f: (i: number, b: B, a: A) => A
-) => (fa: VecC<N, B>) => A = (a, f) => fa => pipe(fa, RA.reduceRightWithIndex(a, f))
+) => (fa: Vec<N, B>) => A = (a, f) => fa => pipe(fa, RA.reduceRightWithIndex(a, f))
 
 /**
  * @since 1.0.0
@@ -407,7 +394,7 @@ export const FoldableWithIndex: FlI.FoldableWithIndex2<URI, number> = {
 export const traverse: Tr.PipeableTraverse2<URI> =
   <F>(F: Apl.Applicative<F>) =>
   <A, B>(f: (a: A) => HKT<F, B>) =>
-  <N>(fa: VecC<N, A>): HKT<F, VecC<N, B>> => {
+  <N>(fa: Vec<N, A>): HKT<F, Vec<N, B>> => {
     const traverseWithIndexF = traverseWithIndex(F)
     return pipe(
       fa,
@@ -421,7 +408,7 @@ export const traverse: Tr.PipeableTraverse2<URI> =
  */
 export const sequence =
   <F>(F: Apl.Applicative<F>) =>
-  <N, A>(fa: VecC<N, HKT<F, A>>): HKT<F, VecC<N, A>> =>
+  <N, A>(fa: Vec<N, HKT<F, A>>): HKT<F, Vec<N, A>> =>
     pipe(fa, RA.sequence(F), as => F.map(as, a => wrap(a)))
 
 /**
@@ -445,7 +432,7 @@ export const Traversable: Tr.Traversable2<URI> = {
 export const traverseWithIndex: TrI.PipeableTraverseWithIndex2<URI, number> =
   <F>(F: Apl.Applicative<F>) =>
   <A, B>(f: (i: number, a: A) => HKT<F, B>) =>
-  <N>(ta: VecC<N, A>): HKT<F, VecC<N, B>> =>
+  <N>(ta: Vec<N, A>): HKT<F, Vec<N, B>> =>
     pipe(ta, RA.traverseWithIndex(F)(f), fbs => F.map(fbs, bs => wrap(bs)))
 
 /**
@@ -476,17 +463,17 @@ export const TraversableWithIndex: TrI.TraversableWithIndex2<URI, number> = {
  * @category Destructors
  */
 export const toTuple: {
-  <A>(t: VecC<0, A>): []
-  <A>(t: VecC<1, A>): [A]
-  <A>(t: VecC<2, A>): [A, A]
-  <A>(t: VecC<3, A>): [A, A, A]
-  <A>(t: VecC<4, A>): [A, A, A, A]
-  <A>(t: VecC<5, A>): [A, A, A, A, A]
-  <A>(t: VecC<6, A>): [A, A, A, A, A, A]
-  <A>(t: VecC<7, A>): [A, A, A, A, A, A, A]
-  <A>(t: VecC<8, A>): [A, A, A, A, A, A, A, A]
-  <A>(t: VecC<9, A>): [A, A, A, A, A, A, A, A, A]
-  <A>(t: VecC<10, A>): [A, A, A, A, A, A, A, A, A, A]
+  <A>(t: Vec<0, A>): []
+  <A>(t: Vec<1, A>): [A]
+  <A>(t: Vec<2, A>): [A, A]
+  <A>(t: Vec<3, A>): [A, A, A]
+  <A>(t: Vec<4, A>): [A, A, A, A]
+  <A>(t: Vec<5, A>): [A, A, A, A, A]
+  <A>(t: Vec<6, A>): [A, A, A, A, A, A]
+  <A>(t: Vec<7, A>): [A, A, A, A, A, A, A]
+  <A>(t: Vec<8, A>): [A, A, A, A, A, A, A, A]
+  <A>(t: Vec<9, A>): [A, A, A, A, A, A, A, A, A]
+  <A>(t: Vec<10, A>): [A, A, A, A, A, A, A, A, A, A]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } = unwrap as any
 
@@ -494,7 +481,7 @@ export const toTuple: {
  * @since 1.0.0
  * @category Vector Operations
  */
-export const norm: <A>(R: Rng.Ring<A>) => <N>(x: VecC<N, A>) => A = R =>
+export const norm: <A>(R: Rng.Ring<A>) => <N>(x: Vec<N, A>) => A = R =>
   foldMap(U.getAdditiveAbelianGroup(R))(x => R.mul(x, x))
 
 // #########################
@@ -507,7 +494,7 @@ export const norm: <A>(R: Rng.Ring<A>) => <N>(x: VecC<N, A>) => A = R =>
  */
 export const updateAt: (
   n: number
-) => <A>(a: A) => <N>(fa: VecC<N, A>) => O.Option<VecC<N, A>> = n => a =>
+) => <A>(a: A) => <N>(fa: Vec<N, A>) => O.Option<Vec<N, A>> = n => a =>
   flow(
     RA.updateAt(n, a),
     O.map(a => wrap(a))
@@ -518,15 +505,15 @@ export const updateAt: (
  * @category Vector Operations
  */
 export const zipVectors: <N, A>(
-  v1: VecC<N, A>,
-  v2: VecC<N, A>
-) => VecC<N, readonly [A, A]> = (v1, v2) => pipe(RA.zip(v1, v2), a => wrap(a))
+  v1: Vec<N, A>,
+  v2: Vec<N, A>
+) => Vec<N, readonly [A, A]> = (v1, v2) => pipe(RA.zip(v1, v2), a => wrap(a))
 
 /**
  * @since 1.0.0
  * @category Vector Operations
  */
-export const get: (i: number) => <N, A>(fa: VecC<N, A>) => O.Option<A> = RA.lookup
+export const get: (i: number) => <N, A>(fa: Vec<N, A>) => O.Option<A> = RA.lookup
 
 /**
  * @since 1.0.0
@@ -534,7 +521,7 @@ export const get: (i: number) => <N, A>(fa: VecC<N, A>) => O.Option<A> = RA.look
  */
 export const crossProduct: <A>(
   R: Rng.Ring<A>
-) => (x: VecC<3, A>, y: VecC<3, A>) => VecC<3, A> = R => (x, y) =>
+) => (x: Vec<3, A>, y: Vec<3, A>) => Vec<3, A> = R => (x, y) =>
   pipe(tuple(toTuple(x), toTuple(y)), ([[a1, a2, a3], [b1, b2, b3]]) =>
     fromTuple([
       R.sub(R.mul(a2, b3), R.mul(a3, b2)),
@@ -549,7 +536,7 @@ export const crossProduct: <A>(
  */
 export const innerProduct: <A>(
   R: Rng.Ring<A>
-) => <N>(x: VecC<N, A>, y: VecC<N, A>) => A = R =>
+) => <N>(x: Vec<N, A>, y: Vec<N, A>) => A = R =>
   flow(
     zipVectors,
     foldMap(U.getAdditionMonoid(R))(([a, b]) => R.mul(a, b))
