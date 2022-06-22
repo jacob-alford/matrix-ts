@@ -23,30 +23,24 @@ describe('LUP Decomposition', () => {
       throw new Error('Unexpected result')
     }
 
-    const {
-      solve,
-      result: [L, U, P],
-    } = output.right
+    const { solve } = output.right
 
     const { mapL } = M.getLinearMap(N.Field)(A)
 
     const b = V.fromTuple([5, -8, 13])
     const x = solve(b)
+    const Ax = mapL(x)
 
-    const expected = V.fromTuple([1, -1, 3])
-
-    console.log({ b, x, expected, out: mapL(x), L, U, P })
-
-    for (const [a, b] of V.zipVectors(x, expected)) {
-      expect(a).toBeCloseTo(b)
+    for (const [Axi, bi] of V.zipVectors(Ax, b)) {
+      expect(Axi).toBeCloseTo(bi)
     }
   })
   it('returns a factorized matrix', () => {
     const A = M.fromNestedTuples([
-      [0.02, 0.01, 0, 0],
-      [1, 2, 1, 0],
-      [0, 1, 2, 1],
-      [0, 0, 100, 200],
+      [2, 4, 1, -3],
+      [-1, -2, 2, 4],
+      [4, 2, -3, 5],
+      [5, -4, -3, 1],
     ])
     const [output, logs] = LUP(A)
 
@@ -66,6 +60,8 @@ describe('LUP Decomposition', () => {
       [0, 0, 100, 200],
       [0, 0, 0, -0.05],
     ])
+
+    console.log({ L, U, P })
 
     for (const [ra, rb] of V.zipVectors(expectedU, U)) {
       for (const [a, b] of V.zipVectors(ra, rb)) {

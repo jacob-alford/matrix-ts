@@ -328,7 +328,7 @@ const subAndScale = <M, N>(
                            * Scale and subtract the remainder by the multiplier
                            * -----------------------------------------------------------------
                            */
-                          k !== i ? ajk - aik * (aji / aii) : aji / aii
+                          k === i ? aji / aii : k > i ? ajk - aik * (aji / aii) : ajk
                         )
                       )
                     )
