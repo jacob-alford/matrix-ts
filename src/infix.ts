@@ -1,6 +1,7 @@
 import * as Eq from 'fp-ts/Eq'
 import * as Fld from 'fp-ts/Field'
 import * as Mn from 'fp-ts/Monoid'
+import * as Rng from 'fp-ts/Ring'
 import * as Ord from 'fp-ts/Ord'
 import { flow } from 'fp-ts/function'
 
@@ -20,7 +21,7 @@ export type MonoidSymbol = '<>'
  * @since 1.0.0
  * @category Model
  */
-export type AbelianGroupSymbol = '+' | '-' | '*'
+export type AbelianGroupSymbol = '+' | '-'
 
 /**
  * @since 1.0.0
@@ -38,13 +39,19 @@ export type RightModuleSymbol = '*.'
  * @since 1.0.0
  * @category Model
  */
-export type DivisionRingSymbol = AbelianGroupSymbol | '/.' | './'
+export type RingSymbol = AbelianGroupSymbol | '*'
 
 /**
  * @since 1.0.0
  * @category Model
  */
-export type EuclideanRingSymbol = AbelianGroupSymbol | '/'
+export type DivisionRingSymbol = RingSymbol | '/.' | './'
+
+/**
+ * @since 1.0.0
+ * @category Model
+ */
+export type EuclideanRingSymbol = RingSymbol | '/'
 
 /**
  * @since 1.0.0
@@ -201,6 +208,31 @@ export const getMonoidReversePolishInfix = flow(getMonoidPolishInfix, reverseFro
  * @category Instances
  */
 export const getMonoidInfix = flow(getMonoidPolishInfix, infixFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getRingPolishInfix: <A>(
+  F: Rng.Ring<A>
+) => (s: RingSymbol, x: A, y: A) => A = F =>
+  makePolishInfix({
+    '+': F.add,
+    '-': F.sub,
+    '*': F.mul,
+  })
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getRingReversePolishInfix = flow(getRingPolishInfix, reverseFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getRingInfix = flow(getRingPolishInfix, infixFromPolish)
 
 /**
  * @since 1.0.0

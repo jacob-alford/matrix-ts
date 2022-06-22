@@ -560,7 +560,7 @@ export const get: (i: number, j: number) => <M, N, A>(m: Mat<M, N, A>) => O.Opti
  * @since 1.0.0
  * @category Matrix Operations
  */
-export const liftA2: <A>(
-  f: (x: A, y: A) => A
-) => <M, N>(x: Mat<M, N, A>, y: Mat<M, N, A>) => Mat<M, N, A> = f =>
+export const liftA2: <A, B>(
+  f: (x: A, y: A) => B
+) => <M, N>(x: Mat<M, N, A>, y: Mat<M, N, A>) => Mat<M, N, B> = f =>
   flow(V.liftA2(V.liftA2(f)), from2dVectors)

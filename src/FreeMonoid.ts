@@ -1,3 +1,4 @@
+import * as Fun from 'fp-ts/Functor'
 import * as RA from 'fp-ts/ReadonlyArray'
 import { pipe } from 'fp-ts/function'
 
@@ -92,6 +93,12 @@ export const toReadonlyArray: <A>(fa: FreeMonoid<A>) => ReadonlyArray<A> = fold(
   (left, right) => pipe(toReadonlyArray(left), RA.concat(toReadonlyArray(right)))
 )
 
+// #####################
+// ### Non-Pipeables ###
+// #####################
+
+const _map: Fun.Functor1<URI>['map'] = (fa, f) => pipe(fa, map(f))
+
 // #################
 // ### Instances ###
 // #################
@@ -112,6 +119,31 @@ declare module 'fp-ts/HKT' {
   interface URItoKind<A> {
     readonly [URI]: FreeMonoid<A>
   }
+}
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export const map: <A, B>(f: (a: A) => B) => (fa: FreeMonoid<A>) => FreeMonoid<B> =
+  f => fa => {
+    switch (fa._tag) {
+      case 'Nil':
+        return nil
+      case 'Cons':
+        return of(f(fa.value))
+      case 'Concat':
+        return concat(pipe(fa.left, map(f)), pipe(fa.right, map(f)))
+    }
+  }
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Functor: Fun.Functor1<URI> = {
+  URI,
+  map: _map,
 }
 
 /**

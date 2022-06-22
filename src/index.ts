@@ -7,7 +7,7 @@ import * as Iso from './Iso'
 import * as FM from './FreeMonoid'
 import * as LM from './LinearMap'
 import * as Log from './Logger'
-import * as MatOps from './MatrixOps'
+import * as De from './Decomposition'
 import * as M from './Matrix'
 import * as MU from './MatrixU'
 import * as N from './number'
@@ -16,4 +16,4 @@ import * as Q from './rational'
 import * as TC from './typeclasses'
 import * as V from './Vector'
 
-export { C, Comp, H, Inf, Int, Iso, FM, LM, Log, MatOps, M, MU, N, Poly, Q, TC, V }
+export { C, Comp, H, Inf, Int, Iso, FM, LM, Log, De, M, MU, N, Poly, Q, TC, V }

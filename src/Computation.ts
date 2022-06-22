@@ -21,7 +21,7 @@ import * as FM from './FreeMonoid'
  * @since 1.0.0
  * @category Model
  */
-export type Computation<R, E, A> = readonly [E.Either<E, A>, FM.FreeMonoid<R>]
+export type Computation<E, A> = readonly [E.Either<E, A>, FM.FreeMonoid<E>]
 
 // ####################
 // ### Constructors ###
@@ -31,7 +31,7 @@ export type Computation<R, E, A> = readonly [E.Either<E, A>, FM.FreeMonoid<R>]
  * @since 1.0.0
  * @category Constructors
  */
-export const of: <A>(value: A) => Computation<never, never, A> = value => [
+export const of: <A>(value: A) => Computation<never, A> = value => [
   E.right(value),
   FM.nil,
 ]
@@ -40,11 +40,11 @@ export const of: <A>(value: A) => Computation<never, never, A> = value => [
 // ### Non-Pipeables ###
 // #####################
 
-const _map: Fun.Functor3<URI>['map'] = (fa, f) => pipe(fa, map(f))
-const _bimap: BiFun.Bifunctor3<URI>['bimap'] = (fa, f, g) => pipe(fa, bimap(f, g))
-const _mapLeft: BiFun.Bifunctor3<URI>['mapLeft'] = (fa, f) => pipe(fa, mapLeft(f))
-const _ap: Ap.Apply3<URI>['ap'] = (fab, fa) => pipe(fa, ap(fab))
-const _chain: Chn.Chain3<URI>['chain'] = (fa, f) => pipe(fa, chain(f))
+const _map: Fun.Functor2<URI>['map'] = (fa, f) => pipe(fa, map(f))
+const _bimap: BiFun.Bifunctor2<URI>['bimap'] = (fa, f, g) => pipe(fa, bimap(f, g))
+const _mapLeft: BiFun.Bifunctor2<URI>['mapLeft'] = (fa, f) => pipe(fa, mapLeft(f))
+const _ap: Ap.Apply2<URI>['ap'] = (fab, fa) => pipe(fa, ap(fab))
+const _chain: Chn.Chain2<URI>['chain'] = (fa, f) => pipe(fa, chain(f))
 
 // #################
 // ### Instances ###
@@ -63,8 +63,8 @@ export const URI = 'Computation'
 export type URI = typeof URI
 
 declare module 'fp-ts/HKT' {
-  interface URItoKind3<R, E, A> {
-    readonly [URI]: Computation<R, E, A>
+  interface URItoKind2<E, A> {
+    readonly [URI]: Computation<E, A>
   }
 }
 
@@ -74,13 +74,13 @@ declare module 'fp-ts/HKT' {
  */
 export const map: <A, B>(
   f: (a: A) => B
-) => <R, E>(fa: Computation<R, E, A>) => Computation<R, E, B> = f => RTup.mapFst(E.map(f))
+) => <E>(fa: Computation<E, A>) => Computation<E, B> = f => RTup.mapFst(E.map(f))
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Functor: Fun.Functor3<URI> = {
+export const Functor: Fun.Functor2<URI> = {
   URI,
   map: _map,
 }
@@ -92,8 +92,8 @@ export const Functor: Fun.Functor3<URI> = {
 export const bimap: <E, G, A, B>(
   f: (e: E) => G,
   g: (a: A) => B
-) => <R>(fa: Computation<R, E, A>) => Computation<R, G, B> = (f, g) =>
-  RTup.mapFst(E.bimap(f, g))
+) => (fa: Computation<E, A>) => Computation<G, B> = (f, g) =>
+  RTup.bimap(FM.map(f), E.bimap(f, g))
 
 /**
  * @since 1.0.0
@@ -101,14 +101,14 @@ export const bimap: <E, G, A, B>(
  */
 export const mapLeft: <E, G>(
   f: (e: E) => G
-) => <R, A>(fa: Computation<R, E, A>) => Computation<R, G, A> = f =>
-  RTup.mapFst(E.mapLeft(f))
+) => <A>(fa: Computation<E, A>) => Computation<G, A> = f =>
+  RTup.bimap(FM.map(f), E.mapLeft(f))
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const Bifunctor: BiFun.Bifunctor3<URI> = {
+export const Bifunctor: BiFun.Bifunctor2<URI> = {
   URI,
   bimap: _bimap,
   mapLeft: _mapLeft,
@@ -118,9 +118,9 @@ export const Bifunctor: BiFun.Bifunctor3<URI> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const ap: <R, E, A, B>(
-  fab: Computation<R, E, (a: A) => B>
-) => (fa: Computation<R, E, A>) => Computation<R, E, B> =
+export const ap: <E, A, B>(
+  fab: Computation<E, (a: A) => B>
+) => (fa: Computation<E, A>) => Computation<E, B> =
   ([fab, ls1]) =>
   ([fa, ls2]) =>
     [pipe(fab, E.ap(fa)), FM.concat(ls1, ls2)]
@@ -129,7 +129,7 @@ export const ap: <R, E, A, B>(
  * @since 1.0.0
  * @category Instance operations
  */
-export const Apply: Ap.Apply3<URI> = {
+export const Apply: Ap.Apply2<URI> = {
   ...Functor,
   ap: _ap,
 }
@@ -138,7 +138,7 @@ export const Apply: Ap.Apply3<URI> = {
  * @since 1.0.0
  * @category Instances
  */
-export const Applicative: Apl.Applicative3<URI> = {
+export const Applicative: Apl.Applicative2<URI> = {
   ...Apply,
   of,
 }
@@ -147,9 +147,9 @@ export const Applicative: Apl.Applicative3<URI> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const chain: <R, E, A, B>(
-  f: (a: A) => Computation<R, E, B>
-) => (fa: Computation<R, E, A>) => Computation<R, E, B> =
+export const chain: <E, A, B>(
+  f: (a: A) => Computation<E, B>
+) => (fa: Computation<E, A>) => Computation<E, B> =
   f =>
   ([fa, logs]) =>
     pipe(
@@ -165,7 +165,7 @@ export const chain: <R, E, A, B>(
  * @since 1.0.0
  * @category Instances
  */
-export const Chain: Chn.Chain3<URI> = {
+export const Chain: Chn.Chain2<URI> = {
   ...Apply,
   chain: _chain,
 }
@@ -174,7 +174,7 @@ export const Chain: Chn.Chain3<URI> = {
  * @since 1.0.0
  * @category Instances
  */
-export const Monad: Mon.Monad3<URI> = {
+export const Monad: Mon.Monad2<URI> = {
   ...Applicative,
   ...Chain,
 }
@@ -183,25 +183,13 @@ export const Monad: Mon.Monad3<URI> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const throwError: <R, E, A>(e: E) => Computation<R, E, A> = e => [
-  E.left(e),
-  FM.nil,
-]
-
-/**
- * @since 1.0.0
- * @category Instance operations
- */
-export const throwErrorMessage: <R, E, A>(
-  e: E,
-  createMessage: (e: E) => R
-) => Computation<R, E, A> = (e, createMessage) => [E.left(e), FM.of(createMessage(e))]
+export const throwError: <E, A>(e: E) => Computation<E, A> = e => [E.left(e), FM.of(e)]
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const MonadThrow: MonThrow.MonadThrow3<URI> = {
+export const MonadThrow: MonThrow.MonadThrow2<URI> = {
   ...Monad,
   throwError,
 }
@@ -210,22 +198,16 @@ export const MonadThrow: MonThrow.MonadThrow3<URI> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const fromEither: FE.FromEither3<URI>['fromEither'] = a => [a, FM.nil]
-
-/**
- * @since 1.0.0
- * @category Instance operations
- */
-export const fromEitherWithMessage: <R, E>(
-  createMessage: (e: E) => R
-) => <A>(from: E.Either<E, A>) => Computation<R, E, A> = createMessage =>
-  E.fold(e => throwErrorMessage(e, createMessage), of)
+export const fromEither: FE.FromEither2<URI>['fromEither'] = a => [
+  a,
+  E.isLeft(a) ? FM.of(a.left) : FM.nil,
+]
 
 /**
  * @since 1.0.0
  * @category Instances
  */
-export const FromEither: FE.FromEither3<URI> = {
+export const FromEither: FE.FromEither2<URI> = {
   URI,
   fromEither,
 }
@@ -240,19 +222,6 @@ export const FromEither: FE.FromEither3<URI> = {
  */
 export const fromOption = FE.fromOption(FromEither)
 
-/**
- * @since 1.0.0
- * @category Natural Transformations
- */
-export const fromOptionWithMessage: <R, E>(
-  onNone: () => E,
-  createMessage: (e: E) => R
-) => <A>(from: O.Option<A>) => Computation<R, E, A> = (onNone, createMessage) =>
-  O.fold(
-    () => throwErrorMessage(onNone(), createMessage),
-    a => [E.right(a), FM.nil]
-  )
-
 // ####################
 // ### Refinements ####
 // ####################
@@ -261,17 +230,17 @@ export const fromOptionWithMessage: <R, E>(
  * @since 1.0.0
  * @category Refinements
  */
-export const isLeft = <R, E, A>(
-  e: Computation<R, E, A>
-): e is readonly [E.Left<E>, FM.FreeMonoid<R>] => e[0]._tag === 'Left'
+export const isLeft = <E, A>(
+  e: Computation<E, A>
+): e is readonly [E.Left<E>, FM.FreeMonoid<E>] => e[0]._tag === 'Left'
 
 /**
  * @since 1.0.0
  * @category Refinements
  */
-export const isRight = <R, E, A>(
-  e: Computation<R, E, A>
-): e is readonly [E.Right<A>, FM.FreeMonoid<R>] => e[0]._tag === 'Right'
+export const isRight = <E, A>(
+  e: Computation<E, A>
+): e is readonly [E.Right<A>, FM.FreeMonoid<E>] => e[0]._tag === 'Right'
 
 // ###################
 // ### Combinators ###
@@ -315,7 +284,7 @@ export const chainEitherK = FE.chainEitherK(FromEither, Chain)
  * @since 1.0.0
  * @category Utilities
  */
-export const tell: <R>(message: R) => Computation<R, never, void> = message => [
+export const tell: <E>(message: E) => Computation<E, void> = message => [
   E.right(undefined),
   FM.of(message),
 ]
@@ -324,9 +293,7 @@ export const tell: <R>(message: R) => Computation<R, never, void> = message => [
  * @since 1.0.0
  * @category Utilities
  */
-export const log: <R>(
-  message: R
-) => <E, A>(fa: Computation<R, E, A>) => Computation<R, E, A> =
+export const log: <E>(message: E) => <A>(fa: Computation<E, A>) => Computation<E, A> =
   message =>
   ([a, logs]) =>
     [a, FM.concat(logs, FM.of(message))]
@@ -335,9 +302,9 @@ export const log: <R>(
  * @since 1.0.0
  * @category Utilities
  */
-export const logOption: <R, E, A>(
-  getOptionalMesasge: (a: A) => O.Option<R>
-) => (fa: Computation<R, E, A>) => Computation<R, E, A> =
+export const logOption: <E, A>(
+  getOptionalMesasge: (a: A) => O.Option<E>
+) => (fa: Computation<E, A>) => Computation<E, A> =
   getOptionalMesasge =>
   ([a, logs]) => {
     const optionalMessage = pipe(O.fromEither(a), O.chain(getOptionalMesasge))
@@ -351,28 +318,23 @@ export const logOption: <R, E, A>(
  * @since 1.0.0
  * @category Utilities
  */
-export const filter: <R, E, A>(
+export const filter: <E, A>(
   predicate: (a: A) => boolean,
-  onFalse: (a: A) => E,
-  logMessage: (e: E) => R
-) => (fa: Computation<R, E, A>) => Computation<R, E, A> = (
-  predicate,
-  onFalse,
-  logMessage
-) => chain(a => (predicate(a) ? of(a) : throwErrorMessage(onFalse(a), logMessage)))
+  onFalse: (a: A) => E
+) => (fa: Computation<E, A>) => Computation<E, A> = (predicate, onFalse) =>
+  chain(a => (predicate(a) ? of(a) : throwError(onFalse(a))))
 
 /**
  * @since 1.0.0
  * @category Utilities
  */
-export const filterOptionK: <R, E, A, B>(
+export const filterOptionK: <E, A, B>(
   test: (a: A) => O.Option<B>,
-  onFalse: (a: A) => E,
-  logMessage: (e: E) => R
-) => (a: A) => Computation<R, E, B> = (test, onFalse, logMessage) => a =>
+  onFalse: (a: A) => E
+) => (a: A) => Computation<E, B> = (test, onFalse) => a =>
   pipe(
     test(a),
-    O.fold(() => throwErrorMessage(onFalse(a), logMessage), of)
+    O.fold(() => throwError(onFalse(a)), of)
   )
 
 // ###################
@@ -407,13 +369,10 @@ export const bind = Chn.bind(Chain)
  * @since 1.0.0
  * @category Do Notation
  */
-export const bindW: <R1, R2, N extends string, A, E2, B>(
+export const bindW: <N extends string, A, E2, B>(
   name: Exclude<N, keyof A>,
-  f: (a: A) => Computation<R1, E2, B>
+  f: (a: A) => Computation<E2, B>
 ) => <E1>(
-  fa: Computation<R2, E1, A>
-) => Computation<
-  R1 | R2,
-  E1 | E2,
-  { readonly [K in keyof A | N]: K extends keyof A ? A[K] : B }
-> = unsafeCoerce(bind)
+  fa: Computation<E1, A>
+) => Computation<E1 | E2, { readonly [K in keyof A | N]: K extends keyof A ? A[K] : B }> =
+  unsafeCoerce(bind)

@@ -1,5 +1,5 @@
 import * as Rng from 'fp-ts/Ring'
-import { pipe, unsafeCoerce } from 'fp-ts/function'
+import { flow, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as M from './Matrix'
 import * as Iso from './Iso'
@@ -62,29 +62,33 @@ export const fromMatrix: <A>(
  * @since 1.0.0
  * @category Constructors
  */
-export const toMatrix =
-  <M extends number, A>(m: M, R: Rng.Ring<A>) =>
-  ([l, u]: [LowerTriangularMatrix<M, A>, UpperTriangularMatrix<M, A>]): M.Mat<
-    M,
-    M,
-    A
-  > => {
-    const Ab = M.getAdditiveAbelianGroup(R)(m, m)
-    return Ab.concat(u, Ab.concat(l, Ab.inverse(M.id(R)(m))))
-  }
+export const toMatrix = <M, A>([l, u]: [
+  LowerTriangularMatrix<M, A>,
+  UpperTriangularMatrix<M, A>
+]): M.Mat<M, M, A> =>
+  pipe(
+    M.liftA2<A, [A, A]>((a, b) => tuple(a, b))(l, u),
+    M.mapWithIndex(([i, j], [lower, upper]) => (i > j ? lower : upper))
+  )
 
 // ####################
 // ### Isomorphisms ###
 // ####################
 
-export const getLUIso: <A>(
+export const getLUIso: <M, A>(
   R: Rng.Ring<A>
-) => <M extends number>(
-  m: M
 ) => Iso.Iso0<
   M.Mat<M, M, A>,
   [LowerTriangularMatrix<M, A>, UpperTriangularMatrix<M, A>]
-> = R => m => ({
+> = R => ({
   get: fromMatrix(R),
-  reverseGet: toMatrix(m, R),
+  reverseGet: toMatrix,
+})
+
+export const getTransposeIso: <M extends number, A>() => Iso.Iso0<
+  LowerTriangularMatrix<M, A>,
+  UpperTriangularMatrix<M, A>
+> = () => ({
+  get: flow(M.transpose, a => unsafeCoerce(a)),
+  reverseGet: flow(M.transpose, a => unsafeCoerce(a)),
 })

@@ -157,9 +157,9 @@ declare module 'fp-ts/HKT' {
  * @since 1.0.0
  * @category Internal
  */
-export const liftA2: <N, A>(
-  f: (x: A, y: A) => A
-) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, A> = f => (x, y) =>
+export const liftA2: <N, A, B>(
+  f: (x: A, y: A) => B
+) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B> = f => (x, y) =>
   pipe(RA.zipWith(x, y, f), a => wrap(a))
 
 /**
@@ -504,10 +504,16 @@ export const updateAt: (
  * @since 1.0.0
  * @category Vector Operations
  */
-export const zipVectors: <N, A>(
+export const zipVectors: <N, A, B>(
   v1: Vec<N, A>,
-  v2: Vec<N, A>
-) => Vec<N, readonly [A, A]> = (v1, v2) => pipe(RA.zip(v1, v2), a => wrap(a))
+  v2: Vec<N, B>
+) => Vec<N, readonly [A, B]> = (v1, v2) => pipe(RA.zip(v1, v2), a => wrap(a))
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const reverse: <N, A>(v1: Vec<N, A>) => Vec<N, A> = flow(RA.reverse, a => wrap(a))
 
 /**
  * @since 1.0.0
