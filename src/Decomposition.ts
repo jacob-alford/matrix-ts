@@ -1,7 +1,6 @@
 import * as O from 'fp-ts/Option'
 import * as ChnR from 'fp-ts/ChainRec'
 import * as E from 'fp-ts/Either'
-import * as RTup from 'fp-ts/ReadonlyTuple'
 import { tuple, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as M from './Matrix'
@@ -212,23 +211,29 @@ const backSub = <M extends number>(
  * @category Internal
  */
 const getMaxI = <M, N>(
-  pivotI: number,
+  i: number,
   m: M.Mat<M, N, number>
-): O.Option<readonly [number, number]> =>
-  pipe(
-    m,
-    M.reduceWithIndex(tuple(-Infinity, O.zero<number>()), ([i, j], [max, maxI], aij) =>
-      j !== pivotI || i < pivotI
-        ? tuple(max, maxI)
-        : Math.abs(aij) > max
-        ? tuple(Math.abs(aij), O.some(i))
-        : tuple(max, maxI)
-    ),
-    RTup.swap,
-    RTup.sequence(O.Applicative),
-    O.map(RTup.swap),
-    O.filter(([, maxI]) => maxI !== pivotI)
+): O.Option<readonly [number, number]> => {
+  const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+  const n = m.length
+  const go: (
+    acc: readonly [number, number, number]
+  ) => E.Either<readonly [number, number, number], readonly [number, number]> = ([
+    j,
+    max,
+    maxI,
+  ]) => {
+    if (j >= n) return E.right(tuple(max, maxI))
+    const mc = _(_(m, j), i)
+    return Math.abs(mc) > max
+      ? E.left([j + 1, Math.abs(mc), j])
+      : E.left([j + 1, max, maxI])
+  }
+  return pipe(
+    ChnR.tailRec(tuple(i, 0, -1), go),
+    O.fromPredicate(([max]) => max !== 0)
   )
+}
 
 /**
  * See: Fundamentals of Matrix Computation, David S. Watkins, page 100
