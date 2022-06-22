@@ -2,10 +2,12 @@
  * A constrained matrix type. Allows for matrix/vector operations that won't fail due to
  * incompatible shapes
  */
+import * as Apl from 'fp-ts/Applicative'
 import * as Fun from 'fp-ts/Functor'
 import * as FunI from 'fp-ts/FunctorWithIndex'
 import * as Fl from 'fp-ts/Foldable'
 import * as FlI from 'fp-ts/FoldableWithIndex'
+import { HKT, Kind, Kind2, Kind3, Kind4, URIS, URIS2, URIS3, URIS4 } from 'fp-ts/HKT'
 import * as Mn from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
 import * as RA from 'fp-ts/ReadonlyArray'
@@ -430,6 +432,86 @@ export const FoldableWithIndex: FlI.FoldableWithIndex3<URI, [number, number]> = 
   reduceWithIndex: _reduceWithIndex,
   foldMapWithIndex: _foldMapWithIndex,
   reduceRightWithIndex: _reduceRightWithIndex,
+}
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
+export function traverse<F extends URIS4>(
+  F: Apl.Applicative4<F>
+): <S, R, E, A, B>(
+  f: (a: A) => Kind4<F, S, R, E, B>
+) => <M, N>(ta: Mat<M, N, A>) => Kind4<F, S, R, E, Mat<M, N, B>>
+export function traverse<F extends URIS3>(
+  F: Apl.Applicative3<F>
+): <R, E, A, B>(
+  f: (a: A) => Kind3<F, R, E, B>
+) => <M, N>(ta: Mat<M, N, A>) => Kind3<F, R, E, Mat<M, N, B>>
+export function traverse<F extends URIS2>(
+  F: Apl.Applicative2<F>
+): <E, A, B>(
+  f: (a: A) => Kind2<F, E, B>
+) => <M, N>(ta: Mat<M, N, A>) => Kind2<F, E, Mat<M, N, B>>
+export function traverse<F extends URIS>(
+  F: Apl.Applicative1<F>
+): <A, B>(f: (a: A) => Kind<F, B>) => <M, N>(ta: Mat<M, N, A>) => Kind<F, Mat<M, N, B>>
+export function traverse<F>(
+  F: Apl.Applicative<F>
+): <A, B>(f: (a: A) => HKT<F, B>) => <M, N>(ta: Mat<M, N, A>) => HKT<F, Mat<M, N, B>> {
+  return f => ta =>
+    pipe(
+      ta,
+      V.traverse(F)(a =>
+        pipe(
+          a,
+          V.traverse(F)(b => f(b))
+        )
+      ),
+      a => F.map(a, b => wrap(b))
+    )
+}
+
+/**
+ * @since 1.0.0
+ * @category Instance Operations
+ */
+export function traverseWithIndex<F extends URIS4>(
+  F: Apl.Applicative4<F>
+): <S, R, E, A, B>(
+  f: (i: [number, number], a: A) => Kind4<F, S, R, E, B>
+) => <M, N>(ta: Mat<M, N, A>) => Kind4<F, S, R, E, Mat<M, N, B>>
+export function traverseWithIndex<F extends URIS3>(
+  F: Apl.Applicative3<F>
+): <R, E, A, B>(
+  f: (i: [number, number], a: A) => Kind3<F, R, E, B>
+) => <M, N>(ta: Mat<M, N, A>) => Kind3<F, R, E, Mat<M, N, B>>
+export function traverseWithIndex<F extends URIS2>(
+  F: Apl.Applicative2<F>
+): <E, A, B>(
+  f: (i: [number, number], a: A) => Kind2<F, E, B>
+) => <M, N>(ta: Mat<M, N, A>) => Kind2<F, E, Mat<M, N, B>>
+export function traverseWithIndex<F extends URIS>(
+  F: Apl.Applicative1<F>
+): <A, B>(
+  f: (i: [number, number], a: A) => Kind<F, B>
+) => <M, N>(ta: Mat<M, N, A>) => Kind<F, Mat<M, N, B>>
+export function traverseWithIndex<F>(
+  F: Apl.Applicative<F>
+): <A, B>(
+  f: (i: [number, number], a: A) => HKT<F, B>
+) => <M, N>(ta: Mat<M, N, A>) => HKT<F, Mat<M, N, B>> {
+  return f => ta =>
+    pipe(
+      ta,
+      V.traverseWithIndex(F)((i, a) =>
+        pipe(
+          a,
+          V.traverseWithIndex(F)((j, b) => f([i, j], b))
+        )
+      ),
+      a => F.map(a, b => wrap(b))
+    )
 }
 
 // #########################

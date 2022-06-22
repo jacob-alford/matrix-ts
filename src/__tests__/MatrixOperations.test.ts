@@ -3,6 +3,7 @@ import * as E from 'fp-ts/Either'
 import { backSub, forwardSub, LUP } from '../Decomposition'
 import * as M from '../Matrix'
 import * as MatTypes from '../MatrixTypes'
+import * as FM from '../FreeMonoid'
 import * as N from '../number'
 import * as V from '../Vector'
 
@@ -11,10 +12,9 @@ const mul = M.mul(N.Field)
 describe('LUP Decomposition', () => {
   it('solves a system of equations', () => {
     const A = M.fromNestedTuples([
-      [1, 2, 1, -1],
-      [3, 2, 4, 4],
-      [4, 4, 3, 4],
-      [2, 0, 1, 5],
+      [2, 4, 2],
+      [4, -10, 2],
+      [1, 2, 4],
     ])
 
     const [output] = LUP(A)
@@ -23,16 +23,19 @@ describe('LUP Decomposition', () => {
       throw new Error('Unexpected result')
     }
 
-    const { solve } = output.right
+    const {
+      solve,
+      result: [L, U, P],
+    } = output.right
 
     const { mapL } = M.getLinearMap(N.Field)(A)
 
-    const b = V.fromTuple([5, 16, 22, 15])
+    const b = V.fromTuple([5, -8, 13])
     const x = solve(b)
 
-    const expected = V.fromTuple([16, -6, -2, -3])
+    const expected = V.fromTuple([1, -1, 3])
 
-    console.log({ b, x, expected, out: mapL(x) })
+    console.log({ b, x, expected, out: mapL(x), L, U, P })
 
     for (const [a, b] of V.zipVectors(x, expected)) {
       expect(a).toBeCloseTo(b)
@@ -45,7 +48,9 @@ describe('LUP Decomposition', () => {
       [0, 1, 2, 1],
       [0, 0, 100, 200],
     ])
-    const [output] = LUP(A)
+    const [output, logs] = LUP(A)
+
+    console.log(FM.toReadonlyArray(logs))
 
     if (E.isLeft(output)) {
       throw new Error('Unexpected result')
@@ -84,7 +89,7 @@ describe('LUP Decomposition', () => {
       throw new Error('Unexpected result')
     }
 
-    expect(result.left).toBe('Matrix is singular')
+    expect(result.left).toBe('[11] Matrix is singular')
   })
   it('detects a singular matrix (ii)', () => {
     const [result] = LUP(
@@ -99,7 +104,7 @@ describe('LUP Decomposition', () => {
       throw new Error('Unexpected result')
     }
 
-    expect(result.left).toBe('Matrix is singular')
+    expect(result.left).toBe('[11] Matrix is singular')
   })
   it('detects a singular matrix (iii)', () => {
     const [result] = LUP(
@@ -113,7 +118,7 @@ describe('LUP Decomposition', () => {
       throw new Error('Unexpected result')
     }
 
-    expect(result.left).toBe('Matrix is singular')
+    expect(result.left).toBe('[11] Matrix is singular')
   })
   it('forward substitutes', () => {
     const [L] = MatTypes.fromMatrix(N.Field)(

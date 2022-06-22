@@ -74,7 +74,7 @@ export const LUP = <M extends number>(
      * -----------------------------------------------------
      */
     if (E.isLeft(result)) {
-      return E.right(computation)
+      return E.right(pipe(computation, C.log('[0] Failed to decompose matrix')))
     }
 
     /*
@@ -82,7 +82,7 @@ export const LUP = <M extends number>(
      * ---------------------------------------
      */
     if (result.right.i >= columns) {
-      return E.right(computation)
+      return E.right(pipe(computation, C.log('[1] Successfully decomposed matrix')))
     }
 
     return pipe(
@@ -95,9 +95,9 @@ export const LUP = <M extends number>(
         flow(
           C.filterOptionK(
             ({ i, LU }) => checkSingular(i, LU),
-            () => 'Unreachable: index not found'
+            () => '[00] Unreachable: index not found'
           ),
-          C.filter(Pred.not(id), () => 'Matrix is singular')
+          C.filter(Pred.not(id), () => '[10] Matrix is singular')
         )
       ),
       C.bindTo('acc'),
@@ -105,15 +105,15 @@ export const LUP = <M extends number>(
        * Find pivot index
        * ----------------
        */
-      C.bindW('maxI', ({ acc: { i, LU } }) => pipe(getMaxI(i, LU), C.of)),
+      C.bindW('maxI', ({ acc: { i, LU } }) => C.of(getMaxI(i, LU))),
       /*
        * Pivot A
        * -------
        */
-      C.bind('pivoted', ({ acc: { LU, i }, maxI }) =>
+      C.bindW('pivoted', ({ acc: { LU, i }, maxI }) =>
         pipe(
-          O.isSome(maxI) ? pipe(LU, M.switchRows(i, maxI.value)) : O.some(LU),
-          C.fromOption(() => 'Unreachable: index not found')
+          O.isSome(maxI) ? partialSwap(i, maxI.value, LU) : O.some(LU),
+          C.fromOption(() => '[01] Unreachable: index not found')
         )
       ),
       /*
@@ -123,7 +123,7 @@ export const LUP = <M extends number>(
       C.bind('P', ({ acc: { i, P }, maxI }) =>
         pipe(
           O.isSome(maxI) ? pipe(P, M.switchRows(i, maxI.value)) : O.some(P),
-          C.fromOption(() => 'Unreachable: index not found')
+          C.fromOption(() => '[02] Unreachable: index not found')
         )
       ),
       /*
@@ -133,7 +133,7 @@ export const LUP = <M extends number>(
       C.bind('LU', ({ acc: { i }, pivoted }) =>
         pipe(
           subAndScale(i, pivoted),
-          C.fromOption(() => 'Matrix is singular')
+          C.fromOption(() => '[11] Matrix is singular')
         )
       ),
       C.logOption(({ maxI, acc: { i } }) =>
@@ -226,14 +226,14 @@ export const backSub = <M extends number>(
  * @since 1.0.0
  * @category Internal
  */
-const getMaxI = <M, N>(i: number, m: M.Mat<M, N, number>): O.Option<number> =>
+const getMaxI = <M, N>(pivotI: number, m: M.Mat<M, N, number>): O.Option<number> =>
   pipe(
     m,
-    M.reduceWithIndex(tuple(-Infinity, O.zero<number>()), ([j, k], [max, maxI], aji) =>
-      k !== i || j <= i
+    M.reduceWithIndex(tuple(-Infinity, O.zero<number>()), ([i, j], [max, maxI], aij) =>
+      j !== pivotI || i < pivotI
         ? tuple(max, maxI)
-        : Math.abs(aji) > max
-        ? tuple(aji, O.some(j))
+        : Math.abs(aij) > max
+        ? tuple(aij, O.some(i))
         : tuple(max, maxI)
     ),
     RTup.snd
@@ -245,6 +245,26 @@ const getMaxI = <M, N>(i: number, m: M.Mat<M, N, number>): O.Option<number> =>
  */
 const checkSingular = <M, N>(i: number, m: M.Mat<M, N, number>): O.Option<boolean> =>
   pipe(m, V.get(i), O.map(V.foldMap(B.MonoidAll)(a => a === 0)))
+
+/**
+ * Swap pivotI with maxI if after pivot column
+ *
+ * @since 1.0.0
+ * @category Internal
+ */
+const partialSwap = <M, N>(pivotI: number, maxI: number, m: M.Mat<M, N, number>) =>
+  pipe(
+    m,
+    M.traverseWithIndex(O.Applicative)(([i, j], a) =>
+      j < pivotI
+        ? O.some(a)
+        : i === pivotI
+        ? pipe(m, M.get(maxI, j))
+        : i === maxI
+        ? pipe(m, M.get(pivotI, j))
+        : O.some(a)
+    )
+  )
 
 /**
  * @since 1.0.0
