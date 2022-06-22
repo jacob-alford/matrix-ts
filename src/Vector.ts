@@ -5,6 +5,7 @@ import * as Apl from 'fp-ts/Applicative'
 import * as Chn from 'fp-ts/Chain'
 import * as Fl from 'fp-ts/Foldable'
 import * as FlI from 'fp-ts/FoldableWithIndex'
+import * as IO from 'fp-ts/IO'
 import { HKT } from 'fp-ts/HKT'
 import * as Mon from 'fp-ts/Monad'
 import * as Mn from 'fp-ts/Monoid'
@@ -89,6 +90,18 @@ export const fromReadonlyArray: <N extends number>(
  * @category Constructors
  */
 export const zero: <A>() => Vec<0, A> = () => wrap([])
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const randVec: <N extends number>(
+  n: N
+) => (low: number, high: number) => IO.IO<Vec<N, number>> = n => (low, high) => () =>
+  pipe(
+    Array.from({ length: n }, () => (high - low + 1) * Math.random() + low),
+    a => wrap(a)
+  )
 
 // #####################
 // ### Non-Pipeables ###

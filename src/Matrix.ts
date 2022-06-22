@@ -514,6 +514,27 @@ export function traverseWithIndex<F>(
     )
 }
 
+// ###################
+// ### Destructors ###
+// ###################
+
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+export const toNestedReadonlyArrays: <M, N, A>(
+  m: Mat<M, N, A>
+) => ReadonlyArray<ReadonlyArray<A>> = unsafeCoerce
+
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+export const toNestedArrays: <M, N, A>(m: Mat<M, N, A>) => Array<Array<A>> = flow(
+  RA.map(a => a.concat()),
+  bs => bs.concat()
+)
+
 // #########################
 // ### Matrix Operations ###
 // #########################

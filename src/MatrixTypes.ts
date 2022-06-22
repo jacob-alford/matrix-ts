@@ -92,3 +92,4 @@ export const getTransposeIso: <M extends number, A>() => Iso.Iso0<
   get: flow(M.transpose, a => unsafeCoerce(a)),
   reverseGet: flow(M.transpose, a => unsafeCoerce(a)),
 })
+M

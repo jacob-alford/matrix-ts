@@ -1,10 +1,8 @@
 import * as O from 'fp-ts/Option'
-import * as B from 'fp-ts/boolean'
 import * as ChnR from 'fp-ts/ChainRec'
 import * as E from 'fp-ts/Either'
-import * as Pred from 'fp-ts/Predicate'
 import * as RTup from 'fp-ts/ReadonlyTuple'
-import { flow, identity as id, tuple, pipe, unsafeCoerce } from 'fp-ts/function'
+import { tuple, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as M from './Matrix'
 import * as MatTypes from './MatrixTypes'
@@ -87,19 +85,6 @@ export const LUP = <M extends number>(
 
     return pipe(
       computation,
-      /*
-       * Filter singular matricies
-       * -------------------------
-       */
-      C.chainFirst(
-        flow(
-          C.filterOptionK(
-            ({ i, LU }) => checkSingular(i, LU),
-            () => '[00] Unreachable: index not found'
-          ),
-          C.filter(Pred.not(id), () => '[10] Matrix is singular')
-        )
-      ),
       C.bindTo('acc'),
       /*
        * Find pivot index
@@ -112,7 +97,7 @@ export const LUP = <M extends number>(
        */
       C.bindW('pivoted', ({ acc: { LU, i }, maxI }) =>
         pipe(
-          O.isSome(maxI) ? partialSwap(i, maxI.value, LU) : O.some(LU),
+          O.isSome(maxI) ? pipe(LU, M.switchRows(i, maxI.value[1])) : O.some(LU),
           C.fromOption(() => '[01] Unreachable: index not found')
         )
       ),
@@ -122,7 +107,7 @@ export const LUP = <M extends number>(
        */
       C.bind('P', ({ acc: { i, P }, maxI }) =>
         pipe(
-          O.isSome(maxI) ? pipe(P, M.switchRows(i, maxI.value)) : O.some(P),
+          O.isSome(maxI) ? pipe(P, M.switchRows(i, maxI.value[1])) : O.some(P),
           C.fromOption(() => '[02] Unreachable: index not found')
         )
       ),
@@ -133,13 +118,13 @@ export const LUP = <M extends number>(
       C.bind('LU', ({ acc: { i }, pivoted }) =>
         pipe(
           subAndScale(i, pivoted),
-          C.fromOption(() => '[11] Matrix is singular')
+          C.fromOption(() => '[10] Matrix is singular')
         )
       ),
       C.logOption(({ maxI, acc: { i } }) =>
         pipe(
           maxI,
-          O.map(maxI => `Swapped ${i} and ${maxI}`)
+          O.map(maxI => `Swapped ${i} and ${maxI[1]}, with max value: ${maxI[0]}`)
         )
       ),
       C.map(
@@ -172,15 +157,17 @@ export const LUP = <M extends number>(
   )
 }
 
-// #################
-// ### Utilities ###
-// #################
+// ################
+// ### Internal ###
+// ################
 
 /**
+ * See: Fundamentals of Matrix Computation, David S. Watkins, page 26
+ *
  * @since 1.0.0
- * @category Utilities
+ * @category Internal
  */
-export const forwardSub: <M>(
+const forwardSub: <M>(
   L: MatTypes.LowerTriangularMatrix<M, number>,
   b: V.Vec<M, number>
 ) => V.Vec<M, number> = (L, b) => {
@@ -198,10 +185,12 @@ export const forwardSub: <M>(
 }
 
 /**
+ * See: Fundamentals of Matrix Computation, David S. Watkins, page 30
+ *
  * @since 1.0.0
- * @category Utilities
+ * @category Internal
  */
-export const backSub = <M extends number>(
+const backSub = <M extends number>(
   U: MatTypes.UpperTriangularMatrix<M, number>,
   y: V.Vec<M, number>
 ): V.Vec<M, number> => {
@@ -218,125 +207,51 @@ export const backSub = <M extends number>(
   return unsafeCoerce(x)
 }
 
-// ################
-// ### Internal ###
-// ################
-
 /**
  * @since 1.0.0
  * @category Internal
  */
-const getMaxI = <M, N>(pivotI: number, m: M.Mat<M, N, number>): O.Option<number> =>
+const getMaxI = <M, N>(
+  pivotI: number,
+  m: M.Mat<M, N, number>
+): O.Option<readonly [number, number]> =>
   pipe(
     m,
     M.reduceWithIndex(tuple(-Infinity, O.zero<number>()), ([i, j], [max, maxI], aij) =>
       j !== pivotI || i < pivotI
         ? tuple(max, maxI)
         : Math.abs(aij) > max
-        ? tuple(aij, O.some(i))
+        ? tuple(Math.abs(aij), O.some(i))
         : tuple(max, maxI)
     ),
-    RTup.snd
+    RTup.swap,
+    RTup.sequence(O.Applicative),
+    O.map(RTup.swap),
+    O.filter(([, maxI]) => maxI !== pivotI)
   )
 
 /**
- * @since 1.0.0
- * @category Internal
- */
-const checkSingular = <M, N>(i: number, m: M.Mat<M, N, number>): O.Option<boolean> =>
-  pipe(m, V.get(i), O.map(V.foldMap(B.MonoidAll)(a => a === 0)))
-
-/**
- * Swap pivotI with maxI if after pivot column
+ * See: Fundamentals of Matrix Computation, David S. Watkins, page 100
  *
  * @since 1.0.0
  * @category Internal
  */
-const partialSwap = <M, N>(pivotI: number, maxI: number, m: M.Mat<M, N, number>) =>
-  pipe(
-    m,
-    M.traverseWithIndex(O.Applicative)(([i, j], a) =>
-      j < pivotI
-        ? O.some(a)
-        : i === pivotI
-        ? pipe(m, M.get(maxI, j))
-        : i === maxI
-        ? pipe(m, M.get(pivotI, j))
-        : O.some(a)
-    )
-  )
-
-/**
- * @since 1.0.0
- * @category Internal
- */
 const subAndScale = <M, N>(
-  i: number,
+  k: number,
   m: M.Mat<M, N, number>
-): O.Option<M.Mat<M, N, number>> =>
-  pipe(
-    m,
-    /*
-     * Get the pivot row as index i in Ai
-     * --------------------------------
-     */
-    V.get(i),
-    O.chain(Ai =>
-      pipe(
-        m,
-        /*
-         * Get aii (pivot position along the diagonal)
-         * -------------------------------------------
-         */
-        M.get(i, i),
-        /*
-         * Check if matrix is singular
-         * ---------------------------
-         */
-        O.filter(aii => aii !== 0),
-        O.chain(aii =>
-          pipe(
-            m,
-            /*
-             * Traverse over the rows of m as index j in Aj
-             * --------------------------------------------
-             */
-            V.traverseWithIndex(O.Applicative)((j, Aj) =>
-              j <= i
-                ? /*
-                   * Only change Aj if it is below the pivot row
-                   * --------------------------------------------
-                   */
-                  O.some(Aj)
-                : pipe(
-                    /*
-                     * Get the ith column of the jth row (aji)
-                     * ----------------------------------------
-                     */
-                    Aj,
-                    V.get(i),
-                    O.map(aji =>
-                      pipe(
-                        /*
-                         * Iterate over [Jth, Ith] as index k in A[j,i]k
-                         * --------------------------------------------------
-                         */
-                        V.zipVectors(Aj, Ai),
-                        V.mapWithIndex((k, [ajk, aik]) =>
-                          /*
-                           * Store multiplier in the pivot column below aii, and
-                           * Scale and subtract the remainder by the multiplier
-                           * -----------------------------------------------------------------
-                           */
-                          k === i ? aji / aii : k > i ? ajk - aik * (aji / aii) : ajk
-                        )
-                      )
-                    )
-                  )
-            )
-          )
-        )
-      )
-    ),
-    O.map(M.from2dVectors)
-  )
+): O.Option<M.Mat<M, N, number>> => {
+  const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+  const n = m.length
+  const A = M.toNestedArrays(m)
+  if (_(_(A, k), k) === 0) return O.none
+  for (let i = k + 1; i < n; ++i) {
+    _(A, i)[k] = _(_(A, i), k) / _(_(A, k), k)
+  }
+  for (let i = k + 1; i < n; ++i) {
+    for (let j = k + 1; j < n; ++j) {
+      _(A, i)[j] -= _(_(A, i), k) * _(_(A, k), j)
+    }
+  }
+  if (_(_(A, k), k) === 0) return O.none
+  return O.some(unsafeCoerce(A))
+}
