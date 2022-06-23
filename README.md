@@ -2,11 +2,16 @@
 
 A mathematics library with vectors, matricies, numerical linear algebra, associated algebraic constructions, and polynomials.
 
-## TODO:
+## TODO (release):
 
-- General cleanup / Sized vector instances?
-- Refactor Gaussian Elimination to LUP
-- Add `VecU` with useful methods
+- Add stats / VecU module
+- Bolster Vec module / property tests
+
+## Roadmap:
+
+- Add Cholesky Decomposition
+- Add QR Decomposition
+- Add SVD Decomposition
 
 ## Data types:
 
@@ -16,12 +21,12 @@ A mathematics library with vectors, matricies, numerical linear algebra, associa
 - `complex.ts` – Complex data type with typeclass instances
 - `quaternion.ts` – Quaternion data type with typeclass instances
 - `Computation.ts` – Either with logging
-- `FreeMonoid.ts` – Isomorphic to a List / Readonly Array type
 - `Matrix.ts` – A type-level constrained matrix type
 - `MatrixU.ts` – An unconstrained matrix type
-- `MatrixOps.ts` – Numerical Linear algebra, and some branded newtypes
+- `Decomposition.ts` – Numerical Linear algebra
 - `Polynomial.ts` – An array without trailing zeros
 - `Vector.ts` – A type-level constrained vector type
+- `infix.ts` – A constructor for polish/reverse polish and infix notation for particular typeclasses
 
 ## HKT Typeclasses
 
@@ -31,7 +36,6 @@ A mathematics library with vectors, matricies, numerical linear algebra, associa
 
 ## Typeclasses
 
-- `Logger.ts` – An effectful logger
 - `AbelianGroup` – Commutative group
 - `CommutativeRing` – A commutative ring
 - `LeftModule` – Left scalar multiplication
@@ -42,6 +46,49 @@ A mathematics library with vectors, matricies, numerical linear algebra, associa
 
 Find the following examples in `src/__tests__/examples.test.ts`
 
+### LUP: Gaussian Elimination with Partial Pivoting
+
+`src/__tests__/Decomposition.test.ts`
+
+```ts
+import * as D from 'matrix-ts/Decomposition'
+import * as M from 'matrix-ts/Matrix'
+import * as V from 'matrix-ts/Vector'
+
+it('solves a system of equations', () => {
+  const A = M.fromNestedTuples([
+    [2, 10, 8, 8, 6],
+    [1, 4, -2, 4, -1],
+    [0, 2, 3, 2, 1],
+    [3, 8, 3, 10, 9],
+    [1, 4, 1, 2, 1],
+  ])
+
+  const [output] = D.LUP(A)
+
+  if (E.isLeft(output)) {
+    throw new Error('Unexpected result')
+  }
+
+  const { solve } = output.right
+
+  const b = V.fromTuple([52, 14, 12, 51, 15])
+  const c = V.fromTuple([50, 4, 12, 48, 12])
+  const x_b = solve(b)
+  const x_c = solve(c)
+
+  const expectedX_b = V.fromTuple([1, 2, 1, 2, 1])
+  const expectedX_c = V.fromTuple([2, 1, 2, 1, 2])
+
+  for (const [Axi, bi] of V.zipVectors(x_b, expectedX_b)) {
+    expect(Axi).toBeCloseTo(bi)
+  }
+  for (const [Axi, bi] of V.zipVectors(x_c, expectedX_c)) {
+    expect(Axi).toBeCloseTo(bi)
+  }
+})
+```
+
 ### Vector dot product
 
 ```ts
@@ -51,7 +98,7 @@ import * as V from 'matrix-ts/Vector'
 it('dots two vectors', () => {
   const a = V.fromTuple([1, 2, 3, 4, 5, 6])
   const b = V.fromTuple([4, 5, 6, 7, 8, 9])
-  expect(N.InnerProductSpace6d.dot(a, b)).toBe(154)
+  expect(N.dot(a, b)).toBe(154)
 })
 ```
 

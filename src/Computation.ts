@@ -8,10 +8,9 @@ import * as Fun from 'fp-ts/Functor'
 import * as Mon from 'fp-ts/Monad'
 import * as MonThrow from 'fp-ts/MonadThrow'
 import * as O from 'fp-ts/Option'
+import * as RA from 'fp-ts/ReadonlyArray'
 import * as RTup from 'fp-ts/ReadonlyTuple'
 import { pipe, unsafeCoerce } from 'fp-ts/function'
-
-import * as FM from './FreeMonoid'
 
 // #############
 // ### Model ###
@@ -21,7 +20,7 @@ import * as FM from './FreeMonoid'
  * @since 1.0.0
  * @category Model
  */
-export type Computation<E, A> = readonly [E.Either<E, A>, FM.FreeMonoid<E>]
+export type Computation<E, A> = readonly [E.Either<E, A>, ReadonlyArray<E>]
 
 // ####################
 // ### Constructors ###
@@ -33,7 +32,7 @@ export type Computation<E, A> = readonly [E.Either<E, A>, FM.FreeMonoid<E>]
  */
 export const of: <A>(value: A) => Computation<never, A> = value => [
   E.right(value),
-  FM.nil,
+  RA.zero(),
 ]
 
 // #####################
@@ -93,7 +92,7 @@ export const bimap: <E, G, A, B>(
   f: (e: E) => G,
   g: (a: A) => B
 ) => (fa: Computation<E, A>) => Computation<G, B> = (f, g) =>
-  RTup.bimap(FM.map(f), E.bimap(f, g))
+  RTup.bimap(RA.map(f), E.bimap(f, g))
 
 /**
  * @since 1.0.0
@@ -102,7 +101,7 @@ export const bimap: <E, G, A, B>(
 export const mapLeft: <E, G>(
   f: (e: E) => G
 ) => <A>(fa: Computation<E, A>) => Computation<G, A> = f =>
-  RTup.bimap(FM.map(f), E.mapLeft(f))
+  RTup.bimap(RA.map(f), E.mapLeft(f))
 
 /**
  * @since 1.0.0
@@ -123,7 +122,7 @@ export const ap: <E, A, B>(
 ) => (fa: Computation<E, A>) => Computation<E, B> =
   ([fab, ls1]) =>
   ([fa, ls2]) =>
-    [pipe(fab, E.ap(fa)), FM.concat(ls1, ls2)]
+    [pipe(fab, E.ap(fa)), pipe(ls1, RA.concat(ls2))]
 
 /**
  * @since 1.0.0
@@ -157,7 +156,7 @@ export const chain: <E, A, B>(
       E.map(f),
       E.fold(
         err => [E.left(err), logs],
-        ([result, logs2]) => [result, FM.concat(logs, logs2)]
+        ([result, logs2]) => [result, pipe(logs, RA.concat(logs2))]
       )
     )
 
@@ -183,7 +182,7 @@ export const Monad: Mon.Monad2<URI> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const throwError: <E, A>(e: E) => Computation<E, A> = e => [E.left(e), FM.of(e)]
+export const throwError: <E, A>(e: E) => Computation<E, A> = e => [E.left(e), RA.of(e)]
 
 /**
  * @since 1.0.0
@@ -200,7 +199,7 @@ export const MonadThrow: MonThrow.MonadThrow2<URI> = {
  */
 export const fromEither: FE.FromEither2<URI>['fromEither'] = a => [
   a,
-  E.isLeft(a) ? FM.of(a.left) : FM.nil,
+  E.isLeft(a) ? RA.of(a.left) : RA.zero(),
 ]
 
 /**
@@ -232,7 +231,7 @@ export const fromOption = FE.fromOption(FromEither)
  */
 export const isLeft = <E, A>(
   e: Computation<E, A>
-): e is readonly [E.Left<E>, FM.FreeMonoid<E>] => e[0]._tag === 'Left'
+): e is readonly [E.Left<E>, ReadonlyArray<E>] => e[0]._tag === 'Left'
 
 /**
  * @since 1.0.0
@@ -240,7 +239,7 @@ export const isLeft = <E, A>(
  */
 export const isRight = <E, A>(
   e: Computation<E, A>
-): e is readonly [E.Right<A>, FM.FreeMonoid<E>] => e[0]._tag === 'Right'
+): e is readonly [E.Right<A>, ReadonlyArray<E>] => e[0]._tag === 'Right'
 
 // ###################
 // ### Combinators ###
@@ -286,7 +285,7 @@ export const chainEitherK = FE.chainEitherK(FromEither, Chain)
  */
 export const tell: <E>(message: E) => Computation<E, void> = message => [
   E.right(undefined),
-  FM.of(message),
+  RA.of(message),
 ]
 
 /**
@@ -296,7 +295,7 @@ export const tell: <E>(message: E) => Computation<E, void> = message => [
 export const log: <E>(message: E) => <A>(fa: Computation<E, A>) => Computation<E, A> =
   message =>
   ([a, logs]) =>
-    [a, FM.concat(logs, FM.of(message))]
+    [a, pipe(logs, RA.concat(RA.of(message)))]
 
 /**
  * @since 1.0.0
@@ -310,7 +309,9 @@ export const logOption: <E, A>(
     const optionalMessage = pipe(O.fromEither(a), O.chain(getOptionalMesasge))
     return [
       a,
-      O.isSome(optionalMessage) ? FM.concat(logs, FM.of(optionalMessage.value)) : logs,
+      O.isSome(optionalMessage)
+        ? pipe(logs, RA.concat(RA.of(optionalMessage.value)))
+        : logs,
     ]
   }
 

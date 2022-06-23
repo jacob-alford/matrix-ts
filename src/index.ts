@@ -4,9 +4,7 @@ import * as H from './quaternion'
 import * as Inf from './infix'
 import * as Int from './integer'
 import * as Iso from './Iso'
-import * as FM from './FreeMonoid'
 import * as LM from './LinearMap'
-import * as Log from './Logger'
 import * as De from './Decomposition'
 import * as M from './Matrix'
 import * as MU from './MatrixU'
@@ -16,4 +14,4 @@ import * as Q from './rational'
 import * as TC from './typeclasses'
 import * as V from './Vector'
 
-export { C, Comp, H, Inf, Int, Iso, FM, LM, Log, De, M, MU, N, Poly, Q, TC, V }
+export { C, Comp, H, Inf, Int, Iso, LM, De, M, MU, N, Poly, Q, TC, V }

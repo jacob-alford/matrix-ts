@@ -13,7 +13,6 @@ import { identity, pipe, unsafeCoerce } from 'fp-ts/function'
 import * as Inf from './infix'
 import * as Int from './integer'
 import * as LI from './LinearIsomorphism'
-import * as Iso from './Iso'
 import * as M from './Matrix'
 import * as Poly from './Polynomial'
 import * as V from './Vector'
@@ -314,7 +313,6 @@ export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, Field)
 export const getDifferentialLinearIsomorphism: (
   constantTerm: Rational
 ) => LI.LinearIsomorphism1<Poly.URI, Rational, Rational> = constantTerm => ({
-  isoV: Iso.getId(),
   mapL: derivative,
   reverseMapL: getAntiderivative(constantTerm),
 })

@@ -239,7 +239,6 @@ export const getRotationLinearIsomorpism: (
   const q = getRotationQuaternion(axis)(theta)
   const qi = recip(q)
   return {
-    isoV: Iso.getId(),
     mapL: p => pipe(DivisionRing.mul(q, DivisionRing.mul(fromVector3(p), qi)), toVector3),
     reverseMapL: p =>
       pipe(DivisionRing.mul(qi, DivisionRing.mul(fromVector3(p), q)), toVector3),

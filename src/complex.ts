@@ -400,7 +400,6 @@ export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, Field)
 export const getDifferentialLinearIsomorphism: (
   constantTerm: Complex
 ) => LI.LinearIsomorphism1<Poly.URI, Complex, Complex> = constantTerm => ({
-  isoV: Iso.getId(),
   mapL: derivative,
   reverseMapL: getAntiderivative(constantTerm),
 })
