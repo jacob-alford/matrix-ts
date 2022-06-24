@@ -9,7 +9,7 @@ import * as N from './number'
 // #############
 
 /**
- * An observation is a (free) collection of samples
+ * A sample is a univariate collection of data
  *
  * @since 1.0.0
  * @category Model
@@ -17,22 +17,22 @@ import * as N from './number'
 export type Sample = RNEA.ReadonlyNonEmptyArray<number>
 
 /**
- * An observation is a (free) collection of samples
+ * A bivariate sample is a (free) sampling of two variables
  *
  * @since 1.0.0
  * @category Model
  */
 export type BivariateSample = RNEA.ReadonlyNonEmptyArray<readonly [number, number]>
 
-// ###############################
-// ### Multivariate Statistics ###
-// ###############################
+// ##################
+// ### Statistics ###
+// ##################
 
 /**
  * The average value over different variables
  *
  * @since 1.0.0
- * @category Multivariate Statistics
+ * @category Statistics
  */
 export const mean: (s: Sample) => number = s =>
   pipe(s, RNEA.foldMap(N.MonoidSum)(identity), a => a / s.length)
@@ -41,7 +41,7 @@ export const mean: (s: Sample) => number = s =>
  * The difference in observation from a mean of Sample
  *
  * @since 1.0.0
- * @category Multivariate Statistics
+ * @category Statistics
  */
 export const deviation: (s: Sample) => Sample = s => {
   const mu = mean(s)
@@ -55,7 +55,7 @@ export const deviation: (s: Sample) => Sample = s => {
  * The covariance of a bivariate sample, is the mutual variance between the two random variables
  *
  * @since 1.0.0
- * @category Multivariate Statistics
+ * @category Statistics
  */
 export const covariance: (ab: BivariateSample) => number = ab => {
   const da = pipe(ab, RNEA.map(RTup.fst), deviation)
@@ -71,7 +71,7 @@ export const covariance: (ab: BivariateSample) => number = ab => {
  * The covariance of a bivariate sample, is the mutual variance between the two random variables
  *
  * @since 1.0.0
- * @category Multivariate Statistics
+ * @category Statistics
  */
 export const variance: (ab: Sample) => number = flow(
   RNEA.map(a => tuple(a, a)),
@@ -83,7 +83,7 @@ export const variance: (ab: Sample) => number = flow(
  * two random variables
  *
  * @since 1.0.0
- * @category Multivariate Statistics
+ * @category Statistics
  */
 export const correlation: (ab: BivariateSample) => number = ab => {
   const a = pipe(ab, RNEA.map(RTup.fst))
