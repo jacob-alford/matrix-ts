@@ -5,6 +5,7 @@ import * as Apl from 'fp-ts/Applicative'
 import * as Chn from 'fp-ts/Chain'
 import * as Fl from 'fp-ts/Foldable'
 import * as FlI from 'fp-ts/FoldableWithIndex'
+import * as Fld from 'fp-ts/Field'
 import * as IO from 'fp-ts/IO'
 import { HKT } from 'fp-ts/HKT'
 import * as Mon from 'fp-ts/Monad'
@@ -95,13 +96,9 @@ export const zero: <A>() => Vec<0, A> = () => wrap([])
  * @since 1.0.0
  * @category Constructors
  */
-export const randVec: <N extends number>(
-  n: N
-) => (low: number, high: number) => IO.IO<Vec<N, number>> = n => (low, high) => () =>
-  pipe(
-    Array.from({ length: n }, () => (high - low + 1) * Math.random() + low),
-    a => wrap(a)
-  )
+export const randVec: <N extends number, A>(n: N, make: IO.IO<A>) => IO.IO<Vec<N, A>> =
+  (n, make) => () =>
+    pipe(Array.from({ length: n }, make), a => wrap(a))
 
 // #####################
 // ### Non-Pipeables ###
@@ -492,10 +489,10 @@ export const toTuple: {
 
 /**
  * @since 1.0.0
- * @category Vector Operations
+ * @category Destructors
  */
-export const norm: <A>(R: Rng.Ring<A>) => <N>(x: Vec<N, A>) => A = R =>
-  foldMap(U.getAdditiveAbelianGroup(R))(x => R.mul(x, x))
+export const size: <N extends number, A>(v: Vec<N, A>) => N = v =>
+  v.length as typeof v['_length']
 
 // #########################
 // ### Vector Operations ###
@@ -554,12 +551,36 @@ export const crossProduct: <A>(
  * @category Vector Operations
  */
 export const innerProduct: <A>(
-  R: Rng.Ring<A>
-) => <N>(x: Vec<N, A>, y: Vec<N, A>) => A = R =>
+  R: Rng.Ring<A>,
+  conj: (r: A) => A
+) => <N>(x: Vec<N, A>, y: Vec<N, A>) => A = (R, conj) =>
   flow(
     zipVectors,
-    foldMap(U.getAdditionMonoid(R))(([a, b]) => R.mul(a, b))
+    foldMap(U.getAdditionMonoid(R))(([a, b]) => R.mul(a, conj(b)))
   )
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const norm: <A>(R: Rng.Ring<A>) => <N>(x: Vec<N, A>) => A = R =>
+  foldMap(U.getAdditiveAbelianGroup(R))(x => R.mul(x, x))
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const projection: <R>(
+  F: Fld.Field<R>,
+  conj: (r: R) => R
+) => <N extends number>(u: Vec<N, R>, v: Vec<N, R>) => Vec<N, R> =
+  (F, conj) => (u, v) => {
+    const n = size(u)
+    const BM = getBimodule(F)(n)
+    const uv = innerProduct(F, conj)(u, v)
+    const uu = innerProduct(F, conj)(u, u)
+    return BM.leftScalarMul(F.div(uv, uu), u)
+  }
 
 // ###################
 // ### Do Notation ###

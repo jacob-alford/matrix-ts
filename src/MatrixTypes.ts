@@ -1,4 +1,5 @@
 import * as Rng from 'fp-ts/Ring'
+import * as Fld from 'fp-ts/Field'
 import { flow, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as M from './Matrix'
@@ -9,6 +10,9 @@ type UpperTriangularSymbol = typeof UpperTriangularSymbol
 
 const LowerTriangularSymbol = Symbol('LowerTriangular')
 type LowerTriangularSymbol = typeof LowerTriangularSymbol
+
+const DiagonalSymbol = Symbol('Diagonal')
+type DiagonalSymbol = typeof DiagonalSymbol
 
 // #############
 // ### Model ###
@@ -32,6 +36,16 @@ export interface UpperTriangularMatrix<M, A> extends M.Mat<M, M, A> {
  */
 export interface LowerTriangularMatrix<M, A> extends M.Mat<M, M, A> {
   _URI: LowerTriangularSymbol
+}
+
+/**
+ * Diagonal Matricies
+ *
+ * @since 1.0.0
+ * @category Model
+ */
+export interface DiagonalMatrix<M, A> extends M.Mat<M, M, A> {
+  _URI: DiagonalSymbol
 }
 
 // ####################
@@ -71,10 +85,26 @@ export const toMatrix = <M, A>([l, u]: [
     M.mapWithIndex(([i, j], [lower, upper]) => (i > j ? lower : upper))
   )
 
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const extractDiagonal: <A>(
+  zero: A
+) => <M>(m: M.Mat<M, M, A>) => DiagonalMatrix<M, A> = zero =>
+  flow(
+    M.mapWithIndex(([i, j], a) => (i === j ? a : zero)),
+    a => unsafeCoerce(a)
+  )
+
 // ####################
 // ### Isomorphisms ###
 // ####################
 
+/**
+ * @since 1.0.0
+ * @category Isomorphisms
+ */
 export const getLUIso: <M, A>(
   R: Rng.Ring<A>
 ) => Iso.Iso0<
@@ -85,6 +115,10 @@ export const getLUIso: <M, A>(
   reverseGet: toMatrix,
 })
 
+/**
+ * @since 1.0.0
+ * @category Isomorphisms
+ */
 export const getTransposeIso: <M extends number, A>() => Iso.Iso0<
   LowerTriangularMatrix<M, A>,
   UpperTriangularMatrix<M, A>
@@ -93,3 +127,32 @@ export const getTransposeIso: <M extends number, A>() => Iso.Iso0<
   reverseGet: flow(M.transpose, a => unsafeCoerce(a)),
 })
 M
+
+// #########################
+// ### Matrix Operations ###
+// #########################
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+
+export const diagonalMap: <A>(
+  f: (a: A) => A
+) => <M>(m: DiagonalMatrix<M, A>) => DiagonalMatrix<M, A> = f => m => {
+  const _ = <A>(as: ReadonlyArray<A>, i: number): A => unsafeCoerce(as[i])
+  const a = M.toNestedArrays(m)
+  for (let i = 0; i < m.length; ++i) {
+    _(a, i)[i] = f(_(_(a, i), i))
+  }
+  return unsafeCoerce(a)
+}
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const diagonalInverse: <A>(
+  F: Fld.Field<A>
+) => <M>(m: DiagonalMatrix<M, A>) => DiagonalMatrix<M, A> = F =>
+  diagonalMap(a => F.div(F.one, a))

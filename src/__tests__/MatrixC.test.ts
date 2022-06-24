@@ -1,6 +1,6 @@
-import * as N from 'fp-ts/number'
-
 import * as Mat from '../Matrix'
+import * as V from '../Vector'
+import * as N from '../number'
 
 describe('Mat', () => {
   describe('id', () => {
@@ -138,6 +138,19 @@ describe('Mat', () => {
         [2, 5, 8],
         [3, 6, 9],
       ])
+    })
+  })
+  describe('outerProduct', () => {
+    it('works', () => {
+      const a = V.fromTuple([1, 2, 3])
+      const b = V.fromTuple([4, 5])
+      expect(N.outerProduct(a, b)).toStrictEqual(
+        Mat.fromNestedTuples([
+          [4, 5],
+          [8, 10],
+          [12, 15],
+        ])
+      )
     })
   })
 })

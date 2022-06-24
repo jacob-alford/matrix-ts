@@ -7,11 +7,10 @@ import * as Iso from './Iso'
 import * as LM from './LinearMap'
 import * as De from './Decomposition'
 import * as M from './Matrix'
-import * as MU from './MatrixU'
 import * as N from './number'
 import * as Poly from './Polynomial'
 import * as Q from './rational'
 import * as TC from './typeclasses'
 import * as V from './Vector'
 
-export { C, Comp, H, Inf, Int, Iso, LM, De, M, MU, N, Poly, Q, TC, V }
+export { C, Comp, H, Inf, Int, Iso, LM, De, M, N, Poly, Q, TC, V }

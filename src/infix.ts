@@ -190,6 +190,30 @@ const reverseFromPolish: <S extends string, A, B, C>(
  * @since 1.0.0
  * @category Instances
  */
+export const getAbGrpPolishInfix: <A>(
+  M: TC.AbelianGroup<A>
+) => (s: AbelianGroupSymbol, x: A, y: A) => A = G =>
+  makePolishInfix({
+    '+': G.concat,
+    '-': (x, y) => G.concat(x, G.inverse(y)),
+  })
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getAbGrpReversePolishInfix = flow(getAbGrpPolishInfix, reverseFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getAbGrpInfix = flow(getAbGrpPolishInfix, infixFromPolish)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
 export const getMonoidPolishInfix: <A>(
   M: Mn.Monoid<A>
 ) => (s: MonoidSymbol, x: A, y: A) => A = M =>

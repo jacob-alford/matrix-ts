@@ -200,6 +200,17 @@ export const fromVectorAsColumn: <N, A>(v: V.Vec<N, A>) => Mat<N, 1, A> = flow(
   from2dVectors
 )
 
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const outerProduct: <A>(
+  R: Rng.Ring<A>
+) => <M extends number, N extends number>(
+  v1: V.Vec<M, A>,
+  v2: V.Vec<N, A>
+) => Mat<M, N, A> = R => (v1, v2) => mul(R)(fromVectorAsColumn(v1), fromVectorAsRow(v2))
+
 // #####################
 // ### Non-Pipeables ###
 // #####################
@@ -294,7 +305,7 @@ export const getLinearMap =
     mapL: x =>
       pipe(
         A,
-        V.map(y => V.innerProduct(R)(x, y))
+        V.map(y => V.innerProduct(R, a => a)(x, y))
       ),
   })
 
@@ -535,6 +546,17 @@ export const toNestedArrays: <M, N, A>(m: Mat<M, N, A>) => Array<Array<A>> = flo
   bs => bs.concat()
 )
 
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+export const shape: <M extends number, N extends number, A>(
+  m: Mat<M, N, A>
+) => [M, N] = m =>
+  m[0] === undefined
+    ? [0 as typeof m['_rows'], 0 as typeof m['_cols']]
+    : [m.length as typeof m['_rows'], m[0].length as typeof m['_cols']]
+
 // #########################
 // ### Matrix Operations ###
 // #########################
@@ -552,14 +574,14 @@ export const mul =
     x[0] === undefined || y[0] === undefined
       ? wrap([])
       : pipe(
-          repeat(R.zero)(x.length as M, y[0].length as P),
-          mapWithIndex(([i, j]) =>
-            pipe(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              RA.makeBy(y.length, k => R.mul((x[i] as any)[k], (y[k] as any)[j])),
+          repeat(R.zero)(shape(x)[0], shape(y)[1]),
+          mapWithIndex(([i, j]) => {
+            const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+            return pipe(
+              RA.makeBy(y.length, k => R.mul(_(_(x, i), k), _(_(y, k), j))),
               RA.foldMap(U.getAdditionMonoid(R))(identity)
             )
-          )
+          })
         )
 
 /**

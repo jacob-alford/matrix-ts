@@ -212,7 +212,13 @@ export const BiModN = V.getBimodule(EuclideanRing)
  * @since 1.0.0
  * @category Vector Operations
  */
-export const dot = V.innerProduct(EuclideanRing)
+export const dot = V.innerProduct(EuclideanRing, identity)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const outerProduct = M.outerProduct(EuclideanRing)
 
 /**
  * @since 1.0.0
@@ -225,6 +231,12 @@ export const norm = V.norm(EuclideanRing)
  * @category Vector Operations
  */
 export const cross = V.crossProduct(EuclideanRing)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const projection = V.projection(EuclideanRing, identity)
 
 // ###############
 // ### Mat MxN ###

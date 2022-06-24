@@ -5,7 +5,6 @@ import { tuple, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as M from './Matrix'
 import * as MatTypes from './MatrixTypes'
-import * as M_ from './MatrixU'
 import * as N from './number'
 import * as V from './Vector'
 import * as C from './Computation'
@@ -61,7 +60,7 @@ export const LUP = <M extends number>(
 
   type Computation = C.Computation<string, ComputationParams>
 
-  const [, columns] = M_.shape(M_.fromMat(m))
+  const [, columns] = M.shape(m)
 
   const go = (computation: Computation): E.Either<Computation, Computation> => {
     const [result] = computation

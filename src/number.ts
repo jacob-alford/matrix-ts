@@ -259,7 +259,13 @@ export const getZRotationMap3d: (
  * @since 1.0.0
  * @category Vector Operations
  */
-export const dot = V.innerProduct(Field)
+export const dot = V.innerProduct(Field, identity)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const outerProduct = M.outerProduct(Field)
 
 /**
  * @since 1.0.0
@@ -272,6 +278,12 @@ export const norm = V.norm(Field)
  * @category Vector Operations
  */
 export const cross = V.crossProduct(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const projection = V.projection(Field, identity)
 
 // ###############
 // ### Mat MxN ###
