@@ -1,17 +1,17 @@
 # [WIP] matrix-ts
 
-A mathematics library with vectors, matricies, numerical linear algebra, associated algebraic constructions, and polynomials.
+A mathematics library with vectors, matricies, numerical linear algebra, abstract algebra, polynomials, and multivariate statistics.
 
-## TODO (release):
-
-- Add stats / VecU module
-- Bolster Vec module / property tests
-
-## Roadmap:
+## Possible future additions:
 
 - Add Cholesky Decomposition
 - Add QR Decomposition
 - Add SVD Decomposition
+- Add linear interpolation
+- Add regression / multi-regression
+- Add PCA
+- Add factor analysis
+- Add CCA
 
 ## Data types:
 
@@ -22,11 +22,12 @@ A mathematics library with vectors, matricies, numerical linear algebra, associa
 - `quaternion.ts` – Quaternion data type with typeclass instances
 - `Computation.ts` – Either with logging
 - `Matrix.ts` – A type-level constrained matrix type
-- `MatrixU.ts` – An unconstrained matrix type
 - `Decomposition.ts` – Numerical Linear algebra
 - `Polynomial.ts` – An array without trailing zeros
 - `Vector.ts` – A type-level constrained vector type
 - `infix.ts` – A constructor for polish/reverse polish and infix notation for particular typeclasses
+- `Multivariate.ts` – Means / covariances / correlations of multivariable sampling
+- `Univariate.ts` – Means variance / covariance / correlation of univariate and bivariate sampling
 
 ## HKT Typeclasses
 
@@ -210,8 +211,6 @@ it('rotates a 3d vector using quaternions', () => {
   }
 })
 ```
-
-Note: This is still a WIP, and will be uploaded to NPM once it's in a stable state
 
 ---
 
