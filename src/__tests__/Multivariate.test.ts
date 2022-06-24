@@ -6,7 +6,7 @@ import * as Stat from '../Multivariate'
 
 describe('Multivariate', () => {
   it('calculates a covariance matrix', () => {
-    const sample: Stat.Sample<3> = pipe(
+    const sample: Stat.MultivariateSample<3> = pipe(
       [V.fromTuple([1, 2, 5]), V.fromTuple([4, 1, 6])],
       RNEA.concat(RNEA.of(V.fromTuple([4, 0, 4])))
     )

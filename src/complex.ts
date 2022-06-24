@@ -341,7 +341,20 @@ export const outerProduct = M.outerProduct(Field)
  * @since 1.0.0
  * @category Vector Operations
  */
-export const norm = V.norm(Field)
+export const l1Norm = V.l1Norm(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const l2Norm = V.l2Norm(Field, flow(modulus, scalar), pow)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const lpNorm: (p: number) => <N>(v: V.Vec<N, Complex>) => Complex = p =>
+  V.lpNorm(p)(Field, flow(modulus, scalar), pow)
 
 /**
  * @since 1.0.0
@@ -427,6 +440,12 @@ export const evaluatePolynomial = Poly.evaluate(Field)
  * @category Polynomial Operations
  */
 export const derivative = Poly.derivative(ComplexBimodule.leftScalarMul)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const integrate = Poly.integrate(Field, ComplexBimodule.leftScalarMul)
 
 /**
  * @since 1.0.0

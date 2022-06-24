@@ -43,9 +43,7 @@ A mathematics library with vectors, matricies, numerical linear algebra, abstrac
 - `RightModule` – Right scalar multiplation
 - `Bimodule` – Left and Right scalar multiplication
 
-## Examples
-
-Find the following examples in `src/__tests__/examples.test.ts`
+## Advanced Examples
 
 ### LUP: Gaussian Elimination with Partial Pivoting
 
@@ -90,7 +88,32 @@ it('solves a system of equations', () => {
 })
 ```
 
+### Finding the covariance matrix of a data set
+
+```ts
+import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
+import * as V from 'matrix-ts/Vector'
+import * as Stat from 'matrix-ts/Multivariate'
+
+it('calculates a covariance matrix', () => {
+  const sample: Stat.MultivariateSample<3> = pipe(
+    [V.fromTuple([1, 2, 5]), V.fromTuple([4, 1, 6])],
+    RNEA.concat(RNEA.of(V.fromTuple([4, 0, 4])))
+  )
+
+  const cov = Stat.covariance(sample)
+
+  expect(cov).toStrictEqual([
+    [3, -3 / 2, 0],
+    [-3 / 2, 1, 1 / 2],
+    [0, 1 / 2, 1],
+  ])
+})
+```
+
 ### Vector dot product
+
+`src/__tests__/examples.test.ts`
 
 ```ts
 import * as N from 'matrix-ts/number'
@@ -105,6 +128,8 @@ it('dots two vectors', () => {
 
 ### Vector cross product
 
+`src/__tests__/examples.test.ts`
+
 ```ts
 import * as N from 'matrix-ts/number'
 import * as V from 'matrix-ts/Vector'
@@ -116,7 +141,9 @@ it('crosses two vectors', () => {
 })
 ```
 
-### Linear Isomprohisms of a Polynomial
+### Linear Isomorphisms of a Polynomial
+
+`src/__tests__/examples.test.ts`
 
 ```ts
 import * as Poly from 'matrix-ts/Polynomial'
@@ -137,7 +164,9 @@ it('differentiates and integrates polynomials', () => {
 })
 ```
 
-### Linear Isomorpisms of matricies
+### Linear Isomorphisms of matricies
+
+`src/__tests__/examples.test.ts`
 
 ```ts
 import * as LM from 'matrix-ts/LinearMap'
@@ -184,7 +213,9 @@ it('rotates a 3d vector and back along three axies', () => {
 })
 ```
 
-### Linear Isomorpisms of quaternion rotation
+### Linear Isomorphisms of quaternion rotation
+
+`src/__tests__/examples.test.ts`
 
 ```ts
 import * as Poly from 'matrix-ts/Polynomial'

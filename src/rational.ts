@@ -1,3 +1,4 @@
+import * as Bnd from 'fp-ts/Bounded'
 import * as Eq_ from 'fp-ts/Eq'
 import * as IO from 'fp-ts/IO'
 import * as Fld from 'fp-ts/Field'
@@ -120,6 +121,16 @@ export const Ord: Ord_.Ord<Rational> = pipe(
  * @since 1.0.0
  * @category Instances
  */
+export const Bounded: Bnd.Bounded<Rational> = {
+  ...Ord,
+  top: fromInt(Int.Bounded.top),
+  bottom: fromInt(Int.Bounded.bottom),
+}
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
 export const MagmaSub: Mg.Magma<Rational> = {
   concat: ({ top: a, bottom: b }, { top: c, bottom: d }) => reduce(a * d - b * c, b * d),
 }
@@ -216,6 +227,17 @@ export const _$ = Inf.getFieldReversePolishInfix(Field)
  */
 export const toNumber: (r: Rational) => number = ({ top, bottom }) => top / bottom
 
+// ###################
+// ### Rational Ops ###
+// ###################
+
+/**
+ * @since 1.0.0
+ * @category Rational Ops
+ */
+export const abs: (a: Rational) => Rational = ({ top, bottom }) =>
+  wrap(Int.abs(top), Int.abs(bottom))
+
 // #############
 // ### VecN ####
 // #############
@@ -254,7 +276,13 @@ export const outerProduct = M.outerProduct(Field)
  * @since 1.0.0
  * @category Vector Operations
  */
-export const norm = V.norm(Field)
+export const l1Norm = V.l1Norm(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const lInfNorm = V.lInfNorm(Bounded, abs)
 
 /**
  * @since 1.0.0
@@ -342,6 +370,12 @@ export const evaluatePolynomial = Poly.evaluate(Field)
 export const derivative = Poly.derivative<Rational>((n, r) =>
   Field.mul(wrap(Int.fromNumber(n), Int.one), r)
 )
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const integrate = Poly.integrate(Field, (n, r) => Field.mul(fromNumber(n), r))
 
 /**
  * @since 1.0.0

@@ -1,3 +1,4 @@
+import * as Bnd from 'fp-ts/Bounded'
 import * as Eq_ from 'fp-ts/Eq'
 import * as IO from 'fp-ts/IO'
 import * as Mg from 'fp-ts/Magma'
@@ -6,7 +7,7 @@ import * as Sg from 'fp-ts/Semigroup'
 import * as N from 'fp-ts/number'
 import * as Ord_ from 'fp-ts/Ord'
 import * as Sh from 'fp-ts/Show'
-import { identity, unsafeCoerce } from 'fp-ts/function'
+import { flow, identity, unsafeCoerce } from 'fp-ts/function'
 
 import * as Inf from './infix'
 import * as Iso from './Iso'
@@ -73,6 +74,16 @@ export const Eq: Eq_.Eq<Int> = N.Eq
  * @category Instances
  */
 export const Ord: Ord_.Ord<Int> = N.Ord
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const Bounded: Bnd.Bounded<Int> = {
+  ...Ord,
+  top: fromNumber(Infinity),
+  bottom: fromNumber(-Infinity),
+}
 
 /**
  * @since 1.0.0
@@ -186,6 +197,16 @@ export const isoNumber: Iso.Iso0<Int, number> = {
   reverseGet: fromNumber,
 }
 
+// ###################
+// ### Integer Ops ###
+// ###################
+
+/**
+ * @since 1.0.0
+ * @category Integer Ops
+ */
+export const abs: (a: Int) => Int = flow(Math.abs, fromNumber)
+
 // #############
 // ### VecN ####
 // #############
@@ -224,7 +245,13 @@ export const outerProduct = M.outerProduct(EuclideanRing)
  * @since 1.0.0
  * @category Vector Operations
  */
-export const norm = V.norm(EuclideanRing)
+export const l1Norm = V.l1Norm(EuclideanRing)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const lInfNorm = V.lInfNorm(Bounded, abs)
 
 /**
  * @since 1.0.0

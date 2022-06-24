@@ -379,6 +379,19 @@ export const derivative: <R>(
  * @since 1.0.0
  * @category Polynomial Operations
  */
+export const integrate: <R>(
+  R: Rng.Ring<R>,
+  scaleLeft: (n: number, r: R) => R
+) => (lower: R, upper: R) => (p: Polynomial<R>) => R = (R, scaleLeft) => (lower, upper) =>
+  flow(
+    mapWithIndex((i, coeff) => scaleLeft(1 / (i + 1), coeff)),
+    x => R.sub(evaluate(R)(x)(upper), evaluate(R)(x)(lower))
+  )
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
 export const antiderivative: <R>(
   constantTerm: R,
   scaleLeft: (n: number, r: R) => R

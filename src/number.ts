@@ -271,7 +271,26 @@ export const outerProduct = M.outerProduct(Field)
  * @since 1.0.0
  * @category Vector Operations
  */
-export const norm = V.norm(Field)
+export const l1Norm = V.l1Norm(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const l2Norm = V.l2Norm(Field, Math.abs, Math.pow)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const lpNorm: (p: number) => <N>(v: V.Vec<N, number>) => number = p =>
+  V.lpNorm(p)(Field, Math.abs, Math.pow)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const lInfNorm = V.lInfNorm(Bounded, Math.abs)
 
 /**
  * @since 1.0.0
@@ -357,6 +376,12 @@ export const evaluatePolynomial = Poly.evaluate(Field)
  * @category Polynomial Operations
  */
 export const derivative = Poly.derivative(Field.mul)
+
+/**
+ * @since 1.0.0
+ * @category Polynomial Operations
+ */
+export const integrate = Poly.integrate(Field, Field.mul)
 
 /**
  * @since 1.0.0

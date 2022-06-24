@@ -17,20 +17,22 @@ import * as N from './number'
  * @since 1.0.0
  * @category Model
  * @example
- *   Given three subjects whose measurements are height, weight, shoe size, we can construct an `Obsevations` as follows:
+ *   Given three subjects whose measurements are height, weight, shoe size, we can construct a correlation matrix as follows:
  *
  *   ```ts
- *   const subject1 = V.fromTuple([167, 63, 8])
- *   const subject2 = V.fromTuple([200, 94, 12])
- *   const subject3 = V.fromTuple([160, 65, 9])
- *   const observations = [
- *   subject1,
- *   subject2,
- *   subject3
- *   ]
+ *   import * as V from 'matrix-ts/vector'
+ *   import * as MStat from 'matrix-ts/Multivariate'
+ *
+ *   const obs1 = V.fromTuple([167, 63, 8])
+ *   const obs2 = V.fromTuple([200, 94, 12])
+ *   const obs3 = V.fromTuple([160, 65, 9])
+ *   const observations = RNEA.concat(RNEA.of(obs3))([obs1, obs2])
+ *
+ *   // This determines how mutually correlated the different variables are
+ *   const corr = MStat.correlation(observations)
  *   ```
  */
-export type Sample<N> = RNEA.ReadonlyNonEmptyArray<V.Vec<N, number>>
+export type MultivariateSample<N> = RNEA.ReadonlyNonEmptyArray<V.Vec<N, number>>
 
 // ###############################
 // ### Multivariate Statistics ###
@@ -42,7 +44,9 @@ export type Sample<N> = RNEA.ReadonlyNonEmptyArray<V.Vec<N, number>>
  * @since 1.0.0
  * @category Multivariate Statistics
  */
-export const mean: <N extends number>(s: Sample<N>) => V.Vec<N, number> = s => {
+export const mean: <N extends number>(
+  s: MultivariateSample<N>
+) => V.Vec<N, number> = s => {
   const n = V.size(RNEA.head(s))
   const AbGrp = N.AdditiveAbGrpN(n)
   return pipe(
@@ -53,12 +57,14 @@ export const mean: <N extends number>(s: Sample<N>) => V.Vec<N, number> = s => {
 }
 
 /**
- * The difference in observation from a mean of Sample
+ * The difference in observation from a mean of MultivariateSample
  *
  * @since 1.0.0
  * @category Multivariate Statistics
  */
-export const deviation: <N extends number>(s: Sample<N>) => Sample<N> = s => {
+export const deviation: <N extends number>(
+  s: MultivariateSample<N>
+) => MultivariateSample<N> = s => {
   const n = V.size(RNEA.head(s))
   const mu = mean(s)
   const AbGrp = N.AdditiveAbGrpN(n)
@@ -71,12 +77,14 @@ export const deviation: <N extends number>(s: Sample<N>) => Sample<N> = s => {
 
 /**
  * The covariance matrix where each index: i, j represent the variance between each random
- * variable of the sample
+ * variable of the Multivariatesample
  *
  * @since 1.0.0
  * @category Multivariate Statistics
  */
-export const covariance: <N extends number>(s: Sample<N>) => M.Mat<N, N, number> = s => {
+export const covariance: <N extends number>(
+  s: MultivariateSample<N>
+) => M.Mat<N, N, number> = s => {
   const n = V.size(RNEA.head(s))
   const AbGrpNN = N.AdditiveAbGrpMN(n, n)
   const BiModNN = N.BiModMN(n, n)
@@ -84,8 +92,7 @@ export const covariance: <N extends number>(s: Sample<N>) => M.Mat<N, N, number>
   return pipe(
     s,
     deviation,
-    RNEA.map(d => outerProduct(d, d)),
-    RNEA.foldMap(AbGrpNN)(identity),
+    RNEA.foldMap(AbGrpNN)(d => outerProduct(d, d)),
     cov => BiModNN.leftScalarMul(1 / (s.length - 1), cov)
   )
 }
@@ -97,7 +104,9 @@ export const covariance: <N extends number>(s: Sample<N>) => M.Mat<N, N, number>
  * @since 1.0.0
  * @category Multivariate Statistics
  */
-export const correlation: <N extends number>(s: Sample<N>) => M.Mat<N, N, number> = s => {
+export const correlation: <N extends number>(
+  s: MultivariateSample<N>
+) => M.Mat<N, N, number> = s => {
   const mul = M.mul(N.Field)
   const inv = MatTypes.diagonalInverse(N.Field)
   const cov = covariance(s)

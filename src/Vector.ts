@@ -2,6 +2,7 @@ import * as Fun from 'fp-ts/Functor'
 import * as FunI from 'fp-ts/FunctorWithIndex'
 import * as Ap from 'fp-ts/Apply'
 import * as Apl from 'fp-ts/Applicative'
+import * as Bnd from 'fp-ts/Bounded'
 import * as Chn from 'fp-ts/Chain'
 import * as Fl from 'fp-ts/Foldable'
 import * as FlI from 'fp-ts/FoldableWithIndex'
@@ -11,6 +12,8 @@ import { HKT } from 'fp-ts/HKT'
 import * as Mon from 'fp-ts/Monad'
 import * as Mn from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
+import * as Ord from 'fp-ts/Ord'
+import {} from 'fp-ts/Ordering'
 import * as Tr from 'fp-ts/Traversable'
 import * as TrI from 'fp-ts/TraversableWithIndex'
 import * as Pt from 'fp-ts/Pointed'
@@ -562,8 +565,40 @@ export const innerProduct: <A>(
  * @since 1.0.0
  * @category Vector Operations
  */
-export const norm: <A>(R: Rng.Ring<A>) => <N>(x: Vec<N, A>) => A = R =>
+export const l1Norm: <A>(R: Rng.Ring<A>) => <N>(x: Vec<N, A>) => A = R =>
   foldMap(U.getAdditiveAbelianGroup(R))(x => R.mul(x, x))
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const lpNorm: (
+  p: number
+) => <A>(
+  R: Rng.Ring<A>,
+  abs: (x: A) => A,
+  pow: (x: A, n: number) => A
+) => <N>(x: Vec<N, A>) => A = p => (R, abs, pow) =>
+  flow(
+    foldMap(U.getAdditiveAbelianGroup(R))(x => pow(abs(x), p)),
+    a => pow(a, 1 / p)
+  )
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const l2Norm = lpNorm(2)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const lInfNorm: <A>(
+  B: Bnd.Bounded<A>,
+  abs: (a: A) => A
+) => <N>(x: Vec<N, A>) => A = (B, abs) =>
+  foldMap({ concat: Ord.max(B), empty: B.bottom })(abs)
 
 /**
  * @since 1.0.0

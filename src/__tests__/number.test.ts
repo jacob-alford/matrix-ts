@@ -1,47 +1,45 @@
-import * as C from '../complex'
+import * as N from '../number'
 import * as V from '../Vector'
 import * as Inf from '../infix'
 
-const { _ } = C
+const { _ } = N
 
-const AbGrp = V.getAbGroup(C.Field)(10)
+const AbGrp = V.getAbGroup(N.Field)(10)
 
-const __ = Inf.getLeftModuleInfix(V.getBimodule(C.Field)(10))
+const __ = Inf.getLeftModuleInfix(V.getBimodule(N.Field)(10))
 const _v = Inf.getAbGrpInfix(AbGrp)
 
-describe('Complex', () => {
-  const rand = C.randComplex(-5_000, 5_000)
+describe('number', () => {
+  const rand = N.randNumber(-5_000, 5_000)
   const randV = V.randVec(10, rand)
   describe('Field laws', () => {
     it('abides additive unitor', () => {
       const test = rand()
-      expect(_(test, '+', C.zero)).toStrictEqual(test)
-      expect(_(C.zero, '+', test)).toStrictEqual(test)
+      expect(_(test, '+', N.zero)).toStrictEqual(test)
+      expect(_(N.zero, '+', test)).toStrictEqual(test)
     })
     it('abides multiplicative unitor', () => {
       const test = rand()
-      expect(_(test, '*', C.one)).toStrictEqual(test)
-      expect(_(C.one, '*', test)).toStrictEqual(test)
+      expect(_(test, '*', N.one)).toStrictEqual(test)
+      expect(_(N.one, '*', test)).toStrictEqual(test)
     })
     /** This appears to fail with large numbers */
     it('associates with addition', () => {
       const a = rand()
       const b = rand()
       const c = rand()
-      const { Re: Re1, Im: Im1 } = _(a, '+', _(b, '+', c))
-      const { Re: Re2, Im: Im2 } = _(_(a, '+', b), '+', c)
-      expect(Re1).toBeCloseTo(Re2)
-      expect(Im1).toBeCloseTo(Im2)
+      const d = _(a, '+', _(b, '+', c))
+      const e = _(_(a, '+', b), '+', c)
+      expect(d).toBeCloseTo(e)
     })
     /** This appears to fail with large numbers */
     it('associates with multiplication', () => {
       const a = rand()
       const b = rand()
       const c = rand()
-      const { Re: Re1, Im: Im1 } = _(_(a, '*', b), '*', c)
-      const { Re: Re2, Im: Im2 } = _(a, '*', _(b, '*', c))
-      expect(Re1).toBeCloseTo(Re2)
-      expect(Im1).toBeCloseTo(Im2)
+      const d = _(_(a, '*', b), '*', c)
+      const e = _(a, '*', _(b, '*', c))
+      expect(d).toBeCloseTo(e)
     })
     it('commutes with addition', () => {
       const a = rand()
@@ -57,23 +55,21 @@ describe('Complex', () => {
       const a = rand()
       const b = rand()
       const c = rand()
-      const { Re: Re1l, Im: Im1l } = _(a, '*', _(b, '+', c))
-      const { Re: Re2l, Im: Im2l } = _(_(a, '*', b), '+', _(a, '*', c))
-      const { Re: Re1r, Im: Im1r } = _(_(a, '+', b), '*', c)
-      const { Re: Re2r, Im: Im2r } = _(_(a, '*', c), '+', _(b, '*', c))
+      const d = _(a, '*', _(b, '+', c))
+      const e = _(_(a, '*', b), '+', _(a, '*', c))
+      const f = _(_(a, '+', b), '*', c)
+      const g = _(_(a, '*', c), '+', _(b, '*', c))
 
-      expect(Re1l).toBeCloseTo(Re2l)
-      expect(Im1l).toBeCloseTo(Im2l)
-      expect(Re1r).toBeCloseTo(Re2r)
-      expect(Im1r).toBeCloseTo(Im2r)
+      expect(d).toBeCloseTo(e)
+      expect(f).toBeCloseTo(g)
     })
     it('has an additive inverse', () => {
       const a = rand()
-      expect(_(a, '-', a)).toStrictEqual(C.zero)
+      expect(_(a, '-', a)).toStrictEqual(N.zero)
     })
     it('has a multiplicative inverse', () => {
       const a = rand()
-      expect(_(a, '/', a)).toStrictEqual(C.one)
+      expect(_(a, '/', a)).toStrictEqual(N.one)
     })
   })
   describe('Vector abelian Group laws', () => {
@@ -88,9 +84,8 @@ describe('Complex', () => {
       const c = randV()
       const left = _v(a, '+', _v(b, '+', c))
       const right = _v(_v(a, '+', b), '+', c)
-      for (const [{ Re: r1, Im: i1 }, { Re: r2, Im: i2 }] of V.zipVectors(left, right)) {
-        expect(r1).toBeCloseTo(r2)
-        expect(i1).toBeCloseTo(i2)
+      for (const [a, b] of V.zipVectors(left, right)) {
+        expect(a).toBeCloseTo(b)
       }
     })
     it('commutes with addition', () => {
@@ -98,9 +93,8 @@ describe('Complex', () => {
       const b = randV()
       const left = _v(a, '+', b)
       const right = _v(b, '+', a)
-      for (const [{ Re: r1, Im: i1 }, { Re: r2, Im: i2 }] of V.zipVectors(left, right)) {
-        expect(r1).toBeCloseTo(r2)
-        expect(i1).toBeCloseTo(i2)
+      for (const [a, b] of V.zipVectors(left, right)) {
+        expect(a).toBeCloseTo(b)
       }
     })
     it('has an additive inverse', () => {
@@ -115,14 +109,13 @@ describe('Complex', () => {
       const p = randV()
       const left = __(a, '.*', __(b, '.*', p))
       const right = __(_(a, '*', b), '.*', p)
-      for (const [{ Re: r1, Im: i1 }, { Re: r2, Im: i2 }] of V.zipVectors(left, right)) {
-        expect(r1).toBeCloseTo(r2)
-        expect(i1).toBeCloseTo(i2)
+      for (const [a, b] of V.zipVectors(left, right)) {
+        expect(a).toBeCloseTo(b)
       }
     })
     it('abides scalar unitor', () => {
       const p = randV()
-      expect(__(C.one, '.*', p)).toStrictEqual(p)
+      expect(__(N.one, '.*', p)).toStrictEqual(p)
     })
     it('distributes over scalar multiplication wrt polynomial addition', () => {
       const a = rand()
@@ -130,9 +123,8 @@ describe('Complex', () => {
       const q = randV()
       const left = __(a, '.*', _v(p, '+', q))
       const right = _v(__(a, '.*', p), '+', __(a, '.*', q))
-      for (const [{ Re: r1, Im: i1 }, { Re: r2, Im: i2 }] of V.zipVectors(left, right)) {
-        expect(r1).toBeCloseTo(r2)
-        expect(i1).toBeCloseTo(i2)
+      for (const [a, b] of V.zipVectors(left, right)) {
+        expect(a).toBeCloseTo(b)
       }
     })
     it('distributes over scalar multiplication wrt Field addition', () => {
@@ -141,9 +133,8 @@ describe('Complex', () => {
       const p = randV()
       const left = __(_(a, '+', b), '.*', p)
       const right = _v(__(a, '.*', p), '+', __(b, '.*', p))
-      for (const [{ Re: r1, Im: i1 }, { Re: r2, Im: i2 }] of V.zipVectors(left, right)) {
-        expect(r1).toBeCloseTo(r2)
-        expect(i1).toBeCloseTo(i2)
+      for (const [a, b] of V.zipVectors(left, right)) {
+        expect(a).toBeCloseTo(b)
       }
     })
   })
@@ -151,10 +142,9 @@ describe('Complex', () => {
     it('abides conjugate symmetry', () => {
       const x = randV()
       const y = randV()
-      const { Re: r1, Im: i1 } = C.dot(x, y)
-      const { Re: r2, Im: i2 } = C.conj(C.dot(y, x))
-      expect(r1).toBeCloseTo(r2)
-      expect(i1).toBeCloseTo(i2)
+      const a = N.dot(x, y)
+      const b = N.dot(y, x)
+      expect(a).toBeCloseTo(b)
     })
     it('is linear in its first argument', () => {
       const a = rand()
@@ -164,17 +154,15 @@ describe('Complex', () => {
       const z = randV()
       const left1 = __(a, '.*', x)
       const left2 = __(b, '.*', y)
-      const { Re: r1, Im: i1 } = C.dot(_v(left1, '+', left2), z)
-      const right1 = _(a, '*', C.dot(x, z))
-      const right2 = _(b, '*', C.dot(y, z))
-      const { Re: r2, Im: i2 } = _(right1, '+', right2)
-      expect(r1).toBeCloseTo(r2)
-      expect(i1).toBeCloseTo(i2)
+      const left = N.dot(_v(left1, '+', left2), z)
+      const right1 = _(a, '*', N.dot(x, z))
+      const right2 = _(b, '*', N.dot(y, z))
+      const right = _(right1, '+', right2)
+      expect(left).toBeCloseTo(right)
     })
     it('is nonzero for nonzero x', () => {
       const x = randV()
-      const { Re } = C.dot(x, x)
-      expect(Re).not.toBeCloseTo(0)
+      expect(N.dot(x, x)).not.toBeCloseTo(0)
     })
   })
 })

@@ -604,7 +604,7 @@ export const transpose = <M extends number, N extends number, A>(
   return v[0] === undefined
     ? wrap([])
     : pipe(
-        repeat(0)(v[0].length as N, v.length as M),
+        repeat(0)(shape(v)[1] as N, shape(v)[0]),
         mapWithIndex(([i, j]) => _(_(v, j), i))
       )
 }
