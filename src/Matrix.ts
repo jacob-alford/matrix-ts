@@ -599,14 +599,15 @@ export const trace: <M extends number, A>(
  */
 export const transpose = <M extends number, N extends number, A>(
   v: Mat<M, N, A>
-): Mat<N, M, A> =>
-  v[0] === undefined
+): Mat<N, M, A> => {
+  const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
+  return v[0] === undefined
     ? wrap([])
     : pipe(
         repeat(0)(v[0].length as N, v.length as M),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mapWithIndex(([i, j]) => (v[j] as any)[i])
+        mapWithIndex(([i, j]) => _(_(v, j), i))
       )
+}
 
 /**
  * @since 1.0.0

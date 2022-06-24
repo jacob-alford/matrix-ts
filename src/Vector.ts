@@ -484,8 +484,7 @@ export const toTuple: {
   <A>(t: Vec<8, A>): [A, A, A, A, A, A, A, A]
   <A>(t: Vec<9, A>): [A, A, A, A, A, A, A, A, A]
   <A>(t: Vec<10, A>): [A, A, A, A, A, A, A, A, A, A]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} = unwrap as any
+} = unsafeCoerce(unwrap)
 
 /**
  * @since 1.0.0
