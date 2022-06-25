@@ -27,62 +27,6 @@ describe('Mat', () => {
       ])
     })
   })
-  describe('getAdditiveAbelianGroup()', () => {
-    const AdditiveAbelianGroup = Mat.getAdditiveAbelianGroup(N.Field)(3, 3)
-    const a = Mat.fromNestedTuples([
-      [1, 2, 3],
-      [4, 5, 6],
-      [7, 8, 9],
-    ])
-    const b = Mat.fromNestedTuples([
-      [1, 2, 3],
-      [4, 5, 6],
-      [7, 8, 9],
-    ])
-    const c = Mat.repeat(N.Field.zero)(3, 3)
-    it('adds two matricies', () => {
-      expect(AdditiveAbelianGroup.concat(a, b)).toStrictEqual([
-        [2, 4, 6],
-        [8, 10, 12],
-        [14, 16, 18],
-      ])
-    })
-    it('subtracts two matricies', () => {
-      expect(
-        AdditiveAbelianGroup.concat(a, AdditiveAbelianGroup.inverse(b))
-      ).toStrictEqual([
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ])
-    })
-    it('adds zero', () => {
-      expect(AdditiveAbelianGroup.concat(a, c)).toStrictEqual(a)
-      expect(AdditiveAbelianGroup.concat(c, a)).toStrictEqual(a)
-    })
-  })
-  describe('getBimodule()', () => {
-    const Bimodule = Mat.getBimodule(N.Field)(3, 3)
-    const a = Mat.fromNestedTuples([
-      [1, 2, 3],
-      [4, 5, 6],
-      [7, 8, 9],
-    ])
-    it('leftScalarMultiplies', () => {
-      expect(Bimodule.leftScalarMul(2, a)).toStrictEqual([
-        [2, 4, 6],
-        [8, 10, 12],
-        [14, 16, 18],
-      ])
-    })
-    it('rightScalarMultiplies', () => {
-      expect(Bimodule.rightScalarMul(a, 0)).toStrictEqual([
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
-      ])
-    })
-  })
   describe('mul()', () => {
     it('should multiply two matrices', () => {
       const a = Mat.fromNestedTuples([
