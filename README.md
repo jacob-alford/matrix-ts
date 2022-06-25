@@ -50,6 +50,10 @@ A mathematics library with vectors, matricies, numerical linear algebra, abstrac
 `src/__tests__/examples.test.ts`
 
 ```ts
+import * as O from 'fp-ts/Option'
+import * as Q from 'matrix-ts/rational'
+import * as Int from 'matrix-ts/integer'
+
 it('adds fractions', () => {
   const { _ } = Q
 
@@ -104,6 +108,9 @@ it('crosses two vectors', () => {
 `src/__tests__examples.test.ts`
 
 ```ts
+import * as Poly from 'matrix-ts/Polynomial'
+import * as Int from 'matrix-ts/integer'
+
 it('multiples two polynomials', () => {
   const fromArr = Poly.fromCoefficientArray(Int.Eq, Int.EuclideanRing)
   const mul = Poly.mul(Int.Eq, Int.EuclideanRing)
