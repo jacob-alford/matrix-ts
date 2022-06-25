@@ -13,7 +13,7 @@ import * as Mn from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
-import { flow, identity, pipe, unsafeCoerce } from 'fp-ts/function'
+import { flow, identity as id, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as LM from './LinearMap'
 import * as TC from './typeclasses'
@@ -167,7 +167,7 @@ export const fromNestedReadonlyArrays: <M extends number, N extends number>(
  * @since 1.0.0
  * @category Constructors
  */
-export const id: <A>(R: Rng.Ring<A>) => <M extends number>(m: M) => Mat<M, M, A> =
+export const identity: <A>(R: Rng.Ring<A>) => <M extends number>(m: M) => Mat<M, M, A> =
   R => m =>
     pipe(
       RA.makeBy(m, i => RA.makeBy(m, j => (i === j ? R.one : R.zero))),
@@ -466,6 +466,35 @@ export const FoldableWithIndex: FlI.FoldableWithIndex3<URI, [number, number]> = 
  * @since 1.0.0
  * @category Instance operations
  */
+export function sequence<F extends URIS4>(
+  F: Apl.Applicative4<F>
+): <S, R, E, A, M, N>(
+  ta: Mat<M, N, Kind4<F, S, R, E, A>>
+) => Kind4<F, S, R, E, Mat<M, N, A>>
+export function sequence<F extends URIS3>(
+  F: Apl.Applicative3<F>
+): <R, E, A, M, N>(ta: Mat<M, N, Kind3<F, R, E, A>>) => Kind3<F, R, E, Mat<M, N, A>>
+export function sequence<F extends URIS2>(
+  F: Apl.Applicative2<F>
+): <E, A, M, N>(ta: Mat<M, N, Kind2<F, E, A>>) => Kind2<F, E, Mat<M, N, A>>
+export function sequence<F extends URIS>(
+  F: Apl.Applicative1<F>
+): <A, M, N>(ta: Mat<M, N, Kind<F, A>>) => Kind<F, Mat<M, N, A>>
+export function sequence<F>(
+  F: Apl.Applicative<F>
+): <A, M, N>(ta: Mat<M, N, HKT<F, A>>) => HKT<F, Mat<M, N, A>> {
+  return ta =>
+    pipe(
+      ta,
+      V.traverse(F)(a => pipe(a, V.traverse(F)(id))),
+      a => F.map(a, b => wrap(b))
+    )
+}
+
+/**
+ * @since 1.0.0
+ * @category Instance operations
+ */
 export function traverse<F extends URIS4>(
   F: Apl.Applicative4<F>
 ): <S, R, E, A, B>(
@@ -596,7 +625,7 @@ export const mul =
             const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
             return pipe(
               RA.makeBy(y.length, k => R.mul(_(_(x, i), k), _(_(y, k), j))),
-              RA.foldMap(U.getAdditionMonoid(R))(identity)
+              RA.foldMap(U.getAdditionMonoid(R))(id)
             )
           })
         )

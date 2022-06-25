@@ -94,12 +94,6 @@ export const fromReadonlyArray: <N extends number>(
  * @since 1.0.0
  * @category Constructors
  */
-export const zero: <A>() => Vec<0, A> = () => wrap([])
-
-/**
- * @since 1.0.0
- * @category Constructors
- */
 export const randVec: <N extends number, A>(n: N, make: IO.IO<A>) => IO.IO<Vec<N, A>> =
   (n, make) => () =>
     pipe(Array.from({ length: n }, make), a => wrap(a))

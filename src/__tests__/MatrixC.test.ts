@@ -5,7 +5,7 @@ import * as N from '../number'
 describe('Mat', () => {
   describe('id', () => {
     it('should return the identity matrix', () => {
-      const id = Mat.id(N.Field)(5)
+      const id = Mat.identity(N.Field)(5)
       expect(id).toStrictEqual([
         [1, 0, 0, 0, 0],
         [0, 1, 0, 0, 0],
