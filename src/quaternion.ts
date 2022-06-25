@@ -336,11 +336,31 @@ export const getRotationQuaternion: (
  */
 export const conj: (q: Quaternion) => Quaternion = ({ a, b, c, d }) => of(a, -b, -c, -d)
 
+// ###############
+// ### Aliases ###
+// ###############
+
 /**
  * @since 1.0.0
- * @category Quaternion Ops
+ * @category Aliases
  */
-export const dot: (x: Quaternion, y: Quaternion) => number = (
-  { a, b, c, d },
-  { a: e, b: f, c: g, d: h }
-) => a * e + b * f + c * g + d * h
+export const add = DivisionRing.add
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const sub = DivisionRing.sub
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const mul = DivisionRing.mul
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const div: (x: Quaternion, y: Quaternion) => Quaternion = (x, y) =>
+  DivisionRing.mul(x, DivisionRing.recip(y))

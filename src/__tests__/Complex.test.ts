@@ -1,17 +1,21 @@
 import * as C from '../complex'
 import * as V from '../Vector'
+import * as M from '../Matrix'
 import * as Inf from '../infix'
 
 const { _ } = C
 
-const AbGrp = V.getAbGroup(C.Field)(10)
+const AbGrp = V.getAdditiveAbelianGroup(C.Field)(10)
+const AbGrpM = M.getAdditiveAbelianGroup(C.Field)(10, 10)
 
 const __ = Inf.getLeftModuleInfix(V.getBimodule(C.Field)(10))
 const _v = Inf.getAbGrpInfix(AbGrp)
+const _m = Inf.getAbGrpInfix(AbGrpM)
 
 describe('Complex', () => {
   const rand = C.randComplex(-5_000, 5_000)
   const randV = V.randVec(10, rand)
+  const randM = M.randMatrix(10, 10, rand)
   describe('Field laws', () => {
     it('abides additive unitor', () => {
       const test = rand()
@@ -76,7 +80,7 @@ describe('Complex', () => {
       expect(_(a, '/', a)).toStrictEqual(C.one)
     })
   })
-  describe('Vector abelian Group laws', () => {
+  describe('Vector Abelian Group laws', () => {
     it('abides additive unitor', () => {
       const test = randV()
       expect(_v(test, '+', AbGrp.empty)).toStrictEqual(test)
@@ -108,7 +112,43 @@ describe('Complex', () => {
       expect(_v(a, '-', a)).toStrictEqual(AbGrp.empty)
     })
   })
-  describe('vector space laws', () => {
+  describe('Matrix Abelian Group laws', () => {
+    it('abides additive unitor', () => {
+      const test = randM()
+      expect(_m(test, '+', AbGrpM.empty)).toStrictEqual(test)
+      expect(_m(AbGrpM.empty, '+', test)).toStrictEqual(test)
+    })
+    it('associates with addition', () => {
+      const a = randM()
+      const b = randM()
+      const c = randM()
+      const left = _m(a, '+', _m(b, '+', c))
+      const right = _m(_m(a, '+', b), '+', c)
+      for (const [va, vb] of V.zipVectors(left, right)) {
+        for (const [{ Re: r1, Im: i1 }, { Re: r2, Im: i2 }] of V.zipVectors(va, vb)) {
+          expect(r1).toBeCloseTo(r2)
+          expect(i1).toBeCloseTo(i2)
+        }
+      }
+    })
+    it('commutes with addition', () => {
+      const a = randM()
+      const b = randM()
+      const left = _m(a, '+', b)
+      const right = _m(b, '+', a)
+      for (const [va, vb] of V.zipVectors(left, right)) {
+        for (const [{ Re: r1, Im: i1 }, { Re: r2, Im: i2 }] of V.zipVectors(va, vb)) {
+          expect(r1).toBeCloseTo(r2)
+          expect(i1).toBeCloseTo(i2)
+        }
+      }
+    })
+    it('has an additive inverse', () => {
+      const a = randM()
+      expect(_m(a, '-', a)).toStrictEqual(AbGrpM.empty)
+    })
+  })
+  describe('Vector Space laws', () => {
     it('associates over scalar multiplication', () => {
       const a = rand()
       const b = rand()

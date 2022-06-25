@@ -221,49 +221,13 @@ export type Vec<N> = V.Vec<N, Int>
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbGrpN = V.getAbGroup(EuclideanRing)
+export const AdditiveAbGrpN = V.getAdditiveAbelianGroup(EuclideanRing)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
 export const BiModN = V.getBimodule(EuclideanRing)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const dot = V.innerProduct(EuclideanRing, identity)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const outerProduct = M.outerProduct(EuclideanRing)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const l1Norm = V.l1Norm(EuclideanRing)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const lInfNorm = V.lInfNorm(Bounded, abs)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const cross = V.crossProduct(EuclideanRing)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const projection = V.projection(EuclideanRing, identity)
 
 // ###############
 // ### Mat MxN ###
@@ -286,3 +250,43 @@ export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(EuclideanRing)
  * @category Instances
  */
 export const BiModMN = M.getBimodule(EuclideanRing)
+
+// ###############
+// ### Aliases ###
+// ###############
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const add = EuclideanRing.add
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const sub = EuclideanRing.sub
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const mul = EuclideanRing.mul
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const div = EuclideanRing.div
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const mod = EuclideanRing.mod
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const degree = EuclideanRing.degree

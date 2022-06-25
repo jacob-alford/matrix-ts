@@ -141,7 +141,7 @@ export type Vec<N> = V.Vec<N, number>
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbGrpN = V.getAbGroup(Field)
+export const AdditiveAbGrpN = V.getAdditiveAbelianGroup(Field)
 
 /**
  * @since 1.0.0
@@ -409,3 +409,43 @@ export const polynomialNorm = Poly.norm(Eq, Field, Field.mul, Math.sqrt, identit
  * @category Polynomial Operations
  */
 export const polynomialProjection = Poly.projection(Eq, Field, Field.mul, identity)
+
+// ###############
+// ### Aliases ###
+// ###############
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const add = Field.add
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const sub = Field.sub
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const mul = Field.mul
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const div = Field.div
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const mod = Field.mod
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const degree = Field.degree

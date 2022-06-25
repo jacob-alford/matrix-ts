@@ -252,49 +252,13 @@ export type Vec<N> = V.Vec<N, Rational>
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbGrpN = V.getAbGroup(Field)
+export const AdditiveAbGrpN = V.getAdditiveAbelianGroup(Field)
 
 /**
  * @since 1.0.0
  * @category Instances
  */
 export const BiModN = V.getBimodule(Field)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const dot = V.innerProduct(Field, identity)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const outerProduct = M.outerProduct(Field)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const l1Norm = V.l1Norm(Field)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const lInfNorm = V.lInfNorm(Bounded, abs)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const cross = V.crossProduct(Field)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const projection = V.projection(Field, identity)
 
 // ###############
 // ### Mat MxN ###
@@ -407,6 +371,34 @@ export const polynomialProjection = Poly.projection(
   (n, r) => Field.mul(fromNumber(n), r),
   identity
 )
+
+// ###############
+// ### Aliases ###
+// ###############
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const add = Field.add
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const sub = Field.sub
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const mul = Field.mul
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const div = Field.div
 
 // ################
 // ### Internal ###

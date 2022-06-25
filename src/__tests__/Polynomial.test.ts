@@ -95,7 +95,7 @@ describe('polynomial', () => {
       expect(_(a, '/', a)).toStrictEqual(one)
     })
   })
-  describe('vector space laws', () => {
+  describe('Vector Space laws', () => {
     it('associates over scalar multiplication', () => {
       const a = randN()
       const b = randN()

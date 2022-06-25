@@ -179,7 +179,7 @@ export const liftA2: <N, A, B>(
  * @since 1.0.0
  * @category Instances
  */
-export const getAbGroup: <A>(
+export const getAdditiveAbelianGroup: <A>(
   R: Rng.Ring<A>
 ) => <N extends number>(n: N) => TC.AbelianGroup<Vec<N, A>> = R => n => ({
   concat: liftA2(R.add),
@@ -194,7 +194,7 @@ export const getAbGroup: <A>(
 export const getBimodule: <R>(
   R: Rng.Ring<R>
 ) => <N extends number>(n: N) => TC.Bimodule<Vec<N, R>, R> = R => n => ({
-  ...getAbGroup(R)(n),
+  ...getAdditiveAbelianGroup(R)(n),
   leftScalarMul: (r, v) =>
     pipe(
       v,

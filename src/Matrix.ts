@@ -7,6 +7,7 @@ import * as Fun from 'fp-ts/Functor'
 import * as FunI from 'fp-ts/FunctorWithIndex'
 import * as Fl from 'fp-ts/Foldable'
 import * as FlI from 'fp-ts/FoldableWithIndex'
+import * as IO from 'fp-ts/IO'
 import { HKT, Kind, Kind2, Kind3, Kind4, URIS, URIS2, URIS3, URIS4 } from 'fp-ts/HKT'
 import * as Mn from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
@@ -210,6 +211,17 @@ export const outerProduct: <A>(
   v1: V.Vec<M, A>,
   v2: V.Vec<N, A>
 ) => Mat<M, N, A> = R => (v1, v2) => mul(R)(fromVectorAsColumn(v1), fromVectorAsRow(v2))
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const randMatrix: <M extends number, N extends number, A>(
+  m: M,
+  n: N,
+  make: IO.IO<A>
+) => IO.IO<Mat<M, N, A>> = (m, n, make) =>
+  pipe(V.randVec(m, V.randVec(n, make)), IO.map(from2dVectors))
 
 // #####################
 // ### Non-Pipeables ###

@@ -317,7 +317,7 @@ export type Vec<N> = V.Vec<N, Complex>
  * @since 1.0.0
  * @category Instances
  */
-export const AdditiveAbGrpN = V.getAbGroup(Field)
+export const AdditiveAbGrpN = V.getAdditiveAbelianGroup(Field)
 
 /**
  * @since 1.0.0
@@ -490,3 +490,31 @@ export const polynomialProjection = Poly.projection(
   ComplexBimodule.leftScalarMul,
   conj
 )
+
+// ###############
+// ### Aliases ###
+// ###############
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const add = Field.add
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const sub = Field.sub
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const mul = Field.mul
+
+/**
+ * @since 1.0.0
+ * @category Aliases
+ */
+export const div = Field.div
