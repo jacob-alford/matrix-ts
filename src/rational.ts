@@ -9,13 +9,11 @@ import * as N from 'fp-ts/number'
 import * as Ord_ from 'fp-ts/Ord'
 import * as O from 'fp-ts/Option'
 import * as Sh from 'fp-ts/Show'
-import { identity, pipe, unsafeCoerce } from 'fp-ts/function'
+import { pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as Inf from './infix'
 import * as Int from './integer'
-import * as LI from './LinearIsomorphism'
 import * as M from './Matrix'
-import * as Poly from './Polynomial'
 import * as V from './Vector'
 
 const RationalSymbol = Symbol('Rational')
@@ -281,96 +279,6 @@ export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(Field)
  * @category Instances
  */
 export const BiModMN = M.getBimodule(Field)
-
-// ###################
-// ### Polynomials ###
-// ###################
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(Eq, Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialBimodule = Poly.getBimodule(Eq, Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialRing = Poly.getCommutativeRing(Eq, Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, Field)
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getDifferentialLinearIsomorphism: (
-  constantTerm: Rational
-) => LI.LinearIsomorphism1<Poly.URI, Rational, Rational> = constantTerm => ({
-  mapL: derivative,
-  reverseMapL: getAntiderivative(constantTerm),
-})
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const evaluatePolynomial = Poly.evaluate(Field)
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const derivative = Poly.derivative<Rational>((n, r) =>
-  Field.mul(wrap(Int.fromNumber(n), Int.one), r)
-)
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const integrate = Poly.integrate(Field, (n, r) => Field.mul(fromNumber(n), r))
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const getAntiderivative: (
-  constantTerm: Rational
-) => (p: Poly.Polynomial<Rational>) => Poly.Polynomial<Rational> = constantTerm =>
-  Poly.antiderivative(constantTerm, (n, r) => Field.mul(fromNumber(n), r))
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const polynomialInnerProduct = Poly.l2InnerProduct(
-  Eq,
-  Field,
-  (n, r) => Field.mul(fromNumber(n), r),
-  identity
-)
-
-/**
- * @since 1.0.0
- * @category Polynomial Operations
- */
-export const polynomialProjection = Poly.projection(
-  Eq,
-  Field,
-  (n, r) => Field.mul(fromNumber(n), r),
-  identity
-)
 
 // ###############
 // ### Aliases ###

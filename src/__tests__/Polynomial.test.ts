@@ -131,7 +131,7 @@ describe('polynomial', () => {
       }
     })
   })
-  describe('Inner product laws', () => {
+  describe('Inner Product laws', () => {
     it('abides conjugate symmetry', () => {
       const x = randCP()
       const y = randCP()

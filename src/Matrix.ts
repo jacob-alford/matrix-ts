@@ -317,7 +317,12 @@ export const getLinearMap =
     mapL: x =>
       pipe(
         A,
-        V.map(y => V.innerProduct(R, a => a)(x, y))
+        V.map(Ai =>
+          pipe(
+            V.zipVectors(Ai, x),
+            V.foldMap(U.getAdditionMonoid(R))(([aij, xj]) => R.mul(aij, xj))
+          )
+        )
       ),
   })
 

@@ -14,6 +14,7 @@ import * as Iso from './Iso'
 import * as TC from './typeclasses'
 import * as V from './Vector'
 import * as M from './Matrix'
+import * as Poly from './Polynomial'
 
 const IntegerSymbol = Symbol('Integer')
 type IntegerSymbol = typeof IntegerSymbol
@@ -250,6 +251,37 @@ export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(EuclideanRing)
  * @category Instances
  */
 export const BiModMN = M.getBimodule(EuclideanRing)
+
+// #############################
+// ### Polynomial Operations ###
+// #############################
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialAdditiveAbelianGroup = Poly.getAdditiveAbelianGroup(
+  Eq,
+  EuclideanRing
+)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialBimodule = Poly.getBimodule(Eq, EuclideanRing)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialRing = Poly.getCommutativeRing(Eq, EuclideanRing)
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, EuclideanRing)
 
 // ###############
 // ### Aliases ###

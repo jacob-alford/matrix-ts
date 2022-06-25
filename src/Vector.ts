@@ -23,6 +23,7 @@ import { flow, identity, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as TC from './typeclasses'
 import * as U from './lib/utilities'
+import { Complex } from './complex'
 
 // #############
 // ### Model ###
@@ -552,7 +553,7 @@ export const crossProduct: <A>(
  * @since 1.0.0
  * @category Vector Operations
  */
-export const innerProduct: <A>(
+export const innerProduct: <A extends number | Complex>(
   R: Rng.Ring<A>,
   conj: (r: A) => A
 ) => <N>(x: Vec<N, A>, y: Vec<N, A>) => A = (R, conj) =>
@@ -565,8 +566,9 @@ export const innerProduct: <A>(
  * @since 1.0.0
  * @category Vector Operations
  */
-export const l1Norm: <A>(R: Rng.Ring<A>) => <N>(x: Vec<N, A>) => A = R =>
-  foldMap(U.getAdditiveAbelianGroup(R))(x => R.mul(x, x))
+export const l1Norm: <A extends number | Complex>(
+  R: Rng.Ring<A>
+) => <N>(x: Vec<N, A>) => A = R => foldMap(U.getAdditiveAbelianGroup(R))(x => R.mul(x, x))
 
 /**
  * @since 1.0.0
@@ -574,7 +576,7 @@ export const l1Norm: <A>(R: Rng.Ring<A>) => <N>(x: Vec<N, A>) => A = R =>
  */
 export const lpNorm: (
   p: number
-) => <A>(
+) => <A extends number | Complex>(
   R: Rng.Ring<A>,
   abs: (x: A) => A,
   pow: (x: A, n: number) => A
@@ -594,7 +596,7 @@ export const l2Norm = lpNorm(2)
  * @since 1.0.0
  * @category Vector Operations
  */
-export const lInfNorm: <A>(
+export const lInfNorm: <A extends number | Complex>(
   B: Bnd.Bounded<A>,
   abs: (a: A) => A
 ) => <N>(x: Vec<N, A>) => A = (B, abs) =>
@@ -604,7 +606,7 @@ export const lInfNorm: <A>(
  * @since 1.0.0
  * @category Vector Operations
  */
-export const projection: <R>(
+export const projection: <R extends number | Complex>(
   F: Fld.Field<R>,
   conj: (r: R) => R
 ) => <N extends number>(u: Vec<N, R>, v: Vec<N, R>) => Vec<N, R> =

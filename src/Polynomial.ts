@@ -18,7 +18,7 @@ import { Semigroup } from 'fp-ts/Semigroup'
 import { flow, identity as id, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as TC from './typeclasses'
-import * as Int from './integer'
+import { Complex } from './complex'
 
 const PolynomialSymbol = Symbol('Polynomial')
 type PolynomialSymbol = typeof PolynomialSymbol
@@ -355,11 +355,10 @@ export const polynomialCompose: <R>(
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const polynomialDegree: <R>(p: Polynomial<R>) => Int.Int = flow(
+export const polynomialDegree: <R>(p: Polynomial<R>) => number = flow(
   coefficients,
   RA.size,
-  n => n - 1,
-  Int.fromNumber
+  n => n - 1
 )
 
 /**
@@ -367,10 +366,10 @@ export const polynomialDegree: <R>(p: Polynomial<R>) => Int.Int = flow(
  * @category Polynomial Operations
  */
 export const derivative: <R>(
-  scaleLeft: (n: Int.Int, r: R) => R
+  scaleLeft: (n: number, r: R) => R
 ) => (coeffs: Polynomial<R>) => Polynomial<R> = scaleLeft =>
   flow(
-    RA.mapWithIndex((i, coeff) => scaleLeft(Int.fromNumber(i), coeff)),
+    RA.mapWithIndex((i, coeff) => scaleLeft(i, coeff)),
     RA.dropLeft(1),
     wrap
   )
@@ -406,7 +405,7 @@ export const antiderivative: <R>(
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const l2InnerProduct: <R>(
+export const l2InnerProduct: <R extends number | Complex>(
   Eq_: Eq.Eq<R>,
   R: Rng.Ring<R>,
   scaleLeft: (n: number, r: R) => R,
@@ -422,7 +421,7 @@ export const l2InnerProduct: <R>(
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const norm: <R>(
+export const norm: <R extends number | Complex>(
   Eq_: Eq.Eq<R>,
   R: Rng.Ring<R>,
   scaleLeft: (n: number, r: R) => R,
@@ -435,7 +434,7 @@ export const norm: <R>(
  * @since 1.0.0
  * @category Polynomial Operations
  */
-export const projection: <R>(
+export const projection: <R extends number | Complex>(
   Eq_: Eq.Eq<R>,
   F: Fld.Field<R>,
   scaleLeft: (n: number, r: R) => R,
