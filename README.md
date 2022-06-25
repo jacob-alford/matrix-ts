@@ -43,6 +43,89 @@ A mathematics library with vectors, matricies, numerical linear algebra, abstrac
 - `RightModule` – Right scalar multiplation
 - `Bimodule` – Left and Right scalar multiplication
 
+## Examples
+
+### Add fractions
+
+`src/__tests__/examples.test.ts`
+
+```ts
+it('adds fractions', () => {
+  const { _ } = Q
+
+  const a = Q.of(Int.fromNumber(1), Int.fromNumber(2))
+  const b = Q.of(Int.fromNumber(1), Int.fromNumber(3))
+
+  const c = pipe(
+    O.Do,
+    O.apS('a', a),
+    O.apS('b', b),
+    O.map(({ a, b }) => _(a, '+', b))
+  )
+
+  const expected = Q.of(Int.fromNumber(5), Int.fromNumber(6))
+
+  expect(c).toStrictEqual(expected)
+})
+```
+
+### Vector dot product
+
+`src/__tests__/examples.test.ts`
+
+```ts
+import * as N from 'matrix-ts/number'
+import * as V from 'matrix-ts/Vector'
+
+it('dots two vectors', () => {
+  const a = V.fromTuple([1, 2, 3, 4, 5, 6])
+  const b = V.fromTuple([4, 5, 6, 7, 8, 9])
+  expect(N.dot(a, b)).toBe(154)
+})
+```
+
+### Vector cross product
+
+`src/__tests__/examples.test.ts`
+
+```ts
+import * as N from 'matrix-ts/number'
+import * as V from 'matrix-ts/Vector'
+
+it('crosses two vectors', () => {
+  const a = V.fromTuple([0, 2, 1])
+  const b = V.fromTuple([3, -1, 0])
+  expect(N.cross(a, b)).toStrictEqual(V.fromTuple([1, 3, -6]))
+})
+```
+
+### Multiplies two Integer Polynomials
+
+`src/__tests__examples.test.ts`
+
+```ts
+it('multiples two polynomials', () => {
+  const fromArr = Poly.fromCoefficientArray(Int.Eq, Int.EuclideanRing)
+  const mul = Poly.mul(Int.Eq, Int.EuclideanRing)
+  const _ = Int.fromNumber
+  const { show } = Poly.getShow('x')(
+    Int.Show,
+    a => a === 0,
+    a => a === 1
+  )
+
+  // x + x^2
+  const p1 = fromArr([_(0), _(1), _(1)])
+  // 1 + x^4
+  const p2 = fromArr([_(1), _(0), _(0), _(0), _(1)])
+
+  // Expected: x + x^2 + x^5 + x^6
+  const result = mul(p1, p2)
+
+  expect(show(result)).toBe('x + x^2 + x^5 + x^6')
+})
+```
+
 ## Advanced Examples
 
 ### LUP: Gaussian Elimination with Partial Pivoting
@@ -96,10 +179,11 @@ import * as V from 'matrix-ts/Vector'
 import * as Stat from 'matrix-ts/Multivariate'
 
 it('calculates a covariance matrix', () => {
-  const sample: Stat.MultivariateSample<3> = pipe(
-    [V.fromTuple([1, 2, 5]), V.fromTuple([4, 1, 6])],
-    RNEA.concat(RNEA.of(V.fromTuple([4, 0, 4])))
-  )
+  const sample: Stat.MultivariateSample<3> = [
+    V.fromTuple([1, 2, 5]),
+    V.fromTuple([4, 1, 6]),
+    V.fromTuple([4, 0, 4]),
+  ]
 
   const cov = Stat.covariance(sample)
 
@@ -108,36 +192,6 @@ it('calculates a covariance matrix', () => {
     [-3 / 2, 1, 1 / 2],
     [0, 1 / 2, 1],
   ])
-})
-```
-
-### Vector dot product
-
-`src/__tests__/examples.test.ts`
-
-```ts
-import * as N from 'matrix-ts/number'
-import * as V from 'matrix-ts/Vector'
-
-it('dots two vectors', () => {
-  const a = V.fromTuple([1, 2, 3, 4, 5, 6])
-  const b = V.fromTuple([4, 5, 6, 7, 8, 9])
-  expect(N.dot(a, b)).toBe(154)
-})
-```
-
-### Vector cross product
-
-`src/__tests__/examples.test.ts`
-
-```ts
-import * as N from 'matrix-ts/number'
-import * as V from 'matrix-ts/Vector'
-
-it('crosses two vectors', () => {
-  const a = V.fromTuple([0, 2, 1])
-  const b = V.fromTuple([3, -1, 0])
-  expect(N.cross(a, b)).toStrictEqual(V.fromTuple([1, 3, -6]))
 })
 ```
 

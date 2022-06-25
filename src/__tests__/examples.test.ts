@@ -1,12 +1,56 @@
-import { flow } from 'fp-ts/function'
+import * as O from 'fp-ts/Option'
+import { flow, pipe } from 'fp-ts/function'
 
 import * as LI from '../LinearIsomorphism'
+import * as Int from '../integer'
 import * as H from '../quaternion'
 import * as N from '../number'
 import * as Poly from '../Polynomial'
 import * as V from '../Vector'
+import * as Q from '../rational'
 
 describe('examples', () => {
+  describe('polynomials', () => {
+    it('multiples two polynomials', () => {
+      const fromArr = Poly.fromCoefficientArray(Int.Eq, Int.EuclideanRing)
+      const mul = Poly.mul(Int.Eq, Int.EuclideanRing)
+      const _ = Int.fromNumber
+      const { show } = Poly.getShow('x')(
+        Int.Show,
+        a => a === 0,
+        a => a === 1
+      )
+
+      // x + x^2
+      const p1 = fromArr([_(0), _(1), _(1)])
+      // 1 + x^4
+      const p2 = fromArr([_(1), _(0), _(0), _(0), _(1)])
+
+      // Expected: x + x^2 + x^5 + x^6
+      const result = mul(p1, p2)
+
+      expect(show(result)).toBe('x + x^2 + x^5 + x^6')
+    })
+  })
+  describe('fractions', () => {
+    it('adds fractions', () => {
+      const { _ } = Q
+
+      const a = Q.of(Int.fromNumber(1), Int.fromNumber(2))
+      const b = Q.of(Int.fromNumber(1), Int.fromNumber(3))
+
+      const c = pipe(
+        O.Do,
+        O.apS('a', a),
+        O.apS('b', b),
+        O.map(({ a, b }) => _(a, '+', b))
+      )
+
+      const expected = Q.of(Int.fromNumber(5), Int.fromNumber(6))
+
+      expect(c).toStrictEqual(expected)
+    })
+  })
   describe('vectors', () => {
     it('dots two vectors', () => {
       const a = V.fromTuple([1, 2, 3, 4, 5, 6])

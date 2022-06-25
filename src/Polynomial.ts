@@ -15,6 +15,8 @@ import * as Ord from 'fp-ts/Ord'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
 import { Semigroup } from 'fp-ts/Semigroup'
+import { Show } from 'fp-ts/Show'
+import * as Str from 'fp-ts/string'
 import { flow, identity as id, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as TC from './typeclasses'
@@ -293,6 +295,32 @@ export const FunctorWithIndex: FunI.FunctorWithIndex1<URI, number> = {
   ...Functor,
   mapWithIndex: _mapWithIndex,
 }
+
+/**
+ * @since 1.0.0
+ * @category Instances
+ */
+export const getShow: (
+  variable: string
+) => <A>(
+  S: Show<A>,
+  isZero: (a: A) => boolean,
+  isOne: (a: A) => boolean
+) => Show<Polynomial<A>> = variable => (S, isZero, isOne) => ({
+  show: flow(
+    RA.filterMapWithIndex((i, a) => {
+      if (isZero(a)) return O.none
+      if (i === 0) return O.some(S.show(a))
+      if (i === 1) {
+        if (isOne(a)) return O.some(variable)
+        return O.some(`${S.show(a)}${variable}`)
+      }
+      if (isOne(a)) return O.some(`${variable}^${i}`)
+      return O.some(`${S.show(a)}${variable}^${i}`)
+    }),
+    RA.intercalate(Str.Monoid)(' + ')
+  ),
+})
 
 // ###################
 // ### Destructors ###
