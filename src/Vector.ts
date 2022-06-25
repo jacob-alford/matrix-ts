@@ -112,7 +112,7 @@ const _map: Fun.Functor2<URI>['map'] = (fa, f) => pipe(fa, map(f))
 const _mapWithIndex: FunI.FunctorWithIndex2<URI, number>['mapWithIndex'] = (fa, f) =>
   pipe(fa, mapWithIndex(f))
 const _ap: Apl.Applicative2<URI>['ap'] = (fab, fa) => pipe(fab, ap(fa))
-const _chain: Mon.Monad2<URI>['chain'] = (fa, f) => pipe(fa, chain(f))
+const _chain: Mon.Monad2C<URI, 1>['chain'] = (fa, f) => pipe(fa, chain(f))
 const _reduce: Fl.Foldable2<URI>['reduce'] = (fa, b, f) => pipe(fa, reduce(b, f))
 const _foldMap: Fl.Foldable2<URI>['foldMap'] = M => (fa, f) => pipe(fa, foldMap(M)(f))
 const _reduceRight: Fl.Foldable2<URI>['reduceRight'] = (fa, b, f) =>
@@ -299,7 +299,7 @@ export const Applicative: Apl.Applicative2C<URI, 1> = {
  * @since 1.0.0
  * @category Instance operations
  */
-export const chain: <N, A, B>(f: (a: A) => Vec<N, B>) => (ma: Vec<N, A>) => Vec<N, B> =
+export const chain: <A, B>(f: (a: A) => Vec<1, B>) => <N>(ma: Vec<N, A>) => Vec<N, B> =
   f => ma =>
     pipe(ma, RA.chain(f), a => wrap(a))
 
@@ -307,8 +307,9 @@ export const chain: <N, A, B>(f: (a: A) => Vec<N, B>) => (ma: Vec<N, A>) => Vec<
  * @since 1.0.0
  * @category Instances
  */
-export const Chain: Chn.Chain2<URI> = {
+export const Chain: Chn.Chain2C<URI, 1> = {
   ...Apply,
+  _E: 1,
   chain: _chain,
 }
 
