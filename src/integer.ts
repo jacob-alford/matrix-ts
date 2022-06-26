@@ -193,7 +193,7 @@ export const toNumber: (x: Int) => number = identity
  * @since 1.0.0
  * @category Isomorphisms
  */
-export const isoNumber: Iso.Iso0<Int, number> = {
+export const isoNumber: Iso.Iso<Int, number> = {
   get: toNumber,
   reverseGet: fromNumber,
 }

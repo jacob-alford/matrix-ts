@@ -7,8 +7,8 @@ import * as Sh from 'fp-ts/Show'
 import * as N from 'fp-ts/number'
 import { pipe } from 'fp-ts/function'
 
+import * as Auto from './Auto'
 import * as Iso from './Iso'
-import * as LI from './LinearIsomorphism'
 import * as TC from './typeclasses'
 import * as V from './Vector'
 import * as Inf from './infix'
@@ -232,15 +232,15 @@ export const rotateVector: (
  * @since 1.0.0
  * @category Instances
  */
-export const getRotationLinearIsomorpism: (
+export const getRotationAutomorphism: (
   axis: V.Vec<3, number>,
   theta: number
-) => LI.LinearIsomorphism2<V.URI, 3, number, number> = (axis, theta) => {
+) => Auto.Automorphism<V.Vec<3, number>> = (axis, theta) => {
   const q = getRotationQuaternion(axis)(theta)
   const qi = recip(q)
   return {
-    mapL: p => pipe(DivisionRing.mul(q, DivisionRing.mul(fromVector3(p), qi)), toVector3),
-    reverseMapL: p =>
+    get: p => pipe(DivisionRing.mul(q, DivisionRing.mul(fromVector3(p), qi)), toVector3),
+    reverseGet: p =>
       pipe(DivisionRing.mul(qi, DivisionRing.mul(fromVector3(p), q)), toVector3),
   }
 }
@@ -302,7 +302,7 @@ export const norm: (q: Quaternion) => number = q =>
  * @since 1.0.0
  * @category Destructors
  */
-export const IsoVector4: Iso.Iso0<Quaternion, V.Vec<4, number>> = {
+export const IsoVector4: Iso.Iso<Quaternion, V.Vec<4, number>> = {
   get: toVector4,
   reverseGet: fromVector4,
 }

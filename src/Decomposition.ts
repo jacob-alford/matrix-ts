@@ -145,11 +145,10 @@ export const LUP = <M extends number>(
     ChnR.tailRec(C.of({ LU: m, i: 0, P: Id }), go),
     C.map(({ LU, P }) => {
       const [L, U] = MatTypes.fromMatrix(N.Field)(LU)
-      const { mapL } = M.getLinearMap(N.Field)(P)
       return {
         input: m,
         result: tuple(L, U, P),
-        solve: b => backSub(U, forwardSub(L, mapL(b))),
+        solve: b => backSub(U, forwardSub(L, N.linMap(P, b))),
       }
     })
   )

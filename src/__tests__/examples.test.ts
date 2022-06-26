@@ -1,7 +1,7 @@
 import * as O from 'fp-ts/Option'
 import { flow, pipe } from 'fp-ts/function'
 
-import * as LI from '../LinearIsomorphism'
+import * as Auto from '../Auto'
 import * as Int from '../integer'
 import * as H from '../quaternion'
 import * as N from '../number'
@@ -67,10 +67,10 @@ describe('examples', () => {
     it('differentiates and integrates polynomials', () => {
       const { equals } = Poly.getPolynomialEq<number>(N.Eq)
 
-      const { mapL, reverseMapL } = N.getDifferentialLinearIsomorphism(1)
+      const L = N.getDifferentialAutomorphism(1)
 
-      const thereAndBack = flow(mapL, reverseMapL)
-      const hereAndThere = flow(reverseMapL, mapL)
+      const thereAndBack = flow(L.get, L.reverseGet)
+      const hereAndThere = flow(L.reverseGet, L.get)
 
       const a = Poly.fromCoefficientArray(N.Eq, N.Field)([1, 2, 3])
 
@@ -78,15 +78,15 @@ describe('examples', () => {
       expect(equals(hereAndThere(a), a)).toBe(true)
     })
     it('rotates a 2d vector and back 270 degrees', () => {
-      const rotate90Degrees = N.getRotationMap2d(Math.PI / 2)
-      const rotate180Degres = N.getRotationMap2d(Math.PI)
+      const rotate90Degrees = N.get2dRotation(Math.PI / 2)
+      const rotate180Degres = N.get2dRotation(Math.PI)
 
-      const { mapL, reverseMapL } = LI.compose(rotate90Degrees, rotate180Degres)
+      const T = Auto.compose(rotate90Degrees, rotate180Degres)
 
       const initial = V.fromTuple([1, 0])
-      const rotated = mapL(initial)
+      const rotated = T.get(initial)
       const expected = V.fromTuple([0, -1])
-      const reversed = reverseMapL(rotated)
+      const reversed = T.reverseGet(rotated)
 
       for (const [a, b] of V.zipVectors(rotated, expected)) {
         expect(a).toBeCloseTo(b)
@@ -96,15 +96,15 @@ describe('examples', () => {
       }
     })
     it('rotates a 3d vector and back along three axies', () => {
-      const rotateX45 = N.getXRotationMap3d(Math.PI / 4)
-      const rotateY180 = N.getYRotationMap3d(Math.PI)
-      const rotateZ90 = N.getZRotationMap3d(Math.PI / 2)
+      const rotateX45 = N.get3dXRotation(Math.PI / 4)
+      const rotateY180 = N.get3dYRotation(Math.PI)
+      const rotateZ90 = N.get3dZRotation(Math.PI / 2)
 
-      const rotate = LI.compose(rotateX45, LI.compose(rotateY180, rotateZ90))
+      const T = Auto.compose(rotateX45, Auto.compose(rotateY180, rotateZ90))
 
       const initial = V.fromTuple([0, 0, 1])
-      const rotated = rotate.mapL(initial)
-      const reversed = rotate.reverseMapL(rotated)
+      const rotated = T.get(initial)
+      const reversed = T.reverseGet(rotated)
       const expected = V.fromTuple([1 / Math.sqrt(2), 0, -1 / Math.sqrt(2)])
 
       for (const [a, b] of V.zipVectors(rotated, expected)) {
@@ -115,7 +115,7 @@ describe('examples', () => {
       }
     })
     it('rotates a 3d vector using quaternions', () => {
-      const { mapL, reverseMapL } = H.getRotationLinearIsomorpism(
+      const T = H.getRotationAutomorphism(
         // Around axis:
         V.fromTuple([1, 1, 1]),
         // By angle:
@@ -123,8 +123,8 @@ describe('examples', () => {
       )
 
       const initial = V.fromTuple([1, 0, 0])
-      const rotated = mapL(initial)
-      const reversed = reverseMapL(rotated)
+      const rotated = T.get(initial)
+      const reversed = T.reverseGet(rotated)
       const expected = V.fromTuple([0, 1, 0])
 
       for (const [a, b] of V.zipVectors(rotated, expected)) {

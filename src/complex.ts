@@ -9,8 +9,8 @@ import * as O from 'fp-ts/Option'
 import * as N from 'fp-ts/number'
 import { flow, pipe } from 'fp-ts/function'
 
+import * as Auto from './Auto'
 import * as Iso from './Iso'
-import * as LI from './LinearIsomorphism'
 import * as M from './Matrix'
 import * as Poly from './Polynomial'
 import * as TC from './typeclasses'
@@ -298,7 +298,7 @@ export const modulus: (c: Complex) => number = ({ Re, Im }) =>
  * @since 1.0.0
  * @category Isomorphisms
  */
-export const IsoVector: Iso.Iso0<Complex, V.Vec<2, number>> = {
+export const IsoVector: Iso.Iso<Complex, V.Vec<2, number>> = {
   get: toVector,
   reverseGet: fromVector,
 }
@@ -390,6 +390,30 @@ export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(Field)
  */
 export const BiModMN = M.getBimodule(Field)
 
+/**
+ * Compose two matricies: `A`, and `B` with Matrix multiplication.
+ *
+ * For A in `MxN`, and B in `NxP` returns `AB` in `MxP`.
+ *
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const mulM = M.mul(Field)
+
+/**
+ * Map a vector with length `N`, with a matrix A with size `MxN`, to a vector of length `M`.
+ *
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const linMap = M.linMap(Field)
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const trace = M.trace(Field)
+
 // ###################
 // ### Polynomials ###
 // ###################
@@ -422,11 +446,11 @@ export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, Field)
  * @since 1.0.0
  * @category Instances
  */
-export const getDifferentialLinearIsomorphism: (
+export const getDifferentialAutomorphism: (
   constantTerm: Complex
-) => LI.LinearIsomorphism1<Poly.URI, Complex, Complex> = constantTerm => ({
-  mapL: derivative,
-  reverseMapL: getAntiderivative(constantTerm),
+) => Auto.Automorphism<Poly.Polynomial<Complex>> = constantTerm => ({
+  get: derivative,
+  reverseGet: getAntiderivative(constantTerm),
 })
 
 /**

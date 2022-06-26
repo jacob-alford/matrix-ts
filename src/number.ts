@@ -1,10 +1,9 @@
 import * as N from 'fp-ts/number'
 import { identity } from 'fp-ts/function'
 
+import * as Auto from './Auto'
 import * as Inf from './infix'
 import * as IO from 'fp-ts/IO'
-import * as LI from './LinearIsomorphism'
-import * as LM from './LinearMap'
 import * as M from './Matrix'
 import * as Poly from './Polynomial'
 import * as V from './Vector'
@@ -97,14 +96,6 @@ export const Field = N.Field
  */
 export const Show = N.Show
 
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getLinearMap: <M>(
-  M: M.Mat<M, M, number>
-) => LM.LinearMap2<V.URI, M, number, number> = M.getLinearMap(Field)
-
 // #############
 // ### Infix ###
 // #############
@@ -153,24 +144,20 @@ export const BiModN = V.getBimodule(Field)
  * @since 1.0.0
  * @category Instances
  */
-export const getRotationMap2d: (
+export const get2dRotation: (
   theta: number
-) => LI.LinearIsomorphism2<V.URI, 2, number, number> = theta => {
-  const to = getLinearMap(
-    M.fromNestedTuples([
-      [Math.cos(theta), -Math.sin(theta)],
-      [Math.sin(theta), Math.cos(theta)],
-    ])
-  )
-  const from = getLinearMap(
-    M.fromNestedTuples([
-      [Math.cos(theta), Math.sin(theta)],
-      [-Math.sin(theta), Math.cos(theta)],
-    ])
-  )
+) => Auto.Automorphism<V.Vec<2, number>> = theta => {
+  const to = M.fromNestedTuples([
+    [Math.cos(theta), -Math.sin(theta)],
+    [Math.sin(theta), Math.cos(theta)],
+  ])
+  const from = M.fromNestedTuples([
+    [Math.cos(theta), Math.sin(theta)],
+    [-Math.sin(theta), Math.cos(theta)],
+  ])
   return {
-    ...to,
-    reverseMapL: from.mapL,
+    get: x => linMap(to, x),
+    reverseGet: x => linMap(from, x),
   }
 }
 
@@ -178,26 +165,22 @@ export const getRotationMap2d: (
  * @since 1.0.0
  * @category Instances
  */
-export const getXRotationMap3d: (
+export const get3dXRotation: (
   theta: number
-) => LI.LinearIsomorphism2<V.URI, 3, number, number> = theta => {
-  const to = getLinearMap(
-    M.fromNestedTuples([
-      [1, 0, 0],
-      [0, Math.cos(theta), -Math.sin(theta)],
-      [0, Math.sin(theta), Math.cos(theta)],
-    ])
-  )
-  const from = getLinearMap(
-    M.fromNestedTuples([
-      [1, 0, 0],
-      [0, Math.cos(theta), Math.sin(theta)],
-      [0, -Math.sin(theta), Math.cos(theta)],
-    ])
-  )
+) => Auto.Automorphism<V.Vec<3, number>> = theta => {
+  const to = M.fromNestedTuples([
+    [1, 0, 0],
+    [0, Math.cos(theta), -Math.sin(theta)],
+    [0, Math.sin(theta), Math.cos(theta)],
+  ])
+  const from = M.fromNestedTuples([
+    [1, 0, 0],
+    [0, Math.cos(theta), Math.sin(theta)],
+    [0, -Math.sin(theta), Math.cos(theta)],
+  ])
   return {
-    ...to,
-    reverseMapL: from.mapL,
+    get: x => linMap(to, x),
+    reverseGet: x => linMap(from, x),
   }
 }
 
@@ -205,26 +188,22 @@ export const getXRotationMap3d: (
  * @since 1.0.0
  * @category Instances
  */
-export const getYRotationMap3d: (
+export const get3dYRotation: (
   theta: number
-) => LI.LinearIsomorphism2<V.URI, 3, number, number> = theta => {
-  const to = getLinearMap(
-    M.fromNestedTuples([
-      [Math.cos(theta), 0, Math.sin(theta)],
-      [0, 1, 0],
-      [-Math.sin(theta), 0, Math.cos(theta)],
-    ])
-  )
-  const from = getLinearMap(
-    M.fromNestedTuples([
-      [Math.cos(theta), 0, -Math.sin(theta)],
-      [0, 1, 0],
-      [Math.sin(theta), 0, Math.cos(theta)],
-    ])
-  )
+) => Auto.Automorphism<V.Vec<3, number>> = theta => {
+  const to = M.fromNestedTuples([
+    [Math.cos(theta), 0, Math.sin(theta)],
+    [0, 1, 0],
+    [-Math.sin(theta), 0, Math.cos(theta)],
+  ])
+  const from = M.fromNestedTuples([
+    [Math.cos(theta), 0, -Math.sin(theta)],
+    [0, 1, 0],
+    [Math.sin(theta), 0, Math.cos(theta)],
+  ])
   return {
-    ...to,
-    reverseMapL: from.mapL,
+    get: x => linMap(to, x),
+    reverseGet: x => linMap(from, x),
   }
 }
 
@@ -232,26 +211,22 @@ export const getYRotationMap3d: (
  * @since 1.0.0
  * @category Instances
  */
-export const getZRotationMap3d: (
+export const get3dZRotation: (
   theta: number
-) => LI.LinearIsomorphism2<V.URI, 3, number, number> = theta => {
-  const to = getLinearMap(
-    M.fromNestedTuples([
-      [Math.cos(theta), -Math.sin(theta), 0],
-      [Math.sin(theta), Math.cos(theta), 0],
-      [0, 0, 1],
-    ])
-  )
-  const from = getLinearMap(
-    M.fromNestedTuples([
-      [Math.cos(theta), Math.sin(theta), 0],
-      [-Math.sin(theta), Math.cos(theta), 0],
-      [0, 0, 1],
-    ])
-  )
+) => Auto.Automorphism<V.Vec<3, number>> = theta => {
+  const to = M.fromNestedTuples([
+    [Math.cos(theta), -Math.sin(theta), 0],
+    [Math.sin(theta), Math.cos(theta), 0],
+    [0, 0, 1],
+  ])
+  const from = M.fromNestedTuples([
+    [Math.cos(theta), Math.sin(theta), 0],
+    [-Math.sin(theta), Math.cos(theta), 0],
+    [0, 0, 1],
+  ])
   return {
-    ...to,
-    reverseMapL: from.mapL,
+    get: x => linMap(to, x),
+    reverseGet: x => linMap(from, x),
   }
 }
 
@@ -326,6 +301,30 @@ export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(Field)
  */
 export const BiModMN = M.getBimodule(Field)
 
+/**
+ * Compose two matricies: `A`, and `B` with Matrix multiplication.
+ *
+ * For A in `MxN`, and B in `NxP` returns `AB` in `MxP`.
+ *
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const mulM = M.mul(Field)
+
+/**
+ * Map a vector with length `N`, with a matrix A with size `MxN`, to a vector of length `M`.
+ *
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const linMap = M.linMap(Field)
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const trace = M.trace(Field)
+
 // #############################
 // ### Polynomial Operations ###
 // #############################
@@ -358,11 +357,11 @@ export const PolynomialEuclidianRing = Poly.getEuclidianRing(Eq, Field)
  * @since 1.0.0
  * @category Instances
  */
-export const getDifferentialLinearIsomorphism: (
+export const getDifferentialAutomorphism: (
   constantTerm: number
-) => LI.LinearIsomorphism1<Poly.URI, number, number> = constantTerm => ({
-  mapL: derivative,
-  reverseMapL: getAntiderivative(constantTerm),
+) => Auto.Automorphism<Poly.Polynomial<number>> = constantTerm => ({
+  get: derivative,
+  reverseGet: getAntiderivative(constantTerm),
 })
 
 /**

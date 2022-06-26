@@ -1,6 +1,6 @@
 # [WIP] matrix-ts
 
-A mathematics library with vectors, matricies, numerical linear algebra, abstract algebra, polynomials, and multivariate statistics.
+fp-ts styled mathematics library featuring: Linear algebra, numerical methods, polynomials,and statistics
 
 ## Possible future additions:
 
@@ -29,14 +29,10 @@ A mathematics library with vectors, matricies, numerical linear algebra, abstrac
 - `Multivariate.ts` – Means / covariances / correlations of multivariable sampling
 - `Univariate.ts` – Means variance / covariance / correlation of univariate and bivariate sampling
 
-## HKT Typeclasses
-
-- `Iso.ts` – Higher level isomorphisms
-- `LinearMap.ts` – Linear Maps and composition
-- `LinearIsomorphism.ts` – Linear Maps and composition
-
 ## Typeclasses
 
+- `Iso.ts` – Generic isomorphisms with composition
+- `Auto.ts` – Generic automorphisms with composition
 - `AbelianGroup` – Commutative group
 - `CommutativeRing` – A commutative ring
 - `LeftModule` – Left scalar multiplication
@@ -202,7 +198,7 @@ it('calculates a covariance matrix', () => {
 })
 ```
 
-### Linear Isomorphisms of a Polynomial
+### Automorphisms of a Polynomial
 
 `src/__tests__/examples.test.ts`
 
@@ -211,21 +207,21 @@ import * as Poly from 'matrix-ts/Polynomial'
 import * as LI from 'matrix-ts/LinearIsomorphism'
 
 it('differentiates and integrates polynomials', () => {
-  const { equals } = Poly.getPolynomialEq<number, number>(N.Field)
+  const { equals } = Poly.getPolynomialEq<number>(N.Eq)
 
-  const { mapL, reverseMapL } = N.getDifferentialLinearIsomorphism(1)
+  const L = N.getDifferentialAutomorphism(1)
 
-  const thereAndBack = flow(mapL, reverseMapL)
-  const hereAndThere = flow(reverseMapL, mapL)
+  const thereAndBack = flow(L.get, L.reverseGet)
+  const hereAndThere = flow(L.reverseGet, L.get)
 
-  const a = Poly.fromCoefficientArray([1, 2, 3])
+  const a = Poly.fromCoefficientArray(N.Eq, N.Field)([1, 2, 3])
 
   expect(equals(thereAndBack(a), a)).toBe(true)
   expect(equals(hereAndThere(a), a)).toBe(true)
 })
 ```
 
-### Linear Isomorphisms of matricies
+### Automorphisms of matricies
 
 `src/__tests__/examples.test.ts`
 
@@ -236,15 +232,15 @@ import * as M from 'matrix-ts/Matrix'
 import * as V from 'matrix-ts/Vector'
 
 it('rotates a 2d vector and back 270 degrees', () => {
-  const rotate90Degrees = N.getRotationMap2d(Math.PI / 2)
-  const rotate180Degres = N.getRotationMap2d(Math.PI)
+  const rotate90Degrees = N.get2dRotation(Math.PI / 2)
+  const rotate180Degres = N.get2dRotation(Math.PI)
 
-  const rotate270Degrees = LI.compose(rotate90Degrees, rotate180Degres)
+  const T = Auto.compose(rotate90Degrees, rotate180Degres)
 
   const initial = V.fromTuple([1, 0])
-  const rotated = rotate270Degrees.mapL(initial)
-  const reversed = rotate270Degrees.reverseMapL(rotated)
+  const rotated = T.get(initial)
   const expected = V.fromTuple([0, -1])
+  const reversed = T.reverseGet(rotated)
 
   for (const [a, b] of V.zipVectors(rotated, expected)) {
     expect(a).toBeCloseTo(b)
@@ -254,15 +250,15 @@ it('rotates a 2d vector and back 270 degrees', () => {
   }
 })
 it('rotates a 3d vector and back along three axies', () => {
-  const rotateX45 = N.getXRotationMap3d(Math.PI / 4)
-  const rotateY180 = N.getYRotationMap3d(Math.PI)
-  const rotateZ90 = N.getZRotationMap3d(Math.PI / 2)
+  const rotateX45 = N.get3dXRotation(Math.PI / 4)
+  const rotateY180 = N.get3dYRotation(Math.PI)
+  const rotateZ90 = N.get3dZRotation(Math.PI / 2)
 
-  const rotate = LI.compose(rotateX45, LI.compose(rotateY180, rotateZ90))
+  const T = Auto.compose(rotateX45, Auto.compose(rotateY180, rotateZ90))
 
   const initial = V.fromTuple([0, 0, 1])
-  const rotated = rotate.mapL(initial)
-  const reversed = rotate.reverseMapL(rotated)
+  const rotated = T.get(initial)
+  const reversed = T.reverseGet(rotated)
   const expected = V.fromTuple([1 / Math.sqrt(2), 0, -1 / Math.sqrt(2)])
 
   for (const [a, b] of V.zipVectors(rotated, expected)) {
@@ -274,7 +270,7 @@ it('rotates a 3d vector and back along three axies', () => {
 })
 ```
 
-### Linear Isomorphisms of quaternion rotation
+### Quaternion automorphisms
 
 `src/__tests__/examples.test.ts`
 

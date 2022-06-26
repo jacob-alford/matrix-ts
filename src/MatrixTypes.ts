@@ -81,7 +81,7 @@ export const toMatrix = <M, A>([l, u]: [
   UpperTriangularMatrix<M, A>
 ]): M.Mat<M, M, A> =>
   pipe(
-    M.liftA2<A, [A, A]>((a, b) => tuple(a, b))(l, u),
+    M.lift2<A, [A, A]>((a, b) => tuple(a, b))(l, u),
     M.mapWithIndex(([i, j], [lower, upper]) => (i > j ? lower : upper))
   )
 
@@ -105,21 +105,7 @@ export const extractDiagonal: <A>(
  * @since 1.0.0
  * @category Isomorphisms
  */
-export const getLUIso: <M, A>(
-  R: Rng.Ring<A>
-) => Iso.Iso0<
-  M.Mat<M, M, A>,
-  [LowerTriangularMatrix<M, A>, UpperTriangularMatrix<M, A>]
-> = R => ({
-  get: fromMatrix(R),
-  reverseGet: toMatrix,
-})
-
-/**
- * @since 1.0.0
- * @category Isomorphisms
- */
-export const getTransposeIso: <M extends number, A>() => Iso.Iso0<
+export const getTransposeIso: <M extends number, A>() => Iso.Iso<
   LowerTriangularMatrix<M, A>,
   UpperTriangularMatrix<M, A>
 > = () => ({
@@ -136,7 +122,6 @@ M
  * @since 1.0.0
  * @category Matrix Operations
  */
-
 export const diagonalMap: <A>(
   f: (a: A) => A
 ) => <M>(m: DiagonalMatrix<M, A>) => DiagonalMatrix<M, A> = f => m => {

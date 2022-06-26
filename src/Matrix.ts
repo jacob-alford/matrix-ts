@@ -15,7 +15,6 @@ import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
 import { flow, identity as id, pipe, unsafeCoerce } from 'fp-ts/function'
 
-import * as LM from './LinearMap'
 import * as TC from './typeclasses'
 import * as V from './Vector'
 import * as U from './lib/utilities'
@@ -282,7 +281,7 @@ export const getAdditiveAbelianGroup =
   <A>(R: Rng.Ring<A>) =>
   <M extends number, N extends number>(m: M, n: N): TC.AbelianGroup<Mat<M, N, A>> => ({
     empty: repeat(R.zero)(m, n),
-    concat: liftA2(R.add),
+    concat: lift2(R.add),
     inverse: flow(V.map(V.map(b => R.sub(R.zero, b))), a => from2dVectors(a)),
   })
 
@@ -304,25 +303,6 @@ export const getBimodule: <A>(
       pipe(
         x,
         map(a => R.mul(r, a))
-      ),
-  })
-
-/**
- * @since 1.0.0
- * @category Instances
- */
-export const getLinearMap =
-  <R>(R: Rng.Ring<R>) =>
-  <M>(A: Mat<M, M, R>): LM.LinearMap2<V.URI, M, R, R> => ({
-    mapL: x =>
-      pipe(
-        A,
-        V.map(Ai =>
-          pipe(
-            V.zipVectors(Ai, x),
-            V.foldMap(U.getAdditionMonoid(R))(([aij, xj]) => R.mul(aij, xj))
-          )
-        )
       ),
   })
 
@@ -631,12 +611,35 @@ export const mul =
         )
 
 /**
+ * Transform a vector `x` into vector `b` by matrix `A`
+ *
+ * ```math
+ * Ax = b
+ * ```
+ *
  * @since 1.0.0
  * @category Matrix Operations
  */
-export const trace: <M extends number, A>(
+export const linMap =
+  <R>(R: Rng.Ring<R>) =>
+  <M, N>(A: Mat<M, N, R>, x: V.Vec<N, R>): V.Vec<M, R> =>
+    pipe(
+      A,
+      V.map(Ai =>
+        pipe(
+          V.zipVectors(Ai, x),
+          V.foldMap(U.getAdditionMonoid(R))(([aij, xj]) => R.mul(aij, xj))
+        )
+      )
+    )
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const trace: <A>(
   R: Rng.Ring<A>
-) => (fa: Mat<M, M, A>) => A = R =>
+) => <M extends number>(fa: Mat<M, M, A>) => A = R =>
   foldMapWithIndex(U.getAdditionMonoid(R))(([i, j], a) => (i === j ? a : R.zero))
 
 /**
@@ -654,48 +657,6 @@ export const transpose = <M extends number, N extends number, A>(
         mapWithIndex(([i, j]) => _(_(v, j), i))
       )
 }
-
-/**
- * @since 1.0.0
- * @category Matrix Operations
- */
-export const replaceRow: (
-  m: number
-) => <M, N, A>(
-  f: (vm: V.Vec<N, A>) => V.Vec<N, A>
-) => (as: Mat<M, N, A>) => O.Option<Mat<M, N, A>> = m => f => as =>
-  pipe(
-    V.get(m)(as),
-    O.chain(a => V.updateAt(m)(f(a))(as)),
-    O.map(a => wrap(a))
-  )
-
-/**
- * @since 1.0.0
- * @category Matrix Operations
- */
-export const addRows =
-  <A, N>(A: TC.AbelianGroup<V.Vec<N, A>>) =>
-  (a: number, b: number) =>
-  <M>(vs: Mat<M, N, A>): O.Option<Mat<M, N, A>> =>
-    pipe(
-      V.get(a)(vs),
-      O.chain(as =>
-        pipe(
-          vs,
-          replaceRow(b)(bs => A.concat(as, bs))
-        )
-      )
-    )
-
-/**
- * @since 1.0.0
- * @category Matrix Operations
- */
-export const scaleRow: <A, N>(
-  M: TC.LeftModule<V.Vec<N, A>, A>
-) => (i: number, a: A) => <M>(vs: Mat<M, N, A>) => O.Option<Mat<M, N, A>> = M => (i, a) =>
-  replaceRow(i)(as => M.leftScalarMul(a, as))
 
 /**
  * @since 1.0.0
@@ -732,7 +693,26 @@ export const get: (i: number, j: number) => <M, N, A>(m: Mat<M, N, A>) => O.Opti
  * @since 1.0.0
  * @category Matrix Operations
  */
-export const liftA2: <A, B>(
+export const lift2: <A, B>(
   f: (x: A, y: A) => B
 ) => <M, N>(x: Mat<M, N, A>, y: Mat<M, N, A>) => Mat<M, N, B> = f =>
   flow(V.liftA2(V.liftA2(f)), from2dVectors)
+
+// ################
+// ### Internal ###
+// ################
+
+/**
+ * @since 1.0.0
+ * @category Internal
+ */
+const replaceRow: (
+  m: number
+) => <M, N, A>(
+  f: (vm: V.Vec<N, A>) => V.Vec<N, A>
+) => (as: Mat<M, N, A>) => O.Option<Mat<M, N, A>> = m => f => as =>
+  pipe(
+    V.get(m)(as),
+    O.chain(a => V.updateAt(m)(f(a))(as)),
+    O.map(a => wrap(a))
+  )
