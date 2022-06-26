@@ -1,6 +1,3 @@
-/*
- * An Automorphism is a endomorphic isomorphism that abides the following laws:
- */
 import * as Iso from './Iso'
 
 // ###################
