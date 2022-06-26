@@ -1,12 +1,12 @@
 import { flow, identity as id } from 'fp-ts/function'
 
-// ####################
-// ### Type Classes ###
-// ####################
+// ###################
+// ### Typeclasses ###
+// ###################
 
 /**
  * @since 1.0.0
- * @category Type classes
+ * @category Typeclasses
  */
 export interface Iso<A, B> {
   get: (a: A) => B
