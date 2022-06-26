@@ -239,9 +239,8 @@ export const getRotationAutomorphism: (
   const q = getRotationQuaternion(axis)(theta)
   const qi = recip(q)
   return {
-    get: p => pipe(DivisionRing.mul(q, DivisionRing.mul(fromVector3(p), qi)), toVector3),
-    reverseGet: p =>
-      pipe(DivisionRing.mul(qi, DivisionRing.mul(fromVector3(p), q)), toVector3),
+    get: p => pipe(mul(q, mul(fromVector3(p), qi)), toVector3),
+    reverseGet: p => pipe(mul(qi, mul(fromVector3(p), q)), toVector3),
   }
 }
 
