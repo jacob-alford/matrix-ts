@@ -1,6 +1,6 @@
 # [WIP] matrix-ts
 
-fp-ts styled mathematics library featuring: linear algebra, numerical methods, polynomials,and statistics
+fp-ts styled mathematics library featuring: linear algebra, numerical methods, polynomials, and statistics
 
 ## Possible future additions:
 
