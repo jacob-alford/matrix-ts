@@ -1,7 +1,7 @@
 import * as O from 'fp-ts/Option'
 import { flow, pipe } from 'fp-ts/function'
 
-import * as Auto from '../Auto'
+import * as Auto from '../Automorphism'
 import * as Int from '../integer'
 import * as H from '../quaternion'
 import * as N from '../number'

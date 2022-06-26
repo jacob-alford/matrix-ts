@@ -1,7 +1,7 @@
 import * as N from 'fp-ts/number'
 import { identity } from 'fp-ts/function'
 
-import * as Auto from './Auto'
+import * as Auto from './Automorphism'
 import * as Inf from './infix'
 import * as IO from 'fp-ts/IO'
 import * as M from './Matrix'

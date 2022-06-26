@@ -1,4 +1,4 @@
-import * as Auto from './Auto'
+import * as Auto from './Automorphism'
 import * as C from './complex'
 import * as Comp from './Computation'
 import * as H from './quaternion'

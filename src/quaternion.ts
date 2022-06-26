@@ -7,7 +7,7 @@ import * as Sh from 'fp-ts/Show'
 import * as N from 'fp-ts/number'
 import { pipe } from 'fp-ts/function'
 
-import * as Auto from './Auto'
+import * as Auto from './Automorphism'
 import * as Iso from './Iso'
 import * as TC from './typeclasses'
 import * as V from './Vector'

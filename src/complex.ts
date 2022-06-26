@@ -9,7 +9,7 @@ import * as O from 'fp-ts/Option'
 import * as N from 'fp-ts/number'
 import { flow, pipe } from 'fp-ts/function'
 
-import * as Auto from './Auto'
+import * as Auto from './Automorphism'
 import * as Iso from './Iso'
 import * as M from './Matrix'
 import * as Poly from './Polynomial'
