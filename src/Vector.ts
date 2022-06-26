@@ -22,7 +22,6 @@ import * as Rng from 'fp-ts/Ring'
 import { flow, identity, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as TC from './typeclasses'
-import * as U from './lib/utilities'
 import { Complex } from './complex'
 
 // #############
@@ -75,13 +74,6 @@ export const fromTuple: {
  * @since 1.0.0
  * @category Constructors
  */
-export const repeat: <N extends number, A>(n: N, a: A) => Vec<N, A> = (n, a) =>
-  wrap(RA.replicate(n, a))
-
-/**
- * @since 1.0.0
- * @category Constructors
- */
 export const fromReadonlyArray: <N extends number>(
   n: N
 ) => <A>(as: ReadonlyArray<A>) => O.Option<Vec<N, A>> = n =>
@@ -94,9 +86,29 @@ export const fromReadonlyArray: <N extends number>(
  * @since 1.0.0
  * @category Constructors
  */
+export const makeBy: <N extends number, A>(n: N, make: (i: number) => A) => Vec<N, A> = (
+  n,
+  f
+) =>
+  pipe(
+    Array.from({ length: n }, (_, i) => f(i)),
+    a => wrap(a)
+  )
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const repeat: <N extends number, A>(n: N, a: A) => Vec<N, A> = (n, a) =>
+  makeBy(n, () => a)
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
 export const randVec: <N extends number, A>(n: N, make: IO.IO<A>) => IO.IO<Vec<N, A>> =
   (n, make) => () =>
-    pipe(Array.from({ length: n }, make), a => wrap(a))
+    makeBy(n, make)
 
 // #####################
 // ### Non-Pipeables ###
@@ -551,19 +563,14 @@ export const crossProduct: <A>(
 export const innerProduct: <A extends number | Complex>(
   R: Rng.Ring<A>,
   conj: (r: A) => A
-) => <N>(x: Vec<N, A>, y: Vec<N, A>) => A = (R, conj) =>
-  flow(
-    zipVectors,
-    foldMap(U.getAdditionMonoid(R))(([a, b]) => R.mul(a, conj(b)))
-  )
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const l1Norm: <A extends number | Complex>(
-  R: Rng.Ring<A>
-) => <N>(x: Vec<N, A>) => A = R => foldMap(U.getAdditiveAbelianGroup(R))(x => R.mul(x, x))
+) => <N>(x: Vec<N, A>, y: Vec<N, A>) => A = (R, conj) => (x, y) => {
+  const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+  let out = R.zero
+  for (let i = 0; i < x.length; i++) {
+    out = R.add(out, R.mul(_(x, i), conj(_(y, i))))
+  }
+  return out
+}
 
 /**
  * @since 1.0.0
@@ -575,11 +582,29 @@ export const lpNorm: (
   R: Rng.Ring<A>,
   abs: (x: A) => A,
   pow: (x: A, n: number) => A
-) => <N>(x: Vec<N, A>) => A = p => (R, abs, pow) =>
-  flow(
-    foldMap(U.getAdditiveAbelianGroup(R))(x => pow(abs(x), p)),
-    a => pow(a, 1 / p)
-  )
+) => <N>(x: Vec<N, A>) => A = p => (R, abs, pow) => x => {
+  const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+  let out = R.zero
+  for (let i = 0; i < x.length; i++) {
+    out = R.add(out, pow(abs(_(x, i)), p))
+  }
+  return pow(out, 1 / p)
+}
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const l1Norm: <A extends number | Complex>(
+  R: Rng.Ring<A>
+) => <N>(x: Vec<N, A>) => A = R => x => {
+  const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+  let out = R.zero
+  for (let i = 0; i < x.length; i++) {
+    out = R.add(out, R.mul(_(x, i), _(x, i)))
+  }
+  return out
+}
 
 /**
  * @since 1.0.0

@@ -17,7 +17,6 @@ import { flow, identity as id, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as TC from './typeclasses'
 import * as V from './Vector'
-import * as U from './lib/utilities'
 
 // #############
 // ### Model ###
@@ -161,28 +160,6 @@ export const fromNestedReadonlyArrays: <M extends number, N extends number>(
   )
 
 /**
- * Constructs the identity matrix
- *
- * @since 1.0.0
- * @category Constructors
- */
-export const identity: <A>(R: Rng.Ring<A>) => <M extends number>(m: M) => Mat<M, M, A> =
-  R => m =>
-    pipe(
-      RA.makeBy(m, i => RA.makeBy(m, j => (i === j ? R.one : R.zero))),
-      a => wrap(a)
-    )
-
-/**
- * @since 1.0.0
- * @category Constructors
- */
-export const repeat: <A>(
-  a: A
-) => <M extends number, N extends number>(m: M, n: N) => Mat<M, N, A> = a => (m, n) =>
-  from2dVectors(V.repeat(m, V.repeat(n, a)))
-
-/**
  * @since 1.0.0
  * @category Constructors
  */
@@ -204,12 +181,31 @@ export const fromVectorAsColumn: <N, A>(v: V.Vec<N, A>) => Mat<N, 1, A> = flow(
  * @since 1.0.0
  * @category Constructors
  */
-export const outerProduct: <A>(
-  R: Rng.Ring<A>
-) => <M extends number, N extends number>(
-  v1: V.Vec<M, A>,
-  v2: V.Vec<N, A>
-) => Mat<M, N, A> = R => (v1, v2) => mul(R)(fromVectorAsColumn(v1), fromVectorAsRow(v2))
+export const makeBy: <M extends number, N extends number, A>(
+  m: M,
+  n: N,
+  f: (a: [number, number]) => A
+) => Mat<M, N, A> = (m, n, f) =>
+  from2dVectors(V.makeBy(m, i => V.makeBy(n, j => f([i, j]))))
+
+/**
+ * Constructs the identity matrix
+ *
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const identity: <A>(R: Rng.Ring<A>) => <M extends number>(m: M) => Mat<M, M, A> =
+  R => m =>
+    makeBy(m, m, ([i, j]) => (i === j ? R.one : R.zero))
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const repeat: <A>(
+  a: A
+) => <M extends number, N extends number>(m: M, n: N) => Mat<M, N, A> = a => (m, n) =>
+  from2dVectors(V.repeat(m, V.repeat(n, a)))
 
 /**
  * @since 1.0.0
@@ -221,6 +217,17 @@ export const randMatrix: <M extends number, N extends number, A>(
   make: IO.IO<A>
 ) => IO.IO<Mat<M, N, A>> = (m, n, make) =>
   pipe(V.randVec(m, V.randVec(n, make)), IO.map(from2dVectors))
+
+/**
+ * @since 1.0.0
+ * @category Constructors
+ */
+export const outerProduct: <A>(
+  R: Rng.Ring<A>
+) => <M extends number, N extends number>(
+  v1: V.Vec<M, A>,
+  v2: V.Vec<N, A>
+) => Mat<M, N, A> = R => (v1, v2) => mul(R)(fromVectorAsColumn(v1), fromVectorAsRow(v2))
 
 // #####################
 // ### Non-Pipeables ###
@@ -603,10 +610,11 @@ export const mul =
           repeat(R.zero)(shape(x)[0], shape(y)[1]),
           mapWithIndex(([i, j]) => {
             const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
-            return pipe(
-              RA.makeBy(y.length, k => R.mul(_(_(x, i), k), _(_(y, k), j))),
-              RA.foldMap(U.getAdditionMonoid(R))(id)
-            )
+            let out = R.zero
+            for (let k = 0; k < y.length; ++k) {
+              out = R.add(out, R.mul(_(_(x, i), k), _(_(y, k), j)))
+            }
+            return out
           })
         )
 
@@ -625,22 +633,29 @@ export const linMap =
   <M, N>(A: Mat<M, N, R>, x: V.Vec<N, R>): V.Vec<M, R> =>
     pipe(
       A,
-      V.map(Ai =>
-        pipe(
-          V.zipVectors(Ai, x),
-          V.foldMap(U.getAdditionMonoid(R))(([aij, xj]) => R.mul(aij, xj))
-        )
-      )
+      V.map(Ai => {
+        const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+        let out = R.zero
+        for (let j = 0; j < Ai.length; ++j) {
+          out = R.add(out, R.mul(_(Ai, j), _(x, j)))
+        }
+        return out
+      })
     )
 
 /**
  * @since 1.0.0
  * @category Matrix Operations
  */
-export const trace: <A>(
-  R: Rng.Ring<A>
-) => <M extends number>(fa: Mat<M, M, A>) => A = R =>
-  foldMapWithIndex(U.getAdditionMonoid(R))(([i, j], a) => (i === j ? a : R.zero))
+export const trace: <A>(R: Rng.Ring<A>) => <M extends number>(fa: Mat<M, M, A>) => A =
+  R => fa => {
+    const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+    let out = R.zero
+    for (let i = 0; i < fa.length; i++) {
+      out = R.add(out, _(_(fa, i), i))
+    }
+    return out
+  }
 
 /**
  * @since 1.0.0
