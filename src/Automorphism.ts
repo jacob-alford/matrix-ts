@@ -1,3 +1,9 @@
+/**
+ * An Automorphism is an endomorphic isomorphism. It's used in this library as a
+ * structure-preserving linear isomorphism.
+ *
+ * @since 1.0.0
+ */
 import * as Iso from './Iso'
 
 // ###################

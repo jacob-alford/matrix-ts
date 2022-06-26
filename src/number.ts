@@ -1,3 +1,10 @@
+/**
+ * Typeclass instances for Javascript's 64-bit floating point number type. **Note:**
+ * instances are not strictly law abiding as floating point error violates particular
+ * instance laws with more complex computation.
+ *
+ * @since 1.0.0
+ */
 import * as N from 'fp-ts/number'
 import { identity } from 'fp-ts/function'
 

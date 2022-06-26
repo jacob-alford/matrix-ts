@@ -1,3 +1,10 @@
+/**
+ * A Computation is a way to chain consecutive operations while collecting logs. It's
+ * useful for guarding against unwanted input conditions, and is used in this libary for
+ * matrix decomposition.
+ *
+ * @since 1.0.0
+ */
 import * as Apl from 'fp-ts/Applicative'
 import * as Ap from 'fp-ts/Apply'
 import * as BiFun from 'fp-ts/Bifunctor'

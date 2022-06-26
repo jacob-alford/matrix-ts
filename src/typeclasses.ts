@@ -1,3 +1,8 @@
+/**
+ * A collection of typeclasses that add additional laws to existing fp-ts typeclasses.
+ *
+ * @since 1.0.0
+ */
 import * as Grp from 'fp-ts/Group'
 import * as Rng from 'fp-ts/Ring'
 

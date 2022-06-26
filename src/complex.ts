@@ -1,3 +1,9 @@
+/**
+ * A complex data of the shape: `a + bi` which has a real component, and an imaginary
+ * component. Both are represented with Javascript's 64-bit floating point numbers.
+ *
+ * @since 1.0.0
+ */
 import * as Eq_ from 'fp-ts/Eq'
 import * as IO from 'fp-ts/IO'
 import * as Mg from 'fp-ts/Magma'

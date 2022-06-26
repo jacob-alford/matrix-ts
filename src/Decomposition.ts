@@ -1,3 +1,10 @@
+/**
+ * Decompose matricies into various forms, such as `LUP`. Can be used in various
+ * applications like solving a system of equations, or calculating the principle
+ * components of a multivariate distribution (SVD)
+ *
+ * @since 1.0.0
+ */
 import * as O from 'fp-ts/Option'
 import * as ChnR from 'fp-ts/ChainRec'
 import * as E from 'fp-ts/Either'

@@ -1,3 +1,9 @@
+/**
+ * A vector type constrained to a particular size enforced by the type system, and
+ * associated typeclasses.
+ *
+ * @since 1.0.0
+ */
 import * as Fun from 'fp-ts/Functor'
 import * as FunI from 'fp-ts/FunctorWithIndex'
 import * as Ap from 'fp-ts/Apply'

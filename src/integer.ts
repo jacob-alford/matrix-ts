@@ -1,3 +1,8 @@
+/**
+ * An integral data type without a decimal. Partially borrowed from Purescript.
+ *
+ * @since 1.0.0
+ */
 import * as Bnd from 'fp-ts/Bounded'
 import * as Eq_ from 'fp-ts/Eq'
 import * as IO from 'fp-ts/IO'

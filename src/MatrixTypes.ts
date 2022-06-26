@@ -1,3 +1,10 @@
+/**
+ * Various Matrix sub-types that are guarded by various constructors and branded-newtypes.
+ * Allows for convenient inverses if the inverse need be applied to the diagonal of a
+ * particular matrix, such as with the Pearson Correlation Matrix for multivariate samples.
+ *
+ * @since 1.0.0
+ */
 import * as Rng from 'fp-ts/Ring'
 import * as Fld from 'fp-ts/Field'
 import { flow, pipe, tuple, unsafeCoerce } from 'fp-ts/function'

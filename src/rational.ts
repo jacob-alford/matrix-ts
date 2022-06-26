@@ -1,3 +1,11 @@
+/**
+ * A fractional number type with typeclass instances. **Note:** this data type shouldn't
+ * be used for computations involving large numbers, because the lawfulness of these
+ * particular instances breaks down due to floating point error quicker than the others by
+ * the nature of reducing fractional values
+ *
+ * @since 1.0.0
+ */
 import * as Bnd from 'fp-ts/Bounded'
 import * as Eq_ from 'fp-ts/Eq'
 import * as IO from 'fp-ts/IO'

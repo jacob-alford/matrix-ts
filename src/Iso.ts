@@ -1,3 +1,8 @@
+/**
+ * Constrained isomorphisms. Compatible with `Iso` found in `monocle-ts`.
+ *
+ * @since 1.0.0
+ */
 import { flow, identity as id } from 'fp-ts/function'
 
 // ###################

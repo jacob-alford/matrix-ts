@@ -1,6 +1,8 @@
 /**
  * Adapted from:
  * https://pursuit.purescript.org/packages/purescript-polynomials/1.0.1/docs/Data.Polynomial#t:Polynomial
+ *
+ * @since 1.0.0
  */
 import * as ChnRec from 'fp-ts/ChainRec'
 import * as Eq from 'fp-ts/Eq'

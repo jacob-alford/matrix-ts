@@ -1,3 +1,8 @@
+/**
+ * Useful matrix operations for multivariate samples.
+ *
+ * @since 1.0.0
+ */
 import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
 import { identity, pipe } from 'fp-ts/function'
 
@@ -17,10 +22,10 @@ import * as N from './number'
  * @since 1.0.0
  * @category Model
  * @example
- *   Given three subjects whose measurements are height, weight, shoe size, we can construct a correlation matrix as follows:
+ *   // Given three subjects whose measurements are height, weight, shoe size, we can construct a correlation matrix as follows:
  *
- *   ```ts
- *   import * as V from 'matrix-ts/vector'
+ *   import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
+ *   import * as V from 'matrix-ts/Vector'
  *   import * as MStat from 'matrix-ts/Multivariate'
  *
  *   const obs1 = V.fromTuple([167, 63, 8])
@@ -29,8 +34,7 @@ import * as N from './number'
  *   const observations = RNEA.concat(RNEA.of(obs3))([obs1, obs2])
  *
  *   // This determines how mutually correlated the different variables are
- *   const corr = MStat.correlation(observations)
- *   ```
+ *   MStat.correlation(observations)
  */
 export type MultivariateSample<N> = RNEA.ReadonlyNonEmptyArray<V.Vec<N, number>>
 

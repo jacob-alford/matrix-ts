@@ -1,3 +1,8 @@
+/**
+ * Named re-exports from various modules
+ *
+ * @since 1.0.0
+ */
 import * as Auto from './Automorphism'
 import * as C from './complex'
 import * as Comp from './Computation'
@@ -13,4 +18,33 @@ import * as Q from './rational'
 import * as TC from './typeclasses'
 import * as V from './Vector'
 
-export { Auto, C, Comp, H, Inf, Int, Iso, De, M, N, Poly, Q, TC, V }
+export {
+  /** @since 1.0.0 */
+  Auto,
+  /** @since 1.0.0 */
+  C,
+  /** @since 1.0.0 */
+  Comp,
+  /** @since 1.0.0 */
+  H,
+  /** @since 1.0.0 */
+  Inf,
+  /** @since 1.0.0 */
+  Int,
+  /** @since 1.0.0 */
+  Iso,
+  /** @since 1.0.0 */
+  De,
+  /** @since 1.0.0 */
+  M,
+  /** @since 1.0.0 */
+  N,
+  /** @since 1.0.0 */
+  Poly,
+  /** @since 1.0.0 */
+  Q,
+  /** @since 1.0.0 */
+  TC,
+  /** @since 1.0.0 */
+  V,
+}

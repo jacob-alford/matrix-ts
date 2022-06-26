@@ -1,3 +1,10 @@
+/**
+ * A module for making uniform APIs for similar operations across different typeclass
+ * instances. For example, `_(a, "+", b)` could be applied to a rational Field instance,
+ * or a matrix AbelianGroup instance for adding together two fractions or matricies respectively.
+ *
+ * @since 1.0.0
+ */
 import * as Eq from 'fp-ts/Eq'
 import * as Fld from 'fp-ts/Field'
 import * as Mn from 'fp-ts/Monoid'
@@ -83,14 +90,16 @@ export type OrdSymbol = EqSymbol | '<' | '<=' | '>' | '>='
  *   import { makePolishInfix } from 'matrix-ts/infix'
  *   import * as H from 'matrix-ts/quaternion'
  *
- *   const _ = makePolishInfix({
+ *   type QuatSymbol = '+' | '-' | '*' | '/'
+ *
+ *   const _ = makePolishInfix<QuatSymbol, H.Quaternion, H.Quaternion, H.Quaternion>({
  *     '+': H.DivisionRing.add,
  *     '-': H.DivisionRing.sub,
  *     '*': H.DivisionRing.mul,
- *     '/': H.DivisionRing.div,
+ *     '/': (x, y) => H.DivisionRing.mul(x, H.DivisionRing.recip(y)),
  *   })
  *
- *   const zero = _('+', H.zero, H.zero)
+ *   _('+', H.zero, H.zero)
  */
 export const makePolishInfix: <S extends string, A, B, C>(
   fns: Readonly<Record<S, (x: A, y: B) => C>>
@@ -109,17 +118,24 @@ export const makePolishInfix: <S extends string, A, B, C>(
  *
  * @since 1.0.0
  * @example
- *   import { makePolishInfix } from 'matrix-ts/infix'
+ *   import { makeReversePolishInfix } from 'matrix-ts/infix'
  *   import * as H from 'matrix-ts/quaternion'
  *
- *   const _ = makePolishInfix({
+ *   type QuatSymbol = '+' | '-' | '*' | '/'
+ *
+ *   const _ = makeReversePolishInfix<
+ *     QuatSymbol,
+ *     H.Quaternion,
+ *     H.Quaternion,
+ *     H.Quaternion
+ *   >({
  *     '+': H.DivisionRing.add,
  *     '-': H.DivisionRing.sub,
  *     '*': H.DivisionRing.mul,
- *     '/': H.DivisionRing.div,
+ *     '/': (x, y) => H.DivisionRing.mul(x, H.DivisionRing.recip(y)),
  *   })
  *
- *   const zero = _(H.zero, H.zero, '+')
+ *   _(H.zero, H.zero, '+')
  */
 export const makeReversePolishInfix: <S extends string, A, B, C>(
   fns: Readonly<Record<S, (x: A, y: B) => C>>
@@ -141,14 +157,16 @@ export const makeReversePolishInfix: <S extends string, A, B, C>(
  *   import { makeInfix } from 'matrix-ts/infix'
  *   import * as H from 'matrix-ts/quaternion'
  *
- *   const _ = makeInfix({
+ *   type QuatSymbol = '+' | '-' | '*' | '/'
+ *
+ *   const _ = makeInfix<QuatSymbol, H.Quaternion, H.Quaternion, H.Quaternion>({
  *     '+': H.DivisionRing.add,
  *     '-': H.DivisionRing.sub,
  *     '*': H.DivisionRing.mul,
- *     '/': H.DivisionRing.div,
+ *     '/': (x, y) => H.DivisionRing.mul(x, H.DivisionRing.recip(y)),
  *   })
  *
- *   const one = _(H.zero, '+', H.one)
+ *   _(H.zero, '+', H.zero)
  */
 export const makeInfix: <S extends string, A, B, C>(
   fns: Readonly<Record<S, (x: A, y: B) => C>>

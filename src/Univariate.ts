@@ -1,3 +1,8 @@
+/**
+ * A random sampling of data in one and two dimensions with associated statistical tools.
+ *
+ * @since 1.0.0
+ */
 import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
 import * as RTup from 'fp-ts/ReadonlyTuple'
 import { flow, identity, pipe, tuple } from 'fp-ts/function'

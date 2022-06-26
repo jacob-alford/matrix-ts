@@ -2,6 +2,22 @@
 
 fp-ts styled mathematics library featuring: Linear algebra, numerical methods, polynomials,and statistics
 
+---
+
+## Install
+
+Uses `fp-ts` as a peer dependency.
+
+```bash
+yarn add fp-ts matrix-ts
+```
+
+or
+
+```bash
+npm install fp-ts matrix-ts
+```
+
 ## Possible future additions:
 
 - Add Cholesky Decomposition
@@ -32,7 +48,7 @@ fp-ts styled mathematics library featuring: Linear algebra, numerical methods, p
 ## Typeclasses
 
 - `Iso.ts` – Generic isomorphisms with composition
-- `Auto.ts` – Generic automorphisms with composition
+- `Automorphism.ts` – Generic automorphisms with composition
 - `AbelianGroup` – Commutative group
 - `CommutativeRing` – A commutative ring
 - `LeftModule` – Left scalar multiplication
@@ -131,7 +147,7 @@ it('multiples two polynomials', () => {
 
 ## Advanced Examples
 
-### LUP: Gaussian Elimination with Partial Pivoting
+### Gaussian Elimination with Partial Pivoting (LUP)
 
 `src/__tests__/Decomposition.test.ts`
 
@@ -165,16 +181,39 @@ it('solves a system of equations', () => {
   const expectedX_b = V.fromTuple([1, 2, 1, 2, 1])
   const expectedX_c = V.fromTuple([2, 1, 2, 1, 2])
 
-  for (const [Axi, bi] of V.zipVectors(x_b, expectedX_b)) {
-    expect(Axi).toBeCloseTo(bi)
+  // ... assertions
+})
+it('returns a factorized matrix', () => {
+  const [output] = D.LUP(A)
+
+  if (E.isLeft(output)) {
+    throw new Error('Unexpected result')
   }
-  for (const [Axi, bi] of V.zipVectors(x_c, expectedX_c)) {
-    expect(Axi).toBeCloseTo(bi)
-  }
+
+  const {
+    result: [L, U, P],
+  } = output.right
+
+  const expectedL = M.fromNestedTuples([
+    [1, 0, 0, 0, 0],
+    [2 / 3, 1, 0, 0, 0],
+    [1 / 3, 2 / 7, 1, 0, 0],
+    [1 / 3, 2 / 7, 4 / 11, 1, 0],
+    [0, 3 / 7, -1 / 11, -4 / 5, 1],
+  ])
+  const expectedU = M.fromNestedTuples([
+    [3, 8, 3, 10, 9],
+    [0, 14 / 3, 6, 4 / 3, 0],
+    [0, 0, -33 / 7, 2 / 7, -4],
+    [0, 0, 0, -20 / 11, -6 / 11],
+    [0, 0, 0, 0, 1 / 5],
+  ])
+
+  // ... assertions
 })
 ```
 
-### Finding the covariance matrix of a data set
+### Covariance matrix of a multivariate sample
 
 ```ts
 import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
@@ -198,7 +237,7 @@ it('calculates a covariance matrix', () => {
 })
 ```
 
-### Automorphisms of a Polynomial
+### Automorphisms of polynomials
 
 `src/__tests__/examples.test.ts`
 
@@ -242,12 +281,7 @@ it('rotates a 2d vector and back 270 degrees', () => {
   const expected = V.fromTuple([0, -1])
   const reversed = T.reverseGet(rotated)
 
-  for (const [a, b] of V.zipVectors(rotated, expected)) {
-    expect(a).toBeCloseTo(b)
-  }
-  for (const [a, b] of V.zipVectors(reversed, initial)) {
-    expect(a).toBeCloseTo(b)
-  }
+  // ... assertions
 })
 it('rotates a 3d vector and back along three axies', () => {
   const rotateX45 = N.get3dXRotation(Math.PI / 4)
@@ -261,12 +295,7 @@ it('rotates a 3d vector and back along three axies', () => {
   const reversed = T.reverseGet(rotated)
   const expected = V.fromTuple([1 / Math.sqrt(2), 0, -1 / Math.sqrt(2)])
 
-  for (const [a, b] of V.zipVectors(rotated, expected)) {
-    expect(a).toBeCloseTo(b)
-  }
-  for (const [a, b] of V.zipVectors(reversed, initial)) {
-    expect(a).toBeCloseTo(b)
-  }
+  // ... assertions
 })
 ```
 
@@ -279,7 +308,7 @@ import * as Poly from 'matrix-ts/Polynomial'
 import * as LI from 'matrix-ts/LinearIsomorphism'
 
 it('rotates a 3d vector using quaternions', () => {
-  const { mapL, reverseMapL } = H.getRotationLinearIsomorpism(
+  const T = H.getRotationAutomorphism(
     // Around axis:
     V.fromTuple([1, 1, 1]),
     // By angle:
@@ -287,31 +316,10 @@ it('rotates a 3d vector using quaternions', () => {
   )
 
   const initial = V.fromTuple([1, 0, 0])
-  const rotated = mapL(initial)
-  const reversed = reverseMapL(rotated)
+  const rotated = T.get(initial)
+  const reversed = T.reverseGet(rotated)
   const expected = V.fromTuple([0, 1, 0])
 
-  for (const [a, b] of V.zipVectors(rotated, expected)) {
-    expect(a).toBeCloseTo(b)
-  }
-  for (const [a, b] of V.zipVectors(reversed, initial)) {
-    expect(a).toBeCloseTo(b)
-  }
+  // ... assertions
 })
-```
-
----
-
-## Install
-
-Uses `fp-ts` as a peer dependency.
-
-```bash
-yarn add fp-ts matrix-ts
-```
-
-or
-
-```bash
-npm install fp-ts matrix-ts
 ```

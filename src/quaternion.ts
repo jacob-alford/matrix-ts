@@ -1,3 +1,9 @@
+/**
+ * A quaternion is a 4-component analog to complex numbers. Useful in a handful of cases
+ * like the effecient and safe rotation of a 3-dimensional vector
+ *
+ * @since 1.0.0
+ */
 import * as Eq_ from 'fp-ts/Eq'
 import * as IO from 'fp-ts/IO'
 import * as Mg from 'fp-ts/Magma'
