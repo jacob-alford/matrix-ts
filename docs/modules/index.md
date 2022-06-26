@@ -1,6 +1,7 @@
 ---
 title: Modules
 has_children: true
-permalink: /docs/modules
+has_toc: true
+permalink: /modules/
 nav_order: 2
 ---

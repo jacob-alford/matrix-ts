@@ -2,21 +2,7 @@
 
 fp-ts style mathematics library featuring: linear algebra, numerical methods, polynomials, and statistics
 
----
-
-## Install
-
-Uses `fp-ts` as a peer dependency.
-
-```bash
-yarn add fp-ts matrix-ts
-```
-
-or
-
-```bash
-npm install fp-ts matrix-ts
-```
+## Table of Contents
 
 <!-- AUTO-GENERATED-CONTENT:START (TOC) -->
 - [&#91;WIP&#93; matrix-ts](#wip-matrix-ts)
@@ -36,6 +22,20 @@ npm install fp-ts matrix-ts
     - [Automorphisms of matricies](#automorphisms-of-matricies)
     - [Quaternion automorphisms](#quaternion-automorphisms)
 <!-- AUTO-GENERATED-CONTENT:END -->
+
+## Install
+
+Uses `fp-ts` as a peer dependency.
+
+```bash
+yarn add fp-ts matrix-ts
+```
+
+or
+
+```bash
+npm install fp-ts matrix-ts
+```
 
 ## Possible future additions:
 
