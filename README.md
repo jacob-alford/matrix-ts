@@ -18,6 +18,25 @@ or
 npm install fp-ts matrix-ts
 ```
 
+<!-- AUTO-GENERATED-CONTENT:START (TOC) -->
+- [&#91;WIP&#93; matrix-ts](#wip-matrix-ts)
+  - [Install](#install)
+  - [Possible future additions:](#possible-future-additions)
+  - [Data types:](#data-types)
+  - [Typeclasses](#typeclasses)
+  - [Examples](#examples)
+    - [Add fractions](#add-fractions)
+    - [Vector dot product](#vector-dot-product)
+    - [Vector cross product](#vector-cross-product)
+    - [Multiplies two Integer Polynomials](#multiplies-two-integer-polynomials)
+  - [Advanced Examples](#advanced-examples)
+    - [Gaussian Elimination with Partial Pivoting (LUP)](#gaussian-elimination-with-partial-pivoting-lup)
+    - [Covariance matrix of a multivariate sample](#covariance-matrix-of-a-multivariate-sample)
+    - [Automorphisms of polynomials](#automorphisms-of-polynomials)
+    - [Automorphisms of matricies](#automorphisms-of-matricies)
+    - [Quaternion automorphisms](#quaternion-automorphisms)
+<!-- AUTO-GENERATED-CONTENT:END -->
+
 ## Possible future additions:
 
 - Add Cholesky Decomposition
