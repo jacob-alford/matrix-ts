@@ -73,19 +73,6 @@ export const fromInt: (top: Int.Int) => Rational = top => wrap(top, Int.one)
  * @since 1.0.0
  * @category Constructors
  */
-export const fromNumber: (n: number) => Rational = n => {
-  const whole = Int.fromNumber(n)
-  const frac = n - whole
-  return Field.add(
-    fromInt(whole),
-    reduce(Int.fromNumber(frac * Number.MAX_SAFE_INTEGER), Number.MAX_SAFE_INTEGER)
-  )
-}
-
-/**
- * @since 1.0.0
- * @category Constructors
- */
 export const randRational: (low: number, high: number) => IO.IO<Rational> =
   (low, high) => () =>
     reduce(

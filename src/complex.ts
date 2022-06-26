@@ -335,6 +335,12 @@ export const dot = V.innerProduct(Field, conj)
  * @since 1.0.0
  * @category Vector Operations
  */
+export const cross = V.crossProduct(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
 export const outerProduct = M.outerProduct(Field)
 
 /**
@@ -355,12 +361,6 @@ export const l2Norm = V.l2Norm(Field, flow(modulus, scalar), pow)
  */
 export const lpNorm: (p: number) => <N>(v: V.Vec<N, Complex>) => Complex = p =>
   V.lpNorm(p)(Field, flow(modulus, scalar), pow)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const cross = V.crossProduct(Field)
 
 /**
  * @since 1.0.0
@@ -389,6 +389,12 @@ export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(Field)
  * @category Instances
  */
 export const BiModMN = M.getBimodule(Field)
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const idMat = M.identity(Field)
 
 /**
  * Compose two matricies: `A`, and `B` with Matrix multiplication.

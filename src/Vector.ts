@@ -12,8 +12,6 @@ import { HKT } from 'fp-ts/HKT'
 import * as Mon from 'fp-ts/Monad'
 import * as Mn from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
-import * as Ord from 'fp-ts/Ord'
-import {} from 'fp-ts/Ordering'
 import * as Tr from 'fp-ts/Traversable'
 import * as TrI from 'fp-ts/TraversableWithIndex'
 import * as Pt from 'fp-ts/Pointed'
@@ -504,6 +502,55 @@ export const toTuple: {
 export const size: <N extends number, A>(v: Vec<N, A>) => N = v =>
   v.length as typeof v['_length']
 
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+export const lpNorm: (
+  p: number
+) => <A extends number | Complex>(
+  R: Rng.Ring<A>,
+  abs: (x: A) => A,
+  pow: (x: A, n: number) => A
+) => <N>(x: Vec<N, A>) => A = p => (R, abs, pow) => x => {
+  const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+  let out = R.zero
+  for (let i = 0; i < x.length; i++) {
+    out = R.add(out, pow(abs(_(x, i)), p))
+  }
+  return pow(out, 1 / p)
+}
+
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+export const l1Norm: <A extends number | Complex>(
+  R: Rng.Ring<A>
+) => <N>(x: Vec<N, A>) => A = R => x => {
+  const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+  let out = R.zero
+  for (let i = 0; i < x.length; i++) {
+    out = R.add(out, R.mul(_(x, i), _(x, i)))
+  }
+  return out
+}
+
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+export const l2Norm = lpNorm(2)
+
+/**
+ * @since 1.0.0
+ * @category Destructors
+ */
+export const lInfNorm: <A extends number | Complex>(
+  B: Bnd.Bounded<A>,
+  abs: (a: A) => A
+) => <N>(x: Vec<N, A>) => A = (B, abs) => foldMap(Mn.max(B))(abs)
+
 // #########################
 // ### Vector Operations ###
 // #########################
@@ -571,56 +618,6 @@ export const innerProduct: <A extends number | Complex>(
   }
   return out
 }
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const lpNorm: (
-  p: number
-) => <A extends number | Complex>(
-  R: Rng.Ring<A>,
-  abs: (x: A) => A,
-  pow: (x: A, n: number) => A
-) => <N>(x: Vec<N, A>) => A = p => (R, abs, pow) => x => {
-  const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
-  let out = R.zero
-  for (let i = 0; i < x.length; i++) {
-    out = R.add(out, pow(abs(_(x, i)), p))
-  }
-  return pow(out, 1 / p)
-}
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const l1Norm: <A extends number | Complex>(
-  R: Rng.Ring<A>
-) => <N>(x: Vec<N, A>) => A = R => x => {
-  const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
-  let out = R.zero
-  for (let i = 0; i < x.length; i++) {
-    out = R.add(out, R.mul(_(x, i), _(x, i)))
-  }
-  return out
-}
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const l2Norm = lpNorm(2)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
-export const lInfNorm: <A extends number | Complex>(
-  B: Bnd.Bounded<A>,
-  abs: (a: A) => A
-) => <N>(x: Vec<N, A>) => A = (B, abs) =>
-  foldMap({ concat: Ord.max(B), empty: B.bottom })(abs)
 
 /**
  * @since 1.0.0

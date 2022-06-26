@@ -240,6 +240,12 @@ export const dot = V.innerProduct(Field, identity)
  * @since 1.0.0
  * @category Vector Operations
  */
+export const cross = V.crossProduct(Field)
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
 export const outerProduct = M.outerProduct(Field)
 
 /**
@@ -271,12 +277,6 @@ export const lInfNorm = V.lInfNorm(Bounded, Math.abs)
  * @since 1.0.0
  * @category Vector Operations
  */
-export const cross = V.crossProduct(Field)
-
-/**
- * @since 1.0.0
- * @category Vector Operations
- */
 export const projection = V.projection(Field, identity)
 
 // ###############
@@ -300,6 +300,12 @@ export const AdditiveAbGrpMN = M.getAdditiveAbelianGroup(Field)
  * @category Instances
  */
 export const BiModMN = M.getBimodule(Field)
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const idMat = M.identity(Field)
 
 /**
  * Compose two matricies: `A`, and `B` with Matrix multiplication.
