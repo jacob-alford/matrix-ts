@@ -34,13 +34,13 @@ Uses `fp-ts` as a peer dependency. Read more about peer dependencies at [nodejs.
 ### Yarn
 
 ```bash
-yarn add fp-ts matrix-ts
+yarn add fp-ts @jacob-alford/matrix-ts
 ```
 
 ### NPM
 
 ```bash
-npm install fp-ts matrix-ts
+npm install fp-ts @jacob-alford/matrix-ts
 ```
 
 ## Typescript Compatibility
