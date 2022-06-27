@@ -2,11 +2,11 @@ name: Test
 on:
   push:
     branches:
-      - main
+      - master
       - $default-branch
   pull_request:
     branches:
-      - main
+      - master
       - $default-branch
 jobs:
   build:
