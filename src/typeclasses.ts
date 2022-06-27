@@ -16,7 +16,7 @@ import * as Rng from 'fp-ts/Ring'
  * - Commutativity: `a * b = b * a`
  *
  * @since 1.0.0
- * @category Type classes
+ * @category Typeclasses
  */
 export interface AbelianGroup<A> extends Grp.Group<A> {}
 
@@ -30,7 +30,7 @@ export interface AbelianGroup<A> extends Grp.Group<A> {}
  * - Nonzero multiplicative inverse
  *
  * @since 1.0.0
- * @category Type classes
+ * @category Typeclasses
  */
 export interface DivisionRing<A> extends Rng.Ring<A> {
   readonly recip: (x: A) => A
@@ -45,7 +45,7 @@ export interface DivisionRing<A> extends Rng.Ring<A> {
  * - Commutativity: `a * b = b * a`
  *
  * @since 1.0.0
- * @category Type classes
+ * @category Typeclasses
  */
 export interface CommutativeRing<A> extends Rng.Ring<A> {}
 
@@ -54,7 +54,7 @@ export interface CommutativeRing<A> extends Rng.Ring<A> {}
  * https://pursuit.purescript.org/packages/purescript-prelude/6.0.0/docs/Data.EuclideanRing
  *
  * @since 1.0.0
- * @category Type classes
+ * @category Typeclasses
  */
 export interface EuclidianRing<A> extends CommutativeRing<A> {
   readonly degree: (a: A) => number
@@ -72,7 +72,7 @@ export interface EuclidianRing<A> extends CommutativeRing<A> {
  * - Unital element over the Ring R: `1 * x = x`
  *
  * @since 1.0.0
- * @category Type classes
+ * @category Typeclasses
  */
 export interface LeftModule<A, L> extends AbelianGroup<A> {
   readonly leftScalarMul: (r: L, x: A) => A
@@ -82,7 +82,7 @@ export interface LeftModule<A, L> extends AbelianGroup<A> {
  * See `LeftModule` for Module laws
  *
  * @since 1.0.0
- * @category Type classes
+ * @category Typeclasses
  */
 export interface RightModule<A, R> extends AbelianGroup<A> {
   readonly rightScalarMul: (x: A, r: R) => A
@@ -90,6 +90,6 @@ export interface RightModule<A, R> extends AbelianGroup<A> {
 
 /**
  * @since 1.0.0
- * @category Type classes
+ * @category Typeclasses
  */
 export interface Bimodule<A, L, R = L> extends LeftModule<A, L>, RightModule<A, R> {}
