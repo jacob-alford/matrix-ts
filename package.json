@@ -1,5 +1,5 @@
 {
-  "name": "matrix-ts",
+  "name": "@jacob-alford/matrix-ts",
   "homepage": "http://",
   "version": "1.0.0",
   "main": "dist/index.js",
