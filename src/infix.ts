@@ -87,8 +87,8 @@ export type OrdSymbol = EqSymbol | '<' | '<=' | '>' | '>='
  *
  * @since 1.0.0
  * @example
- *   import { makePolishInfix } from 'matrix-ts/infix'
- *   import * as H from 'matrix-ts/quaternion'
+ *   import { makePolishInfix } from '@jacob-alford/matrix-ts/infix'
+ *   import * as H from '@jacob-alford/matrix-ts/quaternion'
  *
  *   type QuatSymbol = '+' | '-' | '*' | '/'
  *
@@ -118,8 +118,8 @@ export const makePolishInfix: <S extends string, A, B, C>(
  *
  * @since 1.0.0
  * @example
- *   import { makeReversePolishInfix } from 'matrix-ts/infix'
- *   import * as H from 'matrix-ts/quaternion'
+ *   import { makeReversePolishInfix } from '@jacob-alford/matrix-ts/infix'
+ *   import * as H from '@jacob-alford/matrix-ts/quaternion'
  *
  *   type QuatSymbol = '+' | '-' | '*' | '/'
  *
@@ -154,8 +154,8 @@ export const makeReversePolishInfix: <S extends string, A, B, C>(
  *
  * @since 1.0.0
  * @example
- *   import { makeInfix } from 'matrix-ts/infix'
- *   import * as H from 'matrix-ts/quaternion'
+ *   import { makeInfix } from '@jacob-alford/matrix-ts/infix'
+ *   import * as H from '@jacob-alford/matrix-ts/quaternion'
  *
  *   type QuatSymbol = '+' | '-' | '*' | '/'
  *
