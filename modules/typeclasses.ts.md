@@ -14,7 +14,7 @@ Added in v1.0.0
 
 <h2 class="text-delta">Table of contents</h2>
 
-- [Type classes](#type-classes)
+- [Typeclasses](#typeclasses)
   - [AbelianGroup (interface)](#abeliangroup-interface)
   - [Bimodule (interface)](#bimodule-interface)
   - [CommutativeRing (interface)](#commutativering-interface)
@@ -25,7 +25,7 @@ Added in v1.0.0
 
 ---
 
-# Type classes
+# Typeclasses
 
 ## AbelianGroup (interface)
 
