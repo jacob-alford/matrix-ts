@@ -43,8 +43,8 @@ export type MultivariateSample<N> = RNEA.ReadonlyNonEmptyArray<V.Vec<N, number>>
 // Given three subjects whose measurements are height, weight, shoe size, we can construct a correlation matrix as follows:
 
 import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
-import * as V from 'matrix-ts/Vector'
-import * as MStat from 'matrix-ts/Multivariate'
+import * as V from '@jacob-alford/matrix-ts/Vector'
+import * as MStat from '@jacob-alford/matrix-ts/Multivariate'
 
 const obs1 = V.fromTuple([167, 63, 8])
 const obs2 = V.fromTuple([200, 94, 12])

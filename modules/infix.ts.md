@@ -494,8 +494,8 @@ export declare const makeInfix: <S extends string, A, B, C>(
 **Example**
 
 ```ts
-import { makeInfix } from 'matrix-ts/infix'
-import * as H from 'matrix-ts/quaternion'
+import { makeInfix } from '@jacob-alford/matrix-ts/infix'
+import * as H from '@jacob-alford/matrix-ts/quaternion'
 
 type QuatSymbol = '+' | '-' | '*' | '/'
 
@@ -526,8 +526,8 @@ export declare const makePolishInfix: <S extends string, A, B, C>(
 **Example**
 
 ```ts
-import { makePolishInfix } from 'matrix-ts/infix'
-import * as H from 'matrix-ts/quaternion'
+import { makePolishInfix } from '@jacob-alford/matrix-ts/infix'
+import * as H from '@jacob-alford/matrix-ts/quaternion'
 
 type QuatSymbol = '+' | '-' | '*' | '/'
 
@@ -558,8 +558,8 @@ export declare const makeReversePolishInfix: <S extends string, A, B, C>(
 **Example**
 
 ```ts
-import { makeReversePolishInfix } from 'matrix-ts/infix'
-import * as H from 'matrix-ts/quaternion'
+import { makeReversePolishInfix } from '@jacob-alford/matrix-ts/infix'
+import * as H from '@jacob-alford/matrix-ts/quaternion'
 
 type QuatSymbol = '+' | '-' | '*' | '/'
 
