@@ -48,6 +48,7 @@ export const copyPackageJson: Build<void> = C =>
     TE.chain(json => C.writeFile('./dist/package.json', JSON.stringify(json, null, 2)))
   )
 
+/* See: https://gitlab.com/simspace-oss/xio/-/blob/dev/scripts/pack.ts */
 export const rewriteSourceMap: (
   content: string,
   path: string

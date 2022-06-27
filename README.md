@@ -5,7 +5,6 @@ fp-ts style mathematics library featuring: linear algebra, numerical methods, po
 ## Table of Contents
 
 <!-- AUTO-GENERATED-CONTENT:START (TOC) -->
-
 - [Install](#install)
   - [Yarn](#yarn)
   - [NPM](#npm)
@@ -25,7 +24,7 @@ fp-ts style mathematics library featuring: linear algebra, numerical methods, po
   - [Automorphisms of polynomials](#automorphisms-of-polynomials)
   - [Automorphisms of matricies](#automorphisms-of-matricies)
   - [Quaternion automorphisms](#quaternion-automorphisms)
-  <!-- AUTO-GENERATED-CONTENT:END -->
+<!-- AUTO-GENERATED-CONTENT:END -->
 
 ## Install
 

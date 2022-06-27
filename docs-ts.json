@@ -1,3 +1,1 @@
-{
-  "exclude": ["src/__tests__/**/*.ts"]
-}
+{}
