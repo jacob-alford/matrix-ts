@@ -78,13 +78,13 @@ export const fromPolarRadians: (r: number, psi: number) => Complex = (r, psi) =>
 /**
  * Converts a polar-form complex tuple to `Complex`
  *
- * Note, psi here is in degrees
+ * Note, theta here is in degrees
  *
  * @since 1.0.0
  * @category Constructors
  */
-export const fromPolarDegrees: (r: number, psi: number) => Complex = (r, psi) =>
-  fromPolarRadians(r, (psi * 180) / Math.PI)
+export const fromPolarDegrees: (r: number, theta: number) => Complex = (r, theta) =>
+  fromPolarRadians(r, (theta * Math.PI) / 180)
 
 /**
  * @since 1.0.0
