@@ -1,4 +1,4 @@
-import * as Stat from '../Univariate'
+import * as Stat from '../src/Univariate'
 
 describe('Univariate', () => {
   it('calculates a mean', () => {

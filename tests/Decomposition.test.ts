@@ -1,9 +1,9 @@
 import * as E from 'fp-ts/Either'
 
-import { LUP } from '../Decomposition'
-import * as M from '../Matrix'
-import * as N from '../number'
-import * as V from '../Vector'
+import { LUP } from '../src/Decomposition'
+import * as M from '../src/Matrix'
+import * as N from '../src/number'
+import * as V from '../src/Vector'
 
 describe('LUP Decomposition', () => {
   const A = M.fromNestedTuples([

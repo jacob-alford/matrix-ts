@@ -1,77 +1,88 @@
 import { tuple } from 'fp-ts/function'
 
-import * as Int from '../integer'
-import * as V from '../Vector'
-import * as M from '../Matrix'
-import * as Inf from '../infix'
-import * as Poly from '../Polynomial'
+import * as N from '../src/number'
+import * as V from '../src/Vector'
+import * as M from '../src/Matrix'
+import * as Inf from '../src/infix'
+import * as Poly from '../src/Polynomial'
 
-const { _ } = Int
+const { _ } = N
 
-const AbGrp = V.getAdditiveAbelianGroup(Int.EuclideanRing)(10)
-const AbGrpM = M.getAdditiveAbelianGroup(Int.EuclideanRing)(10, 10)
-const AbGrpP = Int.PolynomialEuclidianRing
+const AbGrp = V.getAdditiveAbelianGroup(N.Field)(10)
+const AbGrpM = M.getAdditiveAbelianGroup(N.Field)(10, 10)
+const AbGrpP = N.PolynomialEuclidianRing
 
-const __p = Inf.getLeftModuleInfix(Int.PolynomialBimodule)
-const _p = Inf.getEuclideanRingInfix(Int.PolynomialEuclidianRing)
+const __ = Inf.getLeftModuleInfix(V.getBimodule(N.Field)(10))
+const __p = Inf.getLeftModuleInfix(N.PolynomialBimodule)
+const _p = Inf.getEuclideanRingInfix(N.PolynomialEuclidianRing)
 const _v = Inf.getAbGrpInfix(AbGrp)
 const _m = Inf.getAbGrpInfix(AbGrpM)
 
-const zipP = Poly.preservingZipWith<Int.Int, [Int.Int, Int.Int]>(tuple, Int.zero)
+const zipP = Poly.preservingZipWith<number, [number, number]>(tuple, 0)
 
-describe('Int', () => {
-  const rand = Int.randInt(-1_000_000, 1_000_000)
+describe('number', () => {
+  const rand = N.randNumber(-5_000, 5_000)
   const randV = V.randVec(10, rand)
   const randM = M.randMatrix(10, 10, rand)
   const randP = Poly.randPolynomial(10, rand)
-  describe('EuclidianRing laws', () => {
+  describe('Field laws', () => {
     it('abides additive unitor', () => {
       const test = rand()
-      expect(_(test, '+', Int.zero)).toBe(test)
-      expect(_(Int.zero, '+', test)).toBe(test)
+      expect(_(test, '+', N.zero)).toStrictEqual(test)
+      expect(_(N.zero, '+', test)).toStrictEqual(test)
     })
     it('abides multiplicative unitor', () => {
       const test = rand()
-      expect(_(test, '*', Int.one)).toBe(test)
-      expect(_(Int.one, '*', test)).toBe(test)
+      expect(_(test, '*', N.one)).toStrictEqual(test)
+      expect(_(N.one, '*', test)).toStrictEqual(test)
     })
+    /** This appears to fail with large numbers */
     it('associates with addition', () => {
       const a = rand()
       const b = rand()
       const c = rand()
-      expect(_(a, '+', _(b, '+', c))).toBe(_(_(a, '+', b), '+', c))
+      const d = _(a, '+', _(b, '+', c))
+      const e = _(_(a, '+', b), '+', c)
+      expect(d).toBeCloseTo(e)
     })
     /** This appears to fail with large numbers */
     it('associates with multiplication', () => {
       const a = rand()
       const b = rand()
       const c = rand()
-      expect(_(a, '*', _(b, '*', c))).toBe(_(_(a, '*', b), '*', c))
+      const d = _(_(a, '*', b), '*', c)
+      const e = _(a, '*', _(b, '*', c))
+      expect(d).toBeCloseTo(e)
     })
     it('commutes with addition', () => {
       const a = rand()
       const b = rand()
-      expect(_(a, '+', b)).toBe(_(b, '+', a))
+      expect(_(a, '+', b)).toStrictEqual(_(b, '+', a))
     })
     it('commutes with multiplication', () => {
       const a = rand()
       const b = rand()
-      expect(_(a, '*', b)).toBe(_(b, '*', a))
+      expect(_(a, '*', b)).toStrictEqual(_(b, '*', a))
     })
     it('distributes multiplication over addition', () => {
       const a = rand()
       const b = rand()
       const c = rand()
-      expect(_(a, '*', _(b, '+', c))).toBe(_(_(a, '*', b), '+', _(a, '*', c)))
-      expect(_(_(a, '+', b), '*', c)).toBe(_(_(a, '*', c), '+', _(b, '*', c)))
+      const d = _(a, '*', _(b, '+', c))
+      const e = _(_(a, '*', b), '+', _(a, '*', c))
+      const f = _(_(a, '+', b), '*', c)
+      const g = _(_(a, '*', c), '+', _(b, '*', c))
+
+      expect(d).toBeCloseTo(e)
+      expect(f).toBeCloseTo(g)
     })
     it('has an additive inverse', () => {
       const a = rand()
-      expect(_(a, '-', a)).toBe(Int.zero)
+      expect(_(a, '-', a)).toStrictEqual(N.zero)
     })
     it('has a multiplicative inverse', () => {
       const a = rand()
-      expect(_(a, '/', a)).toBe(Int.one)
+      expect(_(a, '/', a)).toStrictEqual(N.one)
     })
   })
   describe('Vector Abelian Group laws', () => {
@@ -136,6 +147,69 @@ describe('Int', () => {
     it('has an additive inverse', () => {
       const a = randM()
       expect(_m(a, '-', a)).toStrictEqual(AbGrpM.empty)
+    })
+  })
+  describe('Vector Space laws', () => {
+    it('associates over scalar multiplication', () => {
+      const a = rand()
+      const b = rand()
+      const p = randV()
+      const left = __(a, '.*', __(b, '.*', p))
+      const right = __(_(a, '*', b), '.*', p)
+      for (const [a, b] of V.zipVectors(left, right)) {
+        expect(a).toBeCloseTo(b)
+      }
+    })
+    it('abides scalar unitor', () => {
+      const p = randV()
+      expect(__(N.one, '.*', p)).toStrictEqual(p)
+    })
+    it('distributes over scalar multiplication wrt polynomial addition', () => {
+      const a = rand()
+      const p = randV()
+      const q = randV()
+      const left = __(a, '.*', _v(p, '+', q))
+      const right = _v(__(a, '.*', p), '+', __(a, '.*', q))
+      for (const [a, b] of V.zipVectors(left, right)) {
+        expect(a).toBeCloseTo(b)
+      }
+    })
+    it('distributes over scalar multiplication wrt Field addition', () => {
+      const a = rand()
+      const b = rand()
+      const p = randV()
+      const left = __(_(a, '+', b), '.*', p)
+      const right = _v(__(a, '.*', p), '+', __(b, '.*', p))
+      for (const [a, b] of V.zipVectors(left, right)) {
+        expect(a).toBeCloseTo(b)
+      }
+    })
+  })
+  describe('Inner Product laws', () => {
+    it('abides conjugate symmetry', () => {
+      const x = randV()
+      const y = randV()
+      const a = N.dot(x, y)
+      const b = N.dot(y, x)
+      expect(a).toBeCloseTo(b)
+    })
+    it('is linear in its first argument', () => {
+      const a = rand()
+      const b = rand()
+      const x = randV()
+      const y = randV()
+      const z = randV()
+      const left1 = __(a, '.*', x)
+      const left2 = __(b, '.*', y)
+      const left = N.dot(_v(left1, '+', left2), z)
+      const right1 = _(a, '*', N.dot(x, z))
+      const right2 = _(b, '*', N.dot(y, z))
+      const right = _(right1, '+', right2)
+      expect(left).toBeCloseTo(right)
+    })
+    it('is nonzero for nonzero x', () => {
+      const x = randV()
+      expect(N.dot(x, x)).not.toBeCloseTo(0)
     })
   })
   describe('Polynomial EuclidianRing laws', () => {
@@ -225,7 +299,7 @@ describe('Int', () => {
     })
     it('abides scalar unitor', () => {
       const p = randP()
-      expect(__p(Int.one, '.*', p)).toStrictEqual(p)
+      expect(__p(N.one, '.*', p)).toStrictEqual(p)
     })
     it('distributes over scalar multiplication wrt polynomial addition', () => {
       const a = rand()
@@ -246,6 +320,33 @@ describe('Int', () => {
       for (const [a, b] of zipP(left, right)) {
         expect(a).toBeCloseTo(b)
       }
+    })
+  })
+  describe('Polynomial Inner Product laws', () => {
+    it('abides conjugate symmetry', () => {
+      const x = randP()
+      const y = randP()
+      const a = N.polynomialInnerProduct(x, y)
+      const b = N.polynomialInnerProduct(y, x)
+      expect(a).toBeCloseTo(b)
+    })
+    it('is linear in its first argument', () => {
+      const a = rand()
+      const b = rand()
+      const x = randP()
+      const y = randP()
+      const z = randP()
+      const left1 = __p(a, '.*', x)
+      const left2 = __p(b, '.*', y)
+      const left = N.polynomialInnerProduct(_p(left1, '+', left2), z)
+      const right1 = _(a, '*', N.polynomialInnerProduct(x, z))
+      const right2 = _(b, '*', N.polynomialInnerProduct(y, z))
+      const right = _(right1, '+', right2)
+      expect(left).toBeCloseTo(right)
+    })
+    it('is nonzero for nonzero x', () => {
+      const x = randP()
+      expect(N.polynomialInnerProduct(x, x)).not.toBeCloseTo(0)
     })
   })
 })

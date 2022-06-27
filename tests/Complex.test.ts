@@ -1,10 +1,10 @@
 import { tuple } from 'fp-ts/function'
 
-import * as C from '../complex'
-import * as V from '../Vector'
-import * as M from '../Matrix'
-import * as Inf from '../infix'
-import * as Poly from '../Polynomial'
+import * as C from '../src/complex'
+import * as V from '../src/Vector'
+import * as M from '../src/Matrix'
+import * as Inf from '../src/infix'
+import * as Poly from '../src/Polynomial'
 
 const { _ } = C
 

@@ -1,6 +1,6 @@
-import * as H from '../quaternion'
-import * as Inf from '../infix'
-import * as N from '../number'
+import * as H from '../src/quaternion'
+import * as Inf from '../src/infix'
+import * as N from '../src/number'
 
 const { _ } = H
 

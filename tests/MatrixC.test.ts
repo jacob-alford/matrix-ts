@@ -1,6 +1,6 @@
-import * as Mat from '../Matrix'
-import * as V from '../Vector'
-import * as N from '../number'
+import * as Mat from '../src/Matrix'
+import * as V from '../src/Vector'
+import * as N from '../src/number'
 
 describe('Mat', () => {
   describe('id', () => {

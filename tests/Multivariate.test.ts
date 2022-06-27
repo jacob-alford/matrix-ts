@@ -1,5 +1,5 @@
-import * as V from '../Vector'
-import * as Stat from '../Multivariate'
+import * as V from '../src/Vector'
+import * as Stat from '../src/Multivariate'
 
 describe('Multivariate', () => {
   it('calculates a covariance matrix', () => {

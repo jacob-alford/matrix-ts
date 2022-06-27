@@ -1,7 +1,7 @@
-import * as Q from '../rational'
-import * as V from '../Vector'
-import * as M from '../Matrix'
-import * as Inf from '../infix'
+import * as Q from '../src/rational'
+import * as V from '../src/Vector'
+import * as M from '../src/Matrix'
+import * as Inf from '../src/infix'
 
 const { _ } = Q
 

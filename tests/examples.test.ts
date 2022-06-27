@@ -1,13 +1,13 @@
 import * as O from 'fp-ts/Option'
 import { flow, pipe } from 'fp-ts/function'
 
-import * as Auto from '../Automorphism'
-import * as Int from '../integer'
-import * as H from '../quaternion'
-import * as N from '../number'
-import * as Poly from '../Polynomial'
-import * as V from '../Vector'
-import * as Q from '../rational'
+import * as Auto from '../src/Automorphism'
+import * as Int from '../src/integer'
+import * as H from '../src/quaternion'
+import * as N from '../src/number'
+import * as Poly from '../src/Polynomial'
+import * as V from '../src/Vector'
+import * as Q from '../src/rational'
 
 describe('examples', () => {
   describe('polynomials', () => {
