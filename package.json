@@ -1,9 +1,16 @@
 {
   "name": "@jacob-alford/matrix-ts",
-  "homepage": "http://",
-  "version": "1.0.0",
-  "main": "dist/index.js",
+  "homepage": "https://jacob-alford.github.io/matrix-ts/",
+  "description": "fp-ts style mathematics library featuring: linear algebra, numerical methods, polynomials, and statistics",
+  "version": "1.0.1",
+  "author": "Jacob Alford <jacob.alford@me.com>",
   "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "sideEffects": false,
+  "bugs": {
+    "url": "https://github.com/jacob-alford/matrix-ts/issues"
+  },
   "peerDependencies": {
     "fp-ts": "^2.9.5"
   },
