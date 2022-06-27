@@ -1,43 +1,54 @@
-# [WIP] matrix-ts
+# matrix-ts
 
 fp-ts style mathematics library featuring: linear algebra, numerical methods, polynomials, and statistics
 
 ## Table of Contents
 
 <!-- AUTO-GENERATED-CONTENT:START (TOC) -->
+
 - [&#91;WIP&#93; matrix-ts](#wip-matrix-ts)
   - [Install](#install)
-  - [Possible future additions:](#possible-future-additions)
-  - [Data types:](#data-types)
+    - [Yarn](#yarn)
+    - [NPM](#npm)
+  - [Typescript Compatibility](#typescript-compatibility)
+  - [Documentation](#documentation)
+  - [Possible future additions](#possible-future-additions)
+  - [Data types](#data-types)
   - [Typeclasses](#typeclasses)
   - [Examples](#examples)
     - [Add fractions](#add-fractions)
     - [Vector dot product](#vector-dot-product)
     - [Vector cross product](#vector-cross-product)
     - [Multiplies two Integer Polynomials](#multiplies-two-integer-polynomials)
-  - [Advanced Examples](#advanced-examples)
-    - [Gaussian Elimination with Partial Pivoting (LUP)](#gaussian-elimination-with-partial-pivoting-lup)
-    - [Covariance matrix of a multivariate sample](#covariance-matrix-of-a-multivariate-sample)
-    - [Automorphisms of polynomials](#automorphisms-of-polynomials)
-    - [Automorphisms of matricies](#automorphisms-of-matricies)
-    - [Quaternion automorphisms](#quaternion-automorphisms)
-<!-- AUTO-GENERATED-CONTENT:END -->
+  - [Advanced Examples](#advanced-examples) - [Gaussian Elimination with Partial Pivoting (LUP)](#gaussian-elimination-with-partial-pivoting-lup) - [Covariance matrix of a multivariate sample](#covariance-matrix-of-a-multivariate-sample) - [Automorphisms of polynomials](#automorphisms-of-polynomials) - [Automorphisms of matricies](#automorphisms-of-matricies) - [Quaternion automorphisms](#quaternion-automorphisms)
+  <!-- AUTO-GENERATED-CONTENT:END -->
 
 ## Install
 
-Uses `fp-ts` as a peer dependency.
+Uses `fp-ts` as a peer dependency. Read more about peer dependencies at [nodejs.org](https://nodejs.org/en/blog/npm/peer-dependencies/).
+
+### Yarn
 
 ```bash
 yarn add fp-ts matrix-ts
 ```
 
-or
+### NPM
 
 ```bash
 npm install fp-ts matrix-ts
 ```
 
-## Possible future additions:
+## Typescript Compatibility
+
+This library depends on fp-ts version `^2.9.6` (or major versions above `2.9.6`, and below `3.0.0`), and thus requires typescript version 3.5+.
+
+## Documentation
+
+- [Docs](https://jacob-alford.github.io/matrix-ts/modules/)
+- [fp-ts](https://gcanti.github.io/fp-ts/modules/)
+
+## Possible future additions
 
 - Add Cholesky Decomposition
 - Add QR Decomposition
@@ -48,7 +59,7 @@ npm install fp-ts matrix-ts
 - Add factor analysis
 - Add CCA
 
-## Data types:
+## Data types
 
 - `integer.ts` – An integral data type with typeclass instances
 - `rational.ts` – A fractional data type with typeclass instances
