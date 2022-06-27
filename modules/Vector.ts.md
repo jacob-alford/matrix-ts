@@ -69,7 +69,7 @@ Added in v1.0.0
   - [getAdditiveAbelianGroup](#getadditiveabeliangroup)
   - [getBimodule](#getbimodule)
 - [Internal](#internal)
-  - [liftA2](#lifta2)
+  - [lift2](#lift2)
 - [Model](#model)
   - [Vec (interface)](#vec-interface)
 - [Vector Operations](#vector-operations)
@@ -604,12 +604,12 @@ Added in v1.0.0
 
 # Internal
 
-## liftA2
+## lift2
 
 **Signature**
 
 ```ts
-export declare const liftA2: <N, A, B>(f: (x: A, y: A) => B) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B>
+export declare const lift2: <N, A, B>(f: (x: A, y: A) => B) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B>
 ```
 
 Added in v1.0.0
