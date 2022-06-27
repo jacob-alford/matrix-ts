@@ -172,12 +172,12 @@ Added in v1.0.0
 
 Converts a polar-form complex tuple to `Complex`
 
-Note, psi here is in degrees
+Note, theta here is in degrees
 
 **Signature**
 
 ```ts
-export declare const fromPolarDegrees: (r: number, psi: number) => Complex
+export declare const fromPolarDegrees: (r: number, theta: number) => Complex
 ```
 
 Added in v1.0.0
