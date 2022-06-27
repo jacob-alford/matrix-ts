@@ -181,7 +181,7 @@ declare module 'fp-ts/HKT' {
  * @since 1.0.0
  * @category Internal
  */
-export const liftA2: <N, A, B>(
+export const lift2: <N, A, B>(
   f: (x: A, y: A) => B
 ) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B> = f => (x, y) =>
   pipe(RA.zipWith(x, y, f), a => wrap(a))
@@ -193,7 +193,7 @@ export const liftA2: <N, A, B>(
 export const getAdditiveAbelianGroup: <A>(
   R: Rng.Ring<A>
 ) => <N extends number>(n: N) => TC.AbelianGroup<Vec<N, A>> = R => n => ({
-  concat: liftA2(R.add),
+  concat: lift2(R.add),
   inverse: map(x => R.sub(R.zero, x)),
   empty: repeat(n, R.zero),
 })
