@@ -26,7 +26,7 @@ jobs:
       - run: yarn install
       - run: yarn run build
       - run: yarn run test
-      - run: yarn run lint
+      - run: yarn run eslint
   deploy-docs:
     needs:
       - build
