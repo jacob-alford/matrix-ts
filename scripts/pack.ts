@@ -37,6 +37,13 @@ export const copyPackageJson: Build<void> = C =>
         publishConfig: {
           access: 'public',
         },
+        typesVersions: {
+          "*": {
+            "*": [
+              "./*.d.ts"
+            ]
+          }
+        },
       })
 
       delete clone.scripts
