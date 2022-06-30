@@ -96,7 +96,7 @@ Added in v1.0.0
 export declare const diagonalFoldMap: <A>(Mn: Mon.Monoid<A>) => <M>(as: DiagonalMatrix<M, A>) => A
 ```
 
-Added in v1.0.0
+Added in v1.0.4
 
 ## diagonalInverse
 

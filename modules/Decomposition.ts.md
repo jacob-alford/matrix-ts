@@ -82,7 +82,7 @@ export interface Determinant {
 }
 ```
 
-Added in v1.0.0
+Added in v1.0.4
 
 ## Solvable (interface)
 
@@ -100,4 +100,4 @@ export interface Solvable<M, R> {
 }
 ```
 
-Added in v1.0.0
+Added in v1.0.4
