@@ -104,8 +104,8 @@ This library depends on fp-ts version `^2.9.6` (or major versions above `2.9.6`,
 
 ```ts
 import * as O from 'fp-ts/Option'
-import * as Q from 'matrix-ts/rational'
-import * as Int from 'matrix-ts/integer'
+import * as Q from '@jacob-alford/matrix-ts/rational'
+import * as Int from '@jacob-alford/matrix-ts/integer'
 
 it('adds fractions', () => {
   const { _ } = Q
@@ -131,8 +131,8 @@ it('adds fractions', () => {
 `src/__tests__/examples.test.ts`
 
 ```ts
-import * as N from 'matrix-ts/number'
-import * as V from 'matrix-ts/Vector'
+import * as N from '@jacob-alford/matrix-ts/number'
+import * as V from '@jacob-alford/matrix-ts/Vector'
 
 it('dots two vectors', () => {
   const a = V.fromTuple([1, 2, 3, 4, 5, 6])
@@ -146,8 +146,8 @@ it('dots two vectors', () => {
 `src/__tests__/examples.test.ts`
 
 ```ts
-import * as N from 'matrix-ts/number'
-import * as V from 'matrix-ts/Vector'
+import * as N from '@jacob-alford/matrix-ts/number'
+import * as V from '@jacob-alford/matrix-ts/Vector'
 
 it('crosses two vectors', () => {
   const a = V.fromTuple([0, 2, 1])
@@ -161,8 +161,8 @@ it('crosses two vectors', () => {
 `src/__tests__examples.test.ts`
 
 ```ts
-import * as Poly from 'matrix-ts/Polynomial'
-import * as Int from 'matrix-ts/integer'
+import * as Poly from '@jacob-alford/matrix-ts/Polynomial'
+import * as Int from '@jacob-alford/matrix-ts/integer'
 
 it('multiples two polynomials', () => {
   const fromArr = Poly.fromCoefficientArray(Int.Eq, Int.EuclideanRing)
@@ -193,9 +193,9 @@ it('multiples two polynomials', () => {
 `src/__tests__/Decomposition.test.ts`
 
 ```ts
-import * as D from 'matrix-ts/Decomposition'
-import * as M from 'matrix-ts/Matrix'
-import * as V from 'matrix-ts/Vector'
+import * as D from '@jacob-alford/matrix-ts/Decomposition'
+import * as M from '@jacob-alford/matrix-ts/Matrix'
+import * as V from '@jacob-alford/matrix-ts/Vector'
 
 it('solves a system of equations', () => {
   const A = M.fromNestedTuples([
@@ -258,8 +258,8 @@ it('returns a factorized matrix', () => {
 
 ```ts
 import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
-import * as V from 'matrix-ts/Vector'
-import * as Stat from 'matrix-ts/Multivariate'
+import * as V from '@jacob-alford/matrix-ts/Vector'
+import * as Stat from '@jacob-alford/matrix-ts/Multivariate'
 
 it('calculates a covariance matrix', () => {
   const sample: Stat.MultivariateSample<3> = [
@@ -283,8 +283,8 @@ it('calculates a covariance matrix', () => {
 `src/__tests__/examples.test.ts`
 
 ```ts
-import * as Poly from 'matrix-ts/Polynomial'
-import * as LI from 'matrix-ts/LinearIsomorphism'
+import * as Poly from '@jacob-alford/matrix-ts/Polynomial'
+import * as N from '@jacob-alford/matrix-ts/number'
 
 it('differentiates and integrates polynomials', () => {
   const { equals } = Poly.getPolynomialEq<number>(N.Eq)
@@ -306,10 +306,9 @@ it('differentiates and integrates polynomials', () => {
 `src/__tests__/examples.test.ts`
 
 ```ts
-import * as LM from 'matrix-ts/LinearMap'
-import * as LI from 'matrix-ts/LinearIsomorphism'
-import * as M from 'matrix-ts/Matrix'
-import * as V from 'matrix-ts/Vector'
+import * as Auto from '@jacob-alford/matrix-ts/Automorphism'
+import * as N from '@jacob-alford/matrix-ts/number'
+import * as V from '@jacob-alford/matrix-ts/Vector'
 
 it('rotates a 2d vector and back 270 degrees', () => {
   const rotate90Degrees = N.get2dRotation(Math.PI / 2)
@@ -345,8 +344,8 @@ it('rotates a 3d vector and back along three axies', () => {
 `src/__tests__/examples.test.ts`
 
 ```ts
-import * as Poly from 'matrix-ts/Polynomial'
-import * as LI from 'matrix-ts/LinearIsomorphism'
+import * as H from '@jacob-alford/matrix-ts/quaternion'
+import * as V from '@jacob-alford/matrix-ts/Vector'
 
 it('rotates a 3d vector using quaternions', () => {
   const T = H.getRotationAutomorphism(

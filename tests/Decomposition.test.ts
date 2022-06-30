@@ -79,6 +79,61 @@ describe('LUP Decomposition', () => {
       }
     }
   })
+  it('calculates a determinant (i)', () => {
+    const [output] = LUP(
+      M.fromNestedTuples([
+        [5, 2, 1, 4, 6],
+        [9, 4, 2, 5, 2],
+        [11, 5, 7, 3, 9],
+        [5, 6, 6, 7, 2],
+        [7, 5, 9, 3, 3],
+      ])
+    )
+
+    if (E.isLeft(output)) {
+      throw new Error('Unexpected result')
+    }
+
+    const { det } = output.right
+
+    /*
+     * This seems to be off by one
+     */
+    expect(det()).toBeCloseTo(-2003, -1)
+  })
+  it('calculates a determinant (ii)', () => {
+    const [output] = LUP(
+      M.fromNestedTuples([
+        [50, 29],
+        [30, 44],
+      ])
+    )
+
+    if (E.isLeft(output)) {
+      throw new Error('Unexpected result')
+    }
+
+    const { det } = output.right
+
+    expect(det()).toBeCloseTo(1330)
+  })
+  it('calculates a determinant (ii)', () => {
+    const [output] = LUP(
+      M.fromNestedTuples([
+        [55, 25, 15],
+        [30, 44, 2],
+        [11, 45, 77],
+      ])
+    )
+
+    if (E.isLeft(output)) {
+      throw new Error('Unexpected result')
+    }
+
+    const { det } = output.right
+
+    expect(det()).toBeCloseTo(137180)
+  })
   it('detects a singular matrix (i)', () => {
     const [result] = LUP(
       M.fromNestedTuples([

@@ -317,7 +317,7 @@ export const getBimodule: <A>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const map: <M, N, A, B>(f: (a: A) => B) => (v: Mat<M, N, A>) => Mat<M, N, B> = f =>
   flow(V.map(V.map(f)), a => wrap(a))
@@ -333,7 +333,7 @@ export const Functor: Fun.Functor3<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const mapWithIndex: <M, N, A, B>(
   f: (ij: [number, number], a: A) => B
@@ -359,7 +359,7 @@ export const FunctorWithIndex: FunI.FunctorWithIndex3<URI, [number, number]> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const reduce: <M, N, A, B>(
   b: B,
@@ -368,7 +368,7 @@ export const reduce: <M, N, A, B>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const foldMap: <M>(
   M: Mn.Monoid<M>
@@ -377,7 +377,7 @@ export const foldMap: <M>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const reduceRight: <M, N, B, A>(
   b: A,
@@ -398,7 +398,7 @@ export const Foldable: Fl.Foldable3<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const reduceWithIndex: <M, N, A, B>(
   b: B,
@@ -413,7 +413,7 @@ export const reduceWithIndex: <M, N, A, B>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const foldMapWithIndex: <M>(
   M: Mn.Monoid<M>
@@ -427,7 +427,7 @@ export const foldMapWithIndex: <M>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const reduceRightWithIndex: <M, N, B, A>(
   b: A,
@@ -453,7 +453,7 @@ export const FoldableWithIndex: FlI.FoldableWithIndex3<URI, [number, number]> = 
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export function sequence<F extends URIS4>(
   F: Apl.Applicative4<F>
@@ -482,7 +482,7 @@ export function sequence<F>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export function traverse<F extends URIS4>(
   F: Apl.Applicative4<F>
