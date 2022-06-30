@@ -267,7 +267,7 @@ export const getCompositionMonoid: <R>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const map: <A, B>(f: (a: A) => B) => (fa: Polynomial<A>) => Polynomial<B> = f =>
   flow(RA.map(f), wrap)
@@ -283,7 +283,7 @@ export const Functor: Fun.Functor1<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const mapWithIndex: <A, B>(
   f: (i: number, a: A) => B
