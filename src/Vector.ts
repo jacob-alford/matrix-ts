@@ -179,15 +179,6 @@ declare module 'fp-ts/HKT' {
 
 /**
  * @since 1.0.0
- * @category Internal
- */
-export const lift2: <N, A, B>(
-  f: (x: A, y: A) => B
-) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B> = f => (x, y) =>
-  pipe(RA.zipWith(x, y, f), a => wrap(a))
-
-/**
- * @since 1.0.0
  * @category Instances
  */
 export const getAdditiveAbelianGroup: <A>(
@@ -220,7 +211,7 @@ export const getBimodule: <R>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const map: <N, A, B>(f: (a: A) => B) => (v: Vec<N, A>) => Vec<N, B> = f => v =>
   pipe(v, RA.map(f), a => wrap(a))
@@ -236,7 +227,7 @@ export const Functor: Fun.Functor2<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const mapWithIndex: <N, A, B>(
   f: (i: number, a: A) => B
@@ -253,7 +244,7 @@ export const FunctorWithIndex: FunI.FunctorWithIndex2<URI, number> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const of: <A>(a: A) => Vec<1, A> = a => fromTuple([a])
 
@@ -269,7 +260,7 @@ export const Pointed: Pt.Pointed2C<URI, 1> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const ap: <N, A, B>(fa: Vec<N, A>) => (fab: Vec<N, (a: A) => B>) => Vec<N, B> =
   fa => fab =>
@@ -307,7 +298,7 @@ export const Applicative: Apl.Applicative2C<URI, 1> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const chain: <A, B>(f: (a: A) => Vec<1, B>) => <N>(ma: Vec<N, A>) => Vec<N, B> =
   f => ma =>
@@ -340,7 +331,7 @@ export const Monad: Mon.Monad2C<URI, 1> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const reduce: <N, A, B>(b: B, f: (b: B, a: A) => B) => (fa: Vec<N, A>) => B =
   (b, f) => fa =>
@@ -348,7 +339,7 @@ export const reduce: <N, A, B>(b: B, f: (b: B, a: A) => B) => (fa: Vec<N, A>) =>
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const foldMap: <M>(
   M: Mn.Monoid<M>
@@ -357,7 +348,7 @@ export const foldMap: <M>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const reduceRight: <N, B, A>(b: A, f: (b: B, a: A) => A) => (fa: Vec<N, B>) => A =
   (a, f) => fa =>
@@ -376,7 +367,7 @@ export const Foldable: Fl.Foldable2<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const reduceWithIndex: <N, A, B>(
   b: B,
@@ -385,7 +376,7 @@ export const reduceWithIndex: <N, A, B>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const foldMapWithIndex: <M>(
   M: Mn.Monoid<M>
@@ -394,7 +385,7 @@ export const foldMapWithIndex: <M>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const reduceRightWithIndex: <N, B, A>(
   b: A,
@@ -414,7 +405,7 @@ export const FoldableWithIndex: FlI.FoldableWithIndex2<URI, number> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const traverse: Tr.PipeableTraverse2<URI> =
   <F>(F: Apl.Applicative<F>) =>
@@ -429,7 +420,7 @@ export const traverse: Tr.PipeableTraverse2<URI> =
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const sequence =
   <F>(F: Apl.Applicative<F>) =>
@@ -560,6 +551,15 @@ export const lInfNorm: <A extends number | Complex>(
 // #########################
 // ### Vector Operations ###
 // #########################
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const lift2: <N, A, B>(
+  f: (x: A, y: A) => B
+) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B> = f => (x, y) =>
+  pipe(RA.zipWith(x, y, f), a => wrap(a))
 
 /**
  * @since 1.0.0

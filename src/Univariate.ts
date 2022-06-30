@@ -73,7 +73,7 @@ export const covariance: (ab: BivariateSample) => number = ab => {
 }
 
 /**
- * The covariance of a bivariate sample, is the mutual variance between the two random variables
+ * The variance of a univariate sample
  *
  * @since 1.0.0
  * @category Statistics

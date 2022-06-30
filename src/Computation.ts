@@ -76,7 +76,7 @@ declare module 'fp-ts/HKT' {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const map: <A, B>(
   f: (a: A) => B
@@ -93,7 +93,7 @@ export const Functor: Fun.Functor2<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const bimap: <E, G, A, B>(
   f: (e: E) => G,
@@ -103,7 +103,7 @@ export const bimap: <E, G, A, B>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const mapLeft: <E, G>(
   f: (e: E) => G
@@ -122,7 +122,7 @@ export const Bifunctor: BiFun.Bifunctor2<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const ap: <E, A, B>(
   fab: Computation<E, (a: A) => B>
@@ -133,7 +133,7 @@ export const ap: <E, A, B>(
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const Apply: Ap.Apply2<URI> = {
   ...Functor,
@@ -151,7 +151,7 @@ export const Applicative: Apl.Applicative2<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const chain: <E, A, B>(
   f: (a: A) => Computation<E, B>
@@ -187,7 +187,7 @@ export const Monad: Mon.Monad2<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const throwError: <E, A>(e: E) => Computation<E, A> = e => [E.left(e), RA.of(e)]
 
@@ -202,7 +202,7 @@ export const MonadThrow: MonThrow.MonadThrow2<URI> = {
 
 /**
  * @since 1.0.0
- * @category Instance operations
+ * @category Instance Operations
  */
 export const fromEither: FE.FromEither2<URI>['fromEither'] = a => [
   a,
