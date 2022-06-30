@@ -24,11 +24,10 @@ Added in v1.0.0
   - [coefficients](#coefficients)
 - [Instance Operations](#instance-operations)
   - [add](#add)
-  - [mul](#mul)
-  - [sub](#sub)
-- [Instance operations](#instance-operations)
   - [map](#map)
   - [mapWithIndex](#mapwithindex)
+  - [mul](#mul)
+  - [sub](#sub)
 - [Instances](#instances)
   - [Functor](#functor)
   - [FunctorWithIndex](#functorwithindex)
@@ -130,28 +129,6 @@ export declare const add: <R>(Eq: Eq.Eq<R>, R: Rng.Ring<R>) => (x: Polynomial<R>
 
 Added in v1.0.0
 
-## mul
-
-**Signature**
-
-```ts
-export declare const mul: <R>(Eq: Eq.Eq<R>, R: Rng.Ring<R>) => (xs: Polynomial<R>, ys: Polynomial<R>) => Polynomial<R>
-```
-
-Added in v1.0.0
-
-## sub
-
-**Signature**
-
-```ts
-export declare const sub: <R>(Eq: Eq.Eq<R>, R: Rng.Ring<R>) => (x: Polynomial<R>, y: Polynomial<R>) => Polynomial<R>
-```
-
-Added in v1.0.0
-
-# Instance operations
-
 ## map
 
 **Signature**
@@ -168,6 +145,26 @@ Added in v1.0.0
 
 ```ts
 export declare const mapWithIndex: <A, B>(f: (i: number, a: A) => B) => (fa: Polynomial<A>) => Polynomial<B>
+```
+
+Added in v1.0.0
+
+## mul
+
+**Signature**
+
+```ts
+export declare const mul: <R>(Eq: Eq.Eq<R>, R: Rng.Ring<R>) => (xs: Polynomial<R>, ys: Polynomial<R>) => Polynomial<R>
+```
+
+Added in v1.0.0
+
+## sub
+
+**Signature**
+
+```ts
+export declare const sub: <R>(Eq: Eq.Eq<R>, R: Rng.Ring<R>) => (x: Polynomial<R>, y: Polynomial<R>) => Polynomial<R>
 ```
 
 Added in v1.0.0

@@ -31,8 +31,6 @@ Added in v1.0.0
   - [toNestedArrays](#tonestedarrays)
   - [toNestedReadonlyArrays](#tonestedreadonlyarrays)
 - [Instance Operations](#instance-operations)
-  - [traverseWithIndex](#traversewithindex)
-- [Instance operations](#instance-operations)
   - [foldMap](#foldmap)
   - [foldMapWithIndex](#foldmapwithindex)
   - [map](#map)
@@ -43,6 +41,7 @@ Added in v1.0.0
   - [reduceWithIndex](#reducewithindex)
   - [sequence](#sequence)
   - [traverse](#traverse)
+  - [traverseWithIndex](#traversewithindex)
 - [Instances](#instances)
   - [Foldable](#foldable)
   - [FoldableWithIndex](#foldablewithindex)
@@ -271,33 +270,6 @@ Added in v1.0.0
 
 # Instance Operations
 
-## traverseWithIndex
-
-**Signature**
-
-```ts
-export declare function traverseWithIndex<F extends URIS4>(
-  F: Apl.Applicative4<F>
-): <S, R, E, A, B>(
-  f: (i: [number, number], a: A) => Kind4<F, S, R, E, B>
-) => <M, N>(ta: Mat<M, N, A>) => Kind4<F, S, R, E, Mat<M, N, B>>
-export declare function traverseWithIndex<F extends URIS3>(
-  F: Apl.Applicative3<F>
-): <R, E, A, B>(
-  f: (i: [number, number], a: A) => Kind3<F, R, E, B>
-) => <M, N>(ta: Mat<M, N, A>) => Kind3<F, R, E, Mat<M, N, B>>
-export declare function traverseWithIndex<F extends URIS2>(
-  F: Apl.Applicative2<F>
-): <E, A, B>(f: (i: [number, number], a: A) => Kind2<F, E, B>) => <M, N>(ta: Mat<M, N, A>) => Kind2<F, E, Mat<M, N, B>>
-export declare function traverseWithIndex<F extends URIS>(
-  F: Apl.Applicative1<F>
-): <A, B>(f: (i: [number, number], a: A) => Kind<F, B>) => <M, N>(ta: Mat<M, N, A>) => Kind<F, Mat<M, N, B>>
-```
-
-Added in v1.0.0
-
-# Instance operations
-
 ## foldMap
 
 **Signature**
@@ -426,6 +398,31 @@ export declare function traverse<F extends URIS2>(
 export declare function traverse<F extends URIS>(
   F: Apl.Applicative1<F>
 ): <A, B>(f: (a: A) => Kind<F, B>) => <M, N>(ta: Mat<M, N, A>) => Kind<F, Mat<M, N, B>>
+```
+
+Added in v1.0.0
+
+## traverseWithIndex
+
+**Signature**
+
+```ts
+export declare function traverseWithIndex<F extends URIS4>(
+  F: Apl.Applicative4<F>
+): <S, R, E, A, B>(
+  f: (i: [number, number], a: A) => Kind4<F, S, R, E, B>
+) => <M, N>(ta: Mat<M, N, A>) => Kind4<F, S, R, E, Mat<M, N, B>>
+export declare function traverseWithIndex<F extends URIS3>(
+  F: Apl.Applicative3<F>
+): <R, E, A, B>(
+  f: (i: [number, number], a: A) => Kind3<F, R, E, B>
+) => <M, N>(ta: Mat<M, N, A>) => Kind3<F, R, E, Mat<M, N, B>>
+export declare function traverseWithIndex<F extends URIS2>(
+  F: Apl.Applicative2<F>
+): <E, A, B>(f: (i: [number, number], a: A) => Kind2<F, E, B>) => <M, N>(ta: Mat<M, N, A>) => Kind2<F, E, Mat<M, N, B>>
+export declare function traverseWithIndex<F extends URIS>(
+  F: Apl.Applicative1<F>
+): <A, B>(f: (i: [number, number], a: A) => Kind<F, B>) => <M, N>(ta: Mat<M, N, A>) => Kind<F, Mat<M, N, B>>
 ```
 
 Added in v1.0.0

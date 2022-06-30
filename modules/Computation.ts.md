@@ -30,7 +30,7 @@ Added in v1.0.0
   - [bind](#bind)
   - [bindTo](#bindto)
   - [bindW](#bindw)
-- [Instance operations](#instance-operations)
+- [Instance Operations](#instance-operations)
   - [Apply](#apply)
   - [ap](#ap)
   - [bimap](#bimap)
@@ -196,7 +196,7 @@ export declare const bindW: <N extends string, A, E2, B>(
 
 Added in v1.0.0
 
-# Instance operations
+# Instance Operations
 
 ## Apply
 

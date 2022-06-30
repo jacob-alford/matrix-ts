@@ -37,8 +37,6 @@ Added in v1.0.0
   - [bind](#bind)
   - [bindTo](#bindto)
 - [Instance Operations](#instance-operations)
-  - [traverseWithIndex](#traversewithindex)
-- [Instance operations](#instance-operations)
   - [ap](#ap)
   - [chain](#chain)
   - [foldMap](#foldmap)
@@ -52,6 +50,7 @@ Added in v1.0.0
   - [reduceWithIndex](#reducewithindex)
   - [sequence](#sequence)
   - [traverse](#traverse)
+  - [traverseWithIndex](#traversewithindex)
 - [Instances](#instances)
   - [Applicative](#applicative)
   - [Apply](#apply)
@@ -68,14 +67,13 @@ Added in v1.0.0
   - [URI (type alias)](#uri-type-alias)
   - [getAdditiveAbelianGroup](#getadditiveabeliangroup)
   - [getBimodule](#getbimodule)
-- [Internal](#internal)
-  - [lift2](#lift2)
 - [Model](#model)
   - [Vec (interface)](#vec-interface)
 - [Vector Operations](#vector-operations)
   - [crossProduct](#crossproduct)
   - [get](#get)
   - [innerProduct](#innerproduct)
+  - [lift2](#lift2)
   - [projection](#projection)
   - [reverse](#reverse)
   - [updateAt](#updateat)
@@ -306,18 +304,6 @@ Added in v1.0.0
 
 # Instance Operations
 
-## traverseWithIndex
-
-**Signature**
-
-```ts
-export declare const traverseWithIndex: TrI.PipeableTraverseWithIndex2<'Vec', number>
-```
-
-Added in v1.0.0
-
-# Instance operations
-
 ## ap
 
 **Signature**
@@ -444,6 +430,16 @@ Added in v1.0.0
 
 ```ts
 export declare const traverse: Tr.PipeableTraverse2<'Vec'>
+```
+
+Added in v1.0.0
+
+## traverseWithIndex
+
+**Signature**
+
+```ts
+export declare const traverseWithIndex: TrI.PipeableTraverseWithIndex2<'Vec', number>
 ```
 
 Added in v1.0.0
@@ -602,18 +598,6 @@ export declare const getBimodule: <R>(R: Rng.Ring<R>) => <N extends number>(n: N
 
 Added in v1.0.0
 
-# Internal
-
-## lift2
-
-**Signature**
-
-```ts
-export declare const lift2: <N, A, B>(f: (x: A, y: A) => B) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B>
-```
-
-Added in v1.0.0
-
 # Model
 
 ## Vec (interface)
@@ -659,6 +643,16 @@ export declare const innerProduct: <A extends number | Complex>(
   R: Rng.Ring<A>,
   conj: (r: A) => A
 ) => <N>(x: Vec<N, A>, y: Vec<N, A>) => A
+```
+
+Added in v1.0.0
+
+## lift2
+
+**Signature**
+
+```ts
+export declare const lift2: <N, A, B>(f: (x: A, y: A) => B) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B>
 ```
 
 Added in v1.0.0

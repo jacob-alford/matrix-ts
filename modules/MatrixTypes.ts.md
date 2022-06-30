@@ -23,6 +23,7 @@ Added in v1.0.0
 - [Isomorphisms](#isomorphisms)
   - [getTransposeIso](#gettransposeiso)
 - [Matrix Operations](#matrix-operations)
+  - [diagonalFoldMap](#diagonalfoldmap)
   - [diagonalInverse](#diagonalinverse)
   - [diagonalMap](#diagonalmap)
 - [Model](#model)
@@ -86,6 +87,16 @@ export declare const getTransposeIso: <M extends number, A>() => Iso.Iso<
 Added in v1.0.0
 
 # Matrix Operations
+
+## diagonalFoldMap
+
+**Signature**
+
+```ts
+export declare const diagonalFoldMap: <A>(Mn: Mon.Monoid<A>) => <M>(as: DiagonalMatrix<M, A>) => A
+```
+
+Added in v1.0.0
 
 ## diagonalInverse
 

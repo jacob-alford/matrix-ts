@@ -20,6 +20,8 @@ Added in v1.0.0
   - [LUP](#lup)
 - [Model](#model)
   - [Decomposition (interface)](#decomposition-interface)
+  - [Determinant (interface)](#determinant-interface)
+  - [Solvable (interface)](#solvable-interface)
 
 ---
 
@@ -45,7 +47,9 @@ export declare const LUP: <M extends number>(
     M,
     number,
     [MatTypes.LowerTriangularMatrix<M, number>, MatTypes.UpperTriangularMatrix<M, number>, M.Mat<M, M, number>]
-  >
+  > &
+    Solvable<M, number> &
+    Determinant
 >
 ```
 
@@ -61,6 +65,37 @@ Added in v1.0.0
 export interface Decomposition<M, R, A> {
   input: M.Mat<M, M, R>
   result: A
+}
+```
+
+Added in v1.0.0
+
+## Determinant (interface)
+
+Represents the result of a computation that can be used to calculate the determinant
+
+**Signature**
+
+```ts
+export interface Determinant {
+  det: IO.IO<number>
+}
+```
+
+Added in v1.0.0
+
+## Solvable (interface)
+
+Represents the result of a computation that can solve:
+
+```math
+Ax = b
+```
+
+**Signature**
+
+```ts
+export interface Solvable<M, R> {
   solve: (b: V.Vec<M, R>) => V.Vec<M, R>
 }
 ```
