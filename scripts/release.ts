@@ -8,6 +8,9 @@ interface Build<A> extends RTE.ReaderTaskEither<CLI, Error, A> {}
 export const main: Build<void> = C =>
   C.exec('npm publish', {
     cwd: 'dist',
+    env: {
+      NODE_AUTH_TOKEN: process.env.NODE_AUTH_TOKEN,
+    },
   })
 
 run(

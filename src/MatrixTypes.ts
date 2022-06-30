@@ -142,7 +142,7 @@ export const diagonalMap: <A>(
 }
 
 /**
- * @since 1.0.0
+ * @since 1.0.4
  * @category Matrix Operations
  */
 export const diagonalFoldMap: <A>(

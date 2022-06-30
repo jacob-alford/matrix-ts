@@ -37,7 +37,7 @@ export interface Decomposition<M, R, A> {
  * Ax = b
  * ```
  *
- * @since 1.0.0
+ * @since 1.0.4
  * @category Model
  */
 export interface Solvable<M, R> {
@@ -47,7 +47,7 @@ export interface Solvable<M, R> {
 /**
  * Represents the result of a computation that can be used to calculate the determinant
  *
- * @since 1.0.0
+ * @since 1.0.4
  * @category Model
  */
 export interface Determinant {
