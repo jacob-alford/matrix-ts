@@ -7,6 +7,7 @@
  */
 import * as Rng from 'fp-ts/Ring'
 import * as Fld from 'fp-ts/Field'
+import * as Mon from 'fp-ts/Monoid'
 import { flow, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as M from './Matrix'
@@ -138,6 +139,21 @@ export const diagonalMap: <A>(
     _(a, i)[i] = f(_(_(a, i), i))
   }
   return unsafeCoerce(a)
+}
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const diagonalFoldMap: <A>(
+  Mn: Mon.Monoid<A>
+) => <M>(as: DiagonalMatrix<M, A>) => A = M => as => {
+  const _ = <A>(as: ReadonlyArray<A>, i: number): A => unsafeCoerce(as[i])
+  let out = M.empty
+  for (let i = 0; i < as.length; ++i) {
+    out = M.concat(out, _(_(as, i), i))
+  }
+  return out
 }
 
 /**

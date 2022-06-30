@@ -7,6 +7,7 @@
  */
 import * as O from 'fp-ts/Option'
 import * as ChnR from 'fp-ts/ChainRec'
+import * as IO from 'fp-ts/IO'
 import * as E from 'fp-ts/Either'
 import { tuple, pipe, unsafeCoerce } from 'fp-ts/function'
 
@@ -27,7 +28,30 @@ import * as C from './Computation'
 export interface Decomposition<M, R, A> {
   input: M.Mat<M, M, R>
   result: A
+}
+
+/**
+ * Represents the result of a computation that can solve:
+ *
+ * ```math
+ * Ax = b
+ * ```
+ *
+ * @since 1.0.0
+ * @category Model
+ */
+export interface Solvable<M, R> {
   solve: (b: V.Vec<M, R>) => V.Vec<M, R>
+}
+
+/**
+ * Represents the result of a computation that can be used to calculate the determinant
+ *
+ * @since 1.0.0
+ * @category Model
+ */
+export interface Determinant {
+  det: IO.IO<number>
 }
 
 // ####################
@@ -57,11 +81,14 @@ export const LUP = <M extends number>(
       MatTypes.UpperTriangularMatrix<M, number>,
       M.Mat<M, M, number>
     ]
-  >
+  > &
+    Solvable<M, number> &
+    Determinant
 > => {
   type ComputationParams = {
     LU: M.Mat<M, M, number>
     P: M.Mat<M, M, number>
+    numPivots: number
     i: number
   }
 
@@ -116,6 +143,15 @@ export const LUP = <M extends number>(
           C.fromOption(() => '[02] Unreachable: index not found')
         )
       ),
+      C.bindW('numPivots', ({ acc: { numPivots }, maxI }) =>
+        O.isSome(maxI) ? C.of(numPivots + 1) : C.of(numPivots)
+      ),
+      C.logOption(({ maxI, acc: { i } }) =>
+        pipe(
+          maxI,
+          O.map(maxI => `Swapped ${i} and ${maxI[1]}, with max value: ${maxI[0]}`)
+        )
+      ),
       /*
        * Calculate multipliers, find next iteration of LU
        * ------------------------------------------------
@@ -126,17 +162,12 @@ export const LUP = <M extends number>(
           C.fromOption(() => '[10] Matrix is singular')
         )
       ),
-      C.logOption(({ maxI, acc: { i } }) =>
-        pipe(
-          maxI,
-          O.map(maxI => `Swapped ${i} and ${maxI[1]}, with max value: ${maxI[0]}`)
-        )
-      ),
       C.map(
-        ({ LU, acc: { i }, P }): ComputationParams => ({
+        ({ LU, acc: { i }, P, numPivots }): ComputationParams => ({
           LU,
           i: i + 1,
           P,
+          numPivots,
         })
       ),
       E.left
@@ -149,13 +180,16 @@ export const LUP = <M extends number>(
   )
 
   return pipe(
-    ChnR.tailRec(C.of({ LU: m, i: 0, P: Id }), go),
-    C.map(({ LU, P }) => {
+    ChnR.tailRec(C.of({ LU: m, i: 0, P: Id, numPivots: 0 }), go),
+    C.map(({ LU, P, numPivots }) => {
       const [L, U] = MatTypes.fromMatrix(N.Field)(LU)
       return {
         input: m,
         result: tuple(L, U, P),
         solve: b => backSub(U, forwardSub(L, N.linMap(P, b))),
+        det: () =>
+          (numPivots % 2 === 0 ? 1 : -1) *
+          pipe(U, MatTypes.extractDiagonal(0), MatTypes.diagonalFoldMap(N.MonoidProduct)),
       }
     })
   )
