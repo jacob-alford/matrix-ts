@@ -42,8 +42,7 @@
     "build:cjs": "babel build/esm --config-file ./.babel.cjs.json --out-dir build/cjs --out-file-extension .js --source-maps",
     "build:pack": "yarn build && yarn concurrently \"yarn build:cjs\" \"yarn build:mjs\" && yarn ts-node scripts/pack.ts",
     "prerelease": "yarn clean && yarn build:pack",
-    "npm:copy-config": "cp .npmrc dist/.npmrc && echo \".npmrc\" >> dist/.npmignore",
-    "release": "yarn run npm:copy-config && cd dist && npm publish",
+    "release": "yarn ts-node scripts/config.ts && cd dist && npm publish",
     "docs": "yarn run docs-ts",
     "md": "yarn run markdown",
     "docsmd": "yarn md && yarn docs"

@@ -145,7 +145,6 @@ const _traverse: Tr.Traversable2<URI>['traverse'] = <F>(
   const traverseF = traverse(F)
   return (ta, f) => pipe(ta, traverseF(f))
 }
-/* istanbul ignore next */
 const _traverseWithIndex: TrI.TraversableWithIndex2<URI, number>['traverseWithIndex'] = <
   F
 >(
