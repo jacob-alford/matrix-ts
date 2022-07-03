@@ -698,6 +698,38 @@ export const switchRows =
         )
 
 /**
+ * @since 1.10.0
+ * @category Matrix Operations
+ */
+export const replaceSubMatrix: <A>(
+  rowFromIncl: number,
+  colFromIncl: number,
+  repl: ReadonlyArray<ReadonlyArray<A>>
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (i1, j1, repl) => m => {
+    const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
+    return pipe(
+      shape(m),
+      O.fromPredicate(([rows, cols]) => i1 >= 0 && i1 < rows && j1 >= 0 && j1 < cols),
+      O.bindTo('shapeA'),
+      O.bind('shapeRepl', () => getReadonlyArrayShape(repl)),
+      O.filter(
+        ({ shapeA: [rows, cols], shapeRepl: [replRows, replCols] }) =>
+          replRows + i1 <= rows && replCols + j1 <= cols
+      ),
+      O.map(({ shapeRepl: [i2, j2] }) => {
+        const A = toNestedArrays(m)
+        for (let i = i1; i < i1 + i2; ++i) {
+          for (let j = j1; j < j1 + j2; ++j) {
+            _(A, i)[j] = _(_(repl, i - i1), j - j1)
+          }
+        }
+        return wrap(A)
+      })
+    )
+  }
+
+/**
  * @since 1.0.0
  * @category Matrix Operations
  */
@@ -733,3 +765,19 @@ const replaceRow: (
     O.chain(a => V.updateAt(m)(f(a))(as)),
     O.map(a => wrap(a))
   )
+
+/**
+ * @since 1.10.0
+ * @category Internal
+ */
+const getReadonlyArrayShape: <A>(
+  as: ReadonlyArray<ReadonlyArray<A>>
+) => O.Option<[number, number]> = as => {
+  if (as[0] === undefined) return O.some([0, 0])
+  const m = as.length
+  const n = as[0].length
+  for (const r of as) {
+    if (r.length !== n) return O.none
+  }
+  return O.some([m, n])
+}

@@ -22,6 +22,9 @@ type LowerTriangularSymbol = typeof LowerTriangularSymbol
 const DiagonalSymbol = Symbol('Diagonal')
 type DiagonalSymbol = typeof DiagonalSymbol
 
+const OrthogonalSymbol = Symbol('Orthogonal')
+type OrthogonalSymbol = typeof OrthogonalSymbol
+
 // #############
 // ### Model ###
 // #############
@@ -54,6 +57,16 @@ export interface LowerTriangularMatrix<M, A> extends M.Mat<M, M, A> {
  */
 export interface DiagonalMatrix<M, A> extends M.Mat<M, M, A> {
   _URI: DiagonalSymbol
+}
+
+/**
+ * Orthogonal Matricies
+ *
+ * @since 1.10.0
+ * @category Model
+ */
+export interface OrthogonalMatrix<M, A> extends M.Mat<M, M, A> {
+  _URI: OrthogonalSymbol
 }
 
 // ####################
@@ -164,3 +177,11 @@ export const diagonalInverse: <A>(
   F: Fld.Field<A>
 ) => <M>(m: DiagonalMatrix<M, A>) => DiagonalMatrix<M, A> = F =>
   diagonalMap(a => F.div(F.one, a))
+
+/**
+ * @since 1.10.0
+ * @category Matrix Operations
+ */
+export const orthogonalInverse: <M extends number, A>(
+  m: OrthogonalMatrix<M, A>
+) => OrthogonalMatrix<M, A> = flow(M.transpose, a => unsafeCoerce(a))

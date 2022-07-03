@@ -1,11 +1,13 @@
-import * as Mat from '../src/Matrix'
+import * as O from 'fp-ts/Option'
+
+import * as M from '../src/Matrix'
 import * as V from '../src/Vector'
 import * as N from '../src/number'
 
 describe('Mat', () => {
   describe('id', () => {
     it('should return the identity matrix', () => {
-      const id = Mat.identity(N.Field)(5)
+      const id = M.identity(N.Field)(5)
       expect(id).toStrictEqual([
         [1, 0, 0, 0, 0],
         [0, 1, 0, 0, 0],
@@ -17,7 +19,7 @@ describe('Mat', () => {
   })
   describe('repeat()', () => {
     it('repeats a matrix', () => {
-      const repeat = Mat.repeat(2)(5, 5)
+      const repeat = M.repeat(2)(5, 5)
       expect(repeat).toStrictEqual([
         [2, 2, 2, 2, 2],
         [2, 2, 2, 2, 2],
@@ -29,15 +31,15 @@ describe('Mat', () => {
   })
   describe('mul()', () => {
     it('should multiply two matrices', () => {
-      const a = Mat.fromNestedTuples([
+      const a = M.fromNestedTuples([
         [1, 2],
         [3, 4],
       ])
-      const b = Mat.fromNestedTuples([
+      const b = M.fromNestedTuples([
         [5, 6],
         [7, 8],
       ])
-      const c = Mat.mul(N.Field)(a, b)
+      const c = M.mul(N.Field)(a, b)
       expect(c).toStrictEqual([
         [19, 22],
         [43, 50],
@@ -46,37 +48,37 @@ describe('Mat', () => {
   })
   describe('trace()', () => {
     it('should return the trace of a matrix', () => {
-      const a = Mat.fromNestedTuples([
+      const a = M.fromNestedTuples([
         [1, 2],
         [3, 4],
       ])
-      expect(Mat.trace(N.Field)(a)).toStrictEqual(5)
+      expect(M.trace(N.Field)(a)).toStrictEqual(5)
     })
   })
   describe('transpose()', () => {
     it('transposes a 2x2 matrix', () => {
-      const m = Mat.fromNestedTuples([
+      const m = M.fromNestedTuples([
         [1, 2],
         [3, 4],
       ])
-      const t = Mat.transpose(m)
+      const t = M.transpose(m)
       expect(t).toStrictEqual([
         [1, 3],
         [2, 4],
       ])
     })
     it('transposes a 1x3 matrix', () => {
-      const m = Mat.fromNestedTuples([[1, 2, 3]])
-      const t = Mat.transpose(m)
+      const m = M.fromNestedTuples([[1, 2, 3]])
+      const t = M.transpose(m)
       expect(t).toStrictEqual([[1], [2], [3]])
     })
     it('transposes a 3x3 matrix', () => {
-      const m = Mat.fromNestedTuples([
+      const m = M.fromNestedTuples([
         [1, 2, 3],
         [4, 5, 6],
         [7, 8, 9],
       ])
-      const t = Mat.transpose(m)
+      const t = M.transpose(m)
       expect(t).toStrictEqual([
         [1, 4, 7],
         [2, 5, 8],
@@ -89,12 +91,77 @@ describe('Mat', () => {
       const a = V.fromTuple([1, 2, 3])
       const b = V.fromTuple([4, 5])
       expect(N.outerProduct(a, b)).toStrictEqual(
-        Mat.fromNestedTuples([
+        M.fromNestedTuples([
           [4, 5],
           [8, 10],
           [12, 15],
         ])
       )
+    })
+  })
+  describe('submatricies', () => {
+    it('should set a submatrix', () => {
+      const m = M.fromNestedTuples([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [10, 11, 12],
+      ])
+      expect(
+        M.replaceSubMatrix(1, 1, [
+          [69, 69],
+          [69, 69],
+        ])(m)
+      ).toStrictEqual(
+        O.some([
+          [1, 2, 3],
+          [4, 69, 69],
+          [7, 69, 69],
+          [10, 11, 12],
+        ])
+      )
+    })
+    it('should fail column overflow', () => {
+      const m = M.fromNestedTuples([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [10, 11, 12],
+      ])
+      expect(
+        M.replaceSubMatrix(1, 2, [
+          [69, 69],
+          [69, 69],
+        ])(m)
+      ).toStrictEqual(O.none)
+    })
+    it('should fail row overflow', () => {
+      const m = M.fromNestedTuples([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [10, 11, 12],
+      ])
+      expect(
+        M.replaceSubMatrix(3, 1, [
+          [69, 69],
+          [69, 69],
+        ])(m)
+      ).toStrictEqual(O.none)
+    })
+    it('should fail row/column overflow', () => {
+      const m = M.fromNestedTuples([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+        [10, 11, 12],
+      ])
+      expect(
+        M.replaceSubMatrix(3, 2, [
+          [69, 69],
+          [69, 69],
+        ])(m)
+      ).toStrictEqual(O.none)
     })
   })
 })
