@@ -403,9 +403,13 @@ export const BiModMN = M.getBimodule(Field)
 export const idMat = M.identity(Field)
 
 /**
- * Compose two matricies: `A`, and `B` with Matrix multiplication.
+ * Multiply two matricies with matching inner dimensions
  *
- * For A in `MxN`, and B in `NxP` returns `AB` in `MxP`.
+ * ```math
+ * (A ∈ R_mn) (B ∈ R_np) = C ∈ R_mp
+ * ```
+ *
+ * Efficiency: `(8mpn)` flops
  *
  * @since 1.0.0
  * @category Matrix Operations
@@ -413,12 +417,32 @@ export const idMat = M.identity(Field)
 export const mulM = M.mul(Field)
 
 /**
- * Map a vector with length `N`, with a matrix A with size `MxN`, to a vector of length `M`.
+ * Transform a column vector `x` into vector `b` by matrix `A`
+ *
+ * ```math
+ * Ax = b
+ * ```
+ *
+ * Efficiency: `8mn` flops
  *
  * @since 1.0.0
  * @category Matrix Operations
  */
 export const linMap = M.linMap(Field)
+
+/**
+ * Transform a row-vector `x` into vector `b` by matrix `A`
+ *
+ * ```math
+ * xA = b
+ * ```
+ *
+ * Efficiency: `8mn` flops
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const linMapR = M.linMapR(Field)
 
 /**
  * @since 1.0.0

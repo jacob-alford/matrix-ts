@@ -1,5 +1,3 @@
-import * as O from 'fp-ts/Option'
-
 import * as M from '../src/Matrix'
 import * as V from '../src/Vector'
 import * as N from '../src/number'
@@ -97,71 +95,6 @@ describe('Mat', () => {
           [12, 15],
         ])
       )
-    })
-  })
-  describe('submatricies', () => {
-    it('should set a submatrix', () => {
-      const m = M.fromNestedTuples([
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-        [10, 11, 12],
-      ])
-      expect(
-        M.replaceSubMatrix(1, 1, [
-          [69, 69],
-          [69, 69],
-        ])(m)
-      ).toStrictEqual(
-        O.some([
-          [1, 2, 3],
-          [4, 69, 69],
-          [7, 69, 69],
-          [10, 11, 12],
-        ])
-      )
-    })
-    it('should fail column overflow', () => {
-      const m = M.fromNestedTuples([
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-        [10, 11, 12],
-      ])
-      expect(
-        M.replaceSubMatrix(1, 2, [
-          [69, 69],
-          [69, 69],
-        ])(m)
-      ).toStrictEqual(O.none)
-    })
-    it('should fail row overflow', () => {
-      const m = M.fromNestedTuples([
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-        [10, 11, 12],
-      ])
-      expect(
-        M.replaceSubMatrix(3, 1, [
-          [69, 69],
-          [69, 69],
-        ])(m)
-      ).toStrictEqual(O.none)
-    })
-    it('should fail row/column overflow', () => {
-      const m = M.fromNestedTuples([
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-        [10, 11, 12],
-      ])
-      expect(
-        M.replaceSubMatrix(3, 2, [
-          [69, 69],
-          [69, 69],
-        ])(m)
-      ).toStrictEqual(O.none)
     })
   })
 })

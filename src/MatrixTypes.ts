@@ -62,7 +62,7 @@ export interface DiagonalMatrix<M, A> extends M.Mat<M, M, A> {
 /**
  * Orthogonal Matricies
  *
- * @since 1.10.0
+ * @since 1.1.0
  * @category Model
  */
 export interface OrthogonalMatrix<M, A> extends M.Mat<M, M, A> {
@@ -179,7 +179,7 @@ export const diagonalInverse: <A>(
   diagonalMap(a => F.div(F.one, a))
 
 /**
- * @since 1.10.0
+ * @since 1.1.0
  * @category Matrix Operations
  */
 export const orthogonalInverse: <M extends number, A>(

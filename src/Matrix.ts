@@ -597,6 +597,14 @@ export const shape: <M extends number, N extends number, A>(
 // #########################
 
 /**
+ * Multiply two matricies with matching inner dimensions
+ *
+ * ```math
+ * (A ∈ R_mn) (B ∈ R_np) = C ∈ R_mp
+ * ```
+ *
+ * Efficiency: `2mpn` flops (for numeric Ring)
+ *
  * @since 1.0.0
  * @category Matrix Operations
  */
@@ -627,6 +635,8 @@ export const mul =
  * Ax = b
  * ```
  *
+ * Efficiency: `2mn` flops (for numeric Ring)
+ *
  * @since 1.0.0
  * @category Matrix Operations
  */
@@ -646,6 +656,38 @@ export const linMap =
     )
 
 /**
+ * Transform a row-vector `x` into vector `b` by matrix `A`
+ *
+ * ```math
+ * xA = b
+ * ```
+ *
+ * Efficiency: `2mn` flops (for numeric Ring)
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const linMapR =
+  <R>(R: Rng.Ring<R>) =>
+  <M extends number, N extends number>(x: V.Vec<N, R>, A: Mat<N, M, R>): V.Vec<M, R> => {
+    const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+    const [n, m] = shape(A)
+    const out = []
+    for (let i = 0; i < m; ++i) {
+      let outi = R.zero
+      for (let j = 0; j < n; ++j) {
+        outi = R.add(outi, R.mul(_(x, j), _(_(A, j), i)))
+      }
+      out.push(outi)
+    }
+    return unsafeCoerce(out)
+  }
+
+/**
+ * The sum of the diagonal elements
+ *
+ * Efficiency: `m` flops (for numeric Ring)
+ *
  * @since 1.0.0
  * @category Matrix Operations
  */
@@ -698,38 +740,6 @@ export const switchRows =
         )
 
 /**
- * @since 1.10.0
- * @category Matrix Operations
- */
-export const replaceSubMatrix: <A>(
-  rowFromIncl: number,
-  colFromIncl: number,
-  repl: ReadonlyArray<ReadonlyArray<A>>
-) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
-  (i1, j1, repl) => m => {
-    const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
-    return pipe(
-      shape(m),
-      O.fromPredicate(([rows, cols]) => i1 >= 0 && i1 < rows && j1 >= 0 && j1 < cols),
-      O.bindTo('shapeA'),
-      O.bind('shapeRepl', () => getReadonlyArrayShape(repl)),
-      O.filter(
-        ({ shapeA: [rows, cols], shapeRepl: [replRows, replCols] }) =>
-          replRows + i1 <= rows && replCols + j1 <= cols
-      ),
-      O.map(({ shapeRepl: [i2, j2] }) => {
-        const A = toNestedArrays(m)
-        for (let i = i1; i < i1 + i2; ++i) {
-          for (let j = j1; j < j1 + j2; ++j) {
-            _(A, i)[j] = _(_(repl, i - i1), j - j1)
-          }
-        }
-        return wrap(A)
-      })
-    )
-  }
-
-/**
  * @since 1.0.0
  * @category Matrix Operations
  */
@@ -737,6 +747,27 @@ export const get: (i: number, j: number) => <M, N, A>(m: Mat<M, N, A>) => O.Opti
   i,
   j
 ) => flow(V.get(i), O.chain(V.get(j)))
+
+/**
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const updateAt: <A>(
+  i: number,
+  j: number,
+  a: A
+) => <M extends number, N extends number>(A: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (i, j, val) => A =>
+    pipe(
+      shape(A),
+      O.fromPredicate(([rows, cols]) => i > 0 && j > 0 && i < rows && j < cols),
+      O.map(() => {
+        const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
+        const Ap = toNestedArrays(A)
+        _(Ap, i)[j] = val
+        return unsafeCoerce(Ap)
+      })
+    )
 
 /**
  * @since 1.0.0
@@ -765,19 +796,3 @@ const replaceRow: (
     O.chain(a => V.updateAt(m)(f(a))(as)),
     O.map(a => wrap(a))
   )
-
-/**
- * @since 1.10.0
- * @category Internal
- */
-const getReadonlyArrayShape: <A>(
-  as: ReadonlyArray<ReadonlyArray<A>>
-) => O.Option<[number, number]> = as => {
-  if (as[0] === undefined) return O.some([0, 0])
-  const m = as.length
-  const n = as[0].length
-  for (const r of as) {
-    if (r.length !== n) return O.none
-  }
-  return O.some([m, n])
-}
