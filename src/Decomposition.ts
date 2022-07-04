@@ -274,8 +274,8 @@ export const QR = <N extends number>(
       C.bind('nextA', ({ acc: { A, k }, xi: [τ, , uk], B }) =>
         pipe(
           A,
-          replaceSubMatrixToEnd(k + 1, k + 1, B),
-          O.chain(replaceSubColumnToEnd<P, number>(k, k, uk)),
+          replaceSubMatrix(k + 1, k + 1, B),
+          O.chain(replaceSubColumn<P, number>(k, k, uk)),
           O.chain(M.updateAt(k, k, -τ)),
           C.fromOption(() => '[03] Unreachable: index not found')
         )
@@ -431,7 +431,7 @@ const getSubColumnToEnd: (
  * @since 1.1.0
  * @category Internal
  */
-export const replaceSubColumnToEnd: <P extends number, A>(
+const replaceSubColumn: <P extends number, A>(
   col: number,
   fromRowIncl: number,
   repl: V.Vec<P, A>
@@ -556,7 +556,7 @@ const getSubMatrixToEnd: <P extends number, Q extends number>(
  * @since 1.1.0
  * @category Internal
  */
-const replaceSubMatrixToEnd: <P extends number, Q extends number, A>(
+const replaceSubMatrix: <P extends number, Q extends number, A>(
   rowFromIncl: number,
   colFromIncl: number,
   repl: M.Mat<P, Q, A>
