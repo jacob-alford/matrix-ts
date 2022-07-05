@@ -539,10 +539,12 @@ export const l1Norm: <A extends number | Complex>(
 export const l2Norm = lpNorm(2)
 
 /**
+ * Get the maximum value of a vector
+ *
  * @since 1.0.0
  * @category Destructors
  */
-export const lInfNorm: <A extends number | Complex>(
+export const lInfNorm: <A>(
   B: Bnd.Bounded<A>,
   abs: (a: A) => A
 ) => <N>(x: Vec<N, A>) => A = (B, abs) => foldMap(Mn.max(B))(abs)

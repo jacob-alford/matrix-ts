@@ -15,7 +15,7 @@ import * as Mn from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
-import { flow, identity as id, pipe, unsafeCoerce } from 'fp-ts/function'
+import { flow, identity as id, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as TC from './typeclasses'
 import * as V from './Vector'
@@ -591,6 +591,179 @@ export const shape: <M extends number, N extends number, A>(
   m[0] === undefined
     ? [0 as typeof m['_rows'], 0 as typeof m['_cols']]
     : [m.length as typeof m['_rows'], m[0].length as typeof m['_cols']]
+
+// ##################
+// ### Sub-Matrix ###
+// ##################
+
+/**
+ * Used to extract a sub-column from a matrix, and returns a new generic `P` that
+ * represents the the length of the sub-column.
+ *
+ * Note: `fromIncl` is the **inclusive** column start-index, and `toExcl` is the
+ * **exclusive** column end-index. If `toExcl` is omitted, then the extracted sub-column
+ * will span to the last row of the matrix.
+ *
+ * Note: In order to preserve type safety, P cannot be inferred, and must be passed
+ * directly as a type argument.
+ *
+ * If `P` is unknown, it can be declared in the parent function as an arbitrary generic
+ * that has a numeric constraint.
+ *
+ * See: Decomposition > QR as an example declaring an unknown length constraint
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const getSubColumn: (
+  col: number,
+  fromIncl: number,
+  toExcl?: number
+) => <P extends number, M extends number, N extends number, A>(
+  m: Mat<M, N, A>
+) => O.Option<V.Vec<P, A>> = (col, fromRowI, toExcl) => A => {
+  const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+  return pipe(
+    shape(A),
+    O.fromPredicate(
+      ([rows, cols]) =>
+        col >= 0 &&
+        col < cols &&
+        fromRowI >= 0 &&
+        fromRowI < rows &&
+        (toExcl === undefined || (toExcl > fromRowI && toExcl <= rows))
+    ),
+    O.map(([rows]) => {
+      const sub = []
+      for (let i = fromRowI; i < (toExcl ?? rows); ++i) {
+        sub.push(_(_(A, i), col))
+      }
+      return unsafeCoerce(sub)
+    })
+  )
+}
+
+/**
+ * Used to replace a sub-column of a matrix along with a generic `P` that is the length of
+ * the sub-column. If `P` is incompatible with matrix length `N`, or provided indices will
+ * result in an overflow, `O.none` is returned.
+ *
+ * Note: `fromRowIncl` is the **inclusive** row start-index
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const updateSubColumn: <P extends number, A>(
+  col: number,
+  fromRowIncl: number,
+  repl: V.Vec<P, A>
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (col, fromRowI, repl) => A => {
+    const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+    const p = V.size(repl)
+    return pipe(
+      shape(A),
+      O.fromPredicate(
+        ([rows, cols]) => col >= 0 && col < cols && fromRowI >= 0 && fromRowI + p < rows
+      ),
+      O.map(() => {
+        const Ap = toNestedArrays(A)
+        for (let i = fromRowI; i < p + fromRowI; ++i) {
+          _(Ap, i)[col] = _(repl, i - fromRowI)
+        }
+        return unsafeCoerce(Ap)
+      })
+    )
+  }
+
+/**
+ * Used to extract a portion of a matrix, and returns new generics `P` and `Q` that
+ * represents the the rows / columns of the extracted sub-matrix.
+ *
+ * Note: `rowFromIncl` and `colFromIncl` are the **inclusive** row / column start-indices,
+ * and `rowToExcl` and `colToExcl` are the **exclusive** row / column end-indices. If
+ * `rowToExcl` or `colToExcl` are omitted, the extracted sub-matrix will span to the final
+ * row / column.
+ *
+ * Note: In order to preserve type safety, `P` and `Q` cannot be inferred, and must be
+ * passed directly as type arguments.
+ *
+ * If `P` and `Q` are unknown, they can be declared in the parent function as arbitrary
+ * generics that have a numeric constraint.
+ *
+ * See: Decomposition > QR as an example declaring unknown length constraints
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const getSubMatrix: <P extends number, Q extends number>(
+  rowFromIncl: number,
+  colFromIncl: number,
+  rowToExcl?: number,
+  colToExcl?: number
+) => <M extends number, N extends number, A>(m: Mat<M, N, A>) => O.Option<Mat<P, Q, A>> =
+  (i1, j1, i2, j2) => A => {
+    const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
+    return pipe(
+      shape(A),
+      O.fromPredicate(
+        ([rows, cols]) =>
+          i1 >= 0 &&
+          i1 < rows &&
+          j1 >= 0 &&
+          j1 < cols &&
+          (i2 === undefined || (i2 > i1 && i2 <= rows)) &&
+          (j2 === undefined || (j2 > j1 && j2 <= cols))
+      ),
+      O.map(([m, n]) => {
+        const out = []
+        for (let i = i1; i < (i2 ?? m); ++i) {
+          const outi = []
+          for (let j = j1; j < (j2 ?? n); ++j) {
+            outi.push(_(_(A, i), j))
+          }
+          out.push(outi)
+        }
+        return unsafeCoerce(out)
+      })
+    )
+  }
+
+/**
+ * Used to replace a portion of a matrix with generics `P` and `Q` that are the rows /
+ * columns of the replacement sub-matrix. If `P` is incompatible with matrix rows `M`, `Q`
+ * is incompatible with matrix columns `N`, or if provided indices will result in an
+ * overflow, `O.none` is returned.
+ *
+ * Note: `rowFromIncl` and `colFromIncl` are the **inclusive** row / column start-indices
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const updateSubMatrix: <P extends number, Q extends number, A>(
+  rowFromIncl: number,
+  colFromIncl: number,
+  repl: Mat<P, Q, A>
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (i1, j1, repl) => m => {
+    const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
+    return pipe(
+      tuple(shape(m), shape(repl)),
+      O.fromPredicate(
+        ([[rows, cols], [replRows, replCols]]) =>
+          i1 >= 0 && i1 + replRows <= rows && j1 >= 0 && j1 + replCols <= cols
+      ),
+      O.map(([, [i2, j2]]) => {
+        const A = toNestedArrays(m)
+        for (let i = i1; i < i1 + i2; ++i) {
+          for (let j = j1; j < j1 + j2; ++j) {
+            _(A, i)[j] = _(_(repl, i - i1), j - j1)
+          }
+        }
+        return unsafeCoerce(A)
+      })
+    )
+  }
 
 // #########################
 // ### Matrix Operations ###

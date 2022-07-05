@@ -5,14 +5,12 @@
  *
  * @since 1.0.0
  */
-import * as A from 'fp-ts/Array'
 import * as O from 'fp-ts/Option'
 import * as ChnR from 'fp-ts/ChainRec'
 import * as IO from 'fp-ts/IO'
 import * as E from 'fp-ts/Either'
 import * as RA from 'fp-ts/ReadonlyArray'
-import * as Mn from 'fp-ts/Monoid'
-import { identity, tuple, pipe, unsafeCoerce } from 'fp-ts/function'
+import { tuple, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as M from './Matrix'
 import * as MatTypes from './MatrixTypes'
@@ -258,15 +256,15 @@ export const QR = <N extends number>(
       C.bindTo('acc'),
       C.bind('xi', ({ acc: { A, k } }) =>
         pipe(
-          getSubColumnToEnd(k, k + 1)<P, N, N, number>(A),
-          O.map(orthogonalize),
+          M.getSubColumn(k, k)<P, N, N, number>(A),
+          O.chain(orthogonalize),
           C.fromOption(() => '[01] Unreachable: index not found')
         )
       ),
       C.bind('B', ({ acc: { A, k }, xi: [, γ, uk] }) =>
         pipe(
           A,
-          getSubMatrixToEnd<P, P>(k + 1, k + 1),
+          M.getSubMatrix<P, P>(k + 1, k + 1),
           O.map(reflect([γ, uk])),
           C.fromOption(() => '[02] Unreachable: index not found')
         )
@@ -274,8 +272,8 @@ export const QR = <N extends number>(
       C.bind('nextA', ({ acc: { A, k }, xi: [τ, , uk], B }) =>
         pipe(
           A,
-          replaceSubMatrix(k + 1, k + 1, B),
-          O.chain(replaceSubColumn<P, number>(k, k, uk)),
+          M.updateSubMatrix(k + 1, k + 1, B),
+          O.chain(M.updateSubColumn<P, number>(k, k, uk)),
           O.chain(M.updateAt(k, k, -τ)),
           C.fromOption(() => '[03] Unreachable: index not found')
         )
@@ -404,104 +402,60 @@ const subAndScale = <M, N>(
 // ##########
 
 /**
- * @since 1.1.0
- * @category Internal
- */
-const getSubColumnToEnd: (
-  col: number,
-  fromIncl: number
-) => <P extends number, M extends number, N extends number, A>(
-  m: M.Mat<M, N, A>
-) => O.Option<V.Vec<P, A>> = (col, fromRowI) => A => {
-  const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
-  return pipe(
-    M.shape(A),
-    O.fromPredicate(([rows, cols]) => col < cols && fromRowI < rows),
-    O.map(([rows]) => {
-      const sub = []
-      for (let i = fromRowI; i < rows; ++i) {
-        sub.push(_(_(A, i), col))
-      }
-      return unsafeCoerce(sub)
-    })
-  )
-}
-
-/**
- * @since 1.1.0
- * @category Internal
- */
-const replaceSubColumn: <P extends number, A>(
-  col: number,
-  fromRowIncl: number,
-  repl: V.Vec<P, A>
-) => <M extends number, N extends number>(
-  m: M.Mat<M, N, A>
-) => O.Option<M.Mat<M, N, A>> = (col, fromRowI, repl) => A => {
-  const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
-  const p = V.size(repl)
-  return pipe(
-    M.shape(A),
-    O.fromPredicate(([rows, cols]) => col < cols && fromRowI + p < rows),
-    O.map(([rows]) => {
-      const Ap = M.toNestedArrays(A)
-      for (let i = fromRowI; i < rows; ++i) {
-        _(Ap, i)[col] = _(repl, i - fromRowI)
-      }
-      return unsafeCoerce(Ap)
-    })
-  )
-}
-
-/**
- * @since 1.1.0
- * @category Internal
- */
-const argMaxVec: (xs: ReadonlyArray<number>) => number = RA.foldMap(Mn.max(N.Bounded))(
-  identity
-)
-
-/**
  * See 3.2.35 in Fundamentals of Matrix Computation, David S. Watkins, page 201
  *
  * @since 1.1.0
  * @category Internal
  */
-const orthogonalize: <N>(
+const orthogonalize: <N extends number>(
   x0: V.Vec<N, number>
-) => [number, number, V.Vec<N, number>] = xs => {
-  const _: <A>(xs: Array<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
-  let x = RA.toArray(xs)
-  const β = argMaxVec(x)
-  if (β === 0)
-    return [
-      0,
-      0,
+) => O.Option<[number, number, V.Vec<N, number>]> = xs =>
+  pipe(
+    RA.head(xs),
+    O.map(x0 =>
       pipe(
-        xs,
-        V.mapWithIndex(i => (i === 0 ? 1 : 0))
-      ),
-    ]
-  x = pipe(
-    x,
-    A.map(x => x / β)
+        N.lInfNorm(xs),
+        O.fromPredicate(β => β !== 0),
+        O.bindTo('β'),
+        O.bind('x', ({ β }) =>
+          pipe(
+            xs,
+            V.map(x => x / β),
+            O.some
+          )
+        ),
+        O.bind('τ', ({ x }) =>
+          pipe(
+            x,
+            V.foldMap(N.MonoidSum)(x => Math.pow(x, 2)),
+            Math.sqrt,
+            τ => (x0 < 0 ? τ : -τ),
+            O.some
+          )
+        ),
+        O.bind('γ', ({ τ }) => O.some((τ + x0) / τ)),
+        O.bind('u', ({ x, τ }) =>
+          pipe(
+            x,
+            V.mapWithIndex((i, x) => (i === 0 ? 1 : x / (τ + x0))),
+            O.some
+          )
+        ),
+        O.fold(
+          () =>
+            tuple(
+              0,
+              0,
+              pipe(
+                xs,
+                V.mapWithIndex(i => (i === 0 ? 1 : 0))
+              )
+            ),
+          ({ β, τ, γ, u }) => tuple(τ * β, γ, u)
+        )
+      )
+    )
   )
-  let τ = pipe(
-    x,
-    RA.foldMap(N.MonoidSum)(x => Math.pow(x, 2)),
-    Math.sqrt
-  )
-  τ = _(x, 0) < 0 ? τ : -τ
-  x[0] = τ + _(x, 0)
-  const γ = _(x, 0) / τ
-  x = pipe(
-    x,
-    A.mapWithIndex((i, a) => (i === 0 ? a : a / _(x, 0)))
-  )
-  x[0] = 1
-  τ = τ * β
-  return [τ, γ, unsafeCoerce(x)]
-}
 
 /**
  * See 3.2.38 in Fundamentals of Matrix Computation, David S. Watkins, page 202
@@ -523,67 +477,6 @@ const reflect: <M extends number, N extends number>(
     const { inverse, concat } = N.AdditiveAbGrpMN(n, m)
     return concat(B, inverse(N.outerProduct(u, vt)))
   }
-
-/**
- * @since 1.1.0
- * @category Internal
- */
-const getSubMatrixToEnd: <P extends number, Q extends number>(
-  rowFromIncl: number,
-  colFromIncl: number
-) => <M extends number, N extends number, A>(
-  m: M.Mat<M, N, A>
-) => O.Option<M.Mat<P, Q, A>> = (i1, j1) => A => {
-  const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
-  return pipe(
-    M.shape(A),
-    O.fromPredicate(([rows, cols]) => i1 >= 0 && i1 < rows && j1 >= 0 && j1 < cols),
-    O.map(([m, n]) => {
-      const out = []
-      for (let i = i1; i < m; ++i) {
-        const outi = []
-        for (let j = j1; j < n; ++j) {
-          outi.push(_(_(A, i), j))
-        }
-        out.push(outi)
-      }
-      return unsafeCoerce(out)
-    })
-  )
-}
-
-/**
- * @since 1.1.0
- * @category Internal
- */
-const replaceSubMatrix: <P extends number, Q extends number, A>(
-  rowFromIncl: number,
-  colFromIncl: number,
-  repl: M.Mat<P, Q, A>
-) => <M extends number, N extends number>(
-  m: M.Mat<M, N, A>
-) => O.Option<M.Mat<M, N, A>> = (i1, j1, repl) => m => {
-  const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
-  return pipe(
-    M.shape(m),
-    O.fromPredicate(([rows, cols]) => i1 >= 0 && i1 < rows && j1 >= 0 && j1 < cols),
-    O.bindTo('shapeA'),
-    O.bind('shapeRepl', () => O.some(M.shape(repl))),
-    O.filter(
-      ({ shapeA: [rows, cols], shapeRepl: [replRows, replCols] }) =>
-        replRows + i1 <= rows && replCols + j1 <= cols
-    ),
-    O.map(({ shapeRepl: [i2, j2] }) => {
-      const A = M.toNestedArrays(m)
-      for (let i = i1; i < i1 + i2; ++i) {
-        for (let j = j1; j < j1 + j2; ++j) {
-          _(A, i)[j] = _(_(repl, i - i1), j - j1)
-        }
-      }
-      return unsafeCoerce(A)
-    })
-  )
-}
 
 /**
  * @since 1.1.0
