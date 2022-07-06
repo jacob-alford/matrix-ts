@@ -283,6 +283,17 @@ declare module 'fp-ts/HKT' {
 }
 
 /**
+ * @since 1.1.0
+ * @category Instances
+ */
+export const getSquareMonoidProduct =
+  <A>(R: Rng.Ring<A>) =>
+  <M extends number>(m: M): Mn.Monoid<Mat<M, M, A>> => ({
+    empty: identity(R)(m),
+    concat: (a, b) => mul(R)(a, b),
+  })
+
+/**
  * @since 1.0.0
  * @category Instances
  */
@@ -598,7 +609,7 @@ export const shape: <M extends number, N extends number, A>(
 
 /**
  * Used to extract a sub-column from a matrix, and returns a new generic `P` that
- * represents the the length of the sub-column.
+ * represents the length of the sub-column.
  *
  * Note: `fromIncl` is the **inclusive** column start-index, and `toExcl` is the
  * **exclusive** column end-index. If `toExcl` is omitted, then the extracted sub-column

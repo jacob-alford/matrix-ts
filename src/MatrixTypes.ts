@@ -133,7 +133,6 @@ export const getTransposeIso: <M extends number, A>() => Iso.Iso<
   get: flow(M.transpose, a => unsafeCoerce(a)),
   reverseGet: flow(M.transpose, a => unsafeCoerce(a)),
 })
-M
 
 // #########################
 // ### Matrix Operations ###

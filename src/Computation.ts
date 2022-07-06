@@ -305,6 +305,18 @@ export const log: <E>(message: E) => <A>(fa: Computation<E, A>) => Computation<E
     [a, pipe(logs, RA.concat(RA.of(message)))]
 
 /**
+ * Log one message on left, and a different on right
+ *
+ * @since 1.1.0
+ * @category Utilities
+ */
+export const bilog: <E>(
+  onLeft: () => E,
+  onRight: () => E
+) => <A>(fa: Computation<E, A>) => Computation<E, A> = (onLeft, onRight) => c =>
+  pipe(c, log(isLeft(c) ? onLeft() : onRight()))
+
+/**
  * @since 1.0.0
  * @category Utilities
  */

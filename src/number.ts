@@ -297,6 +297,12 @@ export const projection = V.projection(Field, identity)
 export type Mat<M, N> = M.Mat<M, N, number>
 
 /**
+ * @since 1.1.0
+ * @category Instances
+ */
+export const MonoidProductMM = M.getSquareMonoidProduct(Field)
+
+/**
  * @since 1.0.0
  * @category Instances
  */

@@ -5,12 +5,13 @@
  *
  * @since 1.0.0
  */
+import * as B from 'fp-ts/boolean'
 import * as O from 'fp-ts/Option'
 import * as ChnR from 'fp-ts/ChainRec'
 import * as IO from 'fp-ts/IO'
 import * as E from 'fp-ts/Either'
 import * as RA from 'fp-ts/ReadonlyArray'
-import { tuple, pipe, unsafeCoerce } from 'fp-ts/function'
+import { tuple, pipe, unsafeCoerce, identity } from 'fp-ts/function'
 
 import * as M from './Matrix'
 import * as MatTypes from './MatrixTypes'
@@ -65,6 +66,16 @@ export interface LeastSquares<N, R> {
   solve: (b: V.Vec<N, R>) => V.Vec<N, R>
 }
 
+/**
+ * Determines if `A` is singular
+ *
+ * @since 1.1.0
+ * @category Model
+ */
+export interface IsSingular {
+  isSingular: IO.IO<boolean>
+}
+
 // ####################
 // ### Constructors ###
 // ####################
@@ -111,19 +122,11 @@ export const LUP = <M extends number>(
     const [result] = computation
 
     /*
-     * Base case: computation has failed in prior iterations
-     * -----------------------------------------------------
+     * Base case: computation has failed in prior iterations, or has reached the last row
+     * ----------------------------------------------------------------------------------
      */
-    if (E.isLeft(result)) {
-      return E.right(pipe(computation, C.log('[1] Failed to decompose matrix')))
-    }
-
-    /*
-     * Base case: Matrix reduction is complete
-     * ---------------------------------------
-     */
-    if (result.right.i >= columns) {
-      return E.right(pipe(computation, C.log('[0] Successfully decomposed matrix')))
+    if (E.isLeft(result) || result.right.i >= columns) {
+      return E.right(computation)
     }
 
     return pipe(
@@ -192,6 +195,10 @@ export const LUP = <M extends number>(
 
   return pipe(
     ChnR.tailRec(C.of({ LU: m, i: 0, P: Id, numPivots: 0 }), go),
+    C.bilog(
+      () => '[1] Failed to decompose matrix',
+      () => '[0] Successfully decomposed matrix'
+    ),
     C.map(({ LU, P, numPivots }) => {
       const [L, U] = MatTypes.fromMatrix(N.Field)(LU)
       return {
@@ -218,37 +225,50 @@ export const QR = <N extends number>(
     N,
     number,
     [MatTypes.OrthogonalMatrix<N, number>, MatTypes.UpperTriangularMatrix<N, number>]
-  >
+  > &
+    IsSingular &
+    Determinant
 > => {
   type ComputationParams = {
     k: number
     A: M.Mat<N, N, number>
+    γ: ReadonlyArray<number>
   }
 
   type Computation = C.Computation<string, ComputationParams>
 
-  const [, columns] = M.shape(m)
+  const [, n] = M.shape(m)
 
   /** Here, P is a free constraint that represents N - 1 */
   const go = <P extends number>(
     computation: Computation
   ): E.Either<Computation, Computation> => {
     const [result] = computation
-
     /*
      * Base case: computation has failed in prior iterations
      * -----------------------------------------------------
      */
     if (E.isLeft(result)) {
-      return E.right(pipe(computation, C.log('[1] Failed to decompose matrix')))
+      return E.right(computation)
     }
 
     /*
      * Base case: Matrix reduction is complete
      * ---------------------------------------
      */
-    if (result.right.k >= columns) {
-      return E.right(pipe(computation, C.log('[0] Successfully decomposed matrix')))
+    if (result.right.k >= n) {
+      return pipe(
+        computation,
+        C.chain(result =>
+          pipe(
+            result.A,
+            M.get(n - 1, n - 1),
+            C.fromOption(() => '[04] Unreachable: index not found'),
+            C.map(ann => ({ ...result, γ: [...result.γ, ann] }))
+          )
+        ),
+        E.right
+      )
     }
 
     return pipe(
@@ -278,17 +298,46 @@ export const QR = <N extends number>(
           C.fromOption(() => '[03] Unreachable: index not found')
         )
       ),
-      C.map(({ nextA, acc: { k } }) => ({ A: nextA, k: k + 1 })),
+      C.map(({ nextA, acc: { k, γ }, xi: [, γi] }) => ({
+        A: nextA,
+        k: k + 1,
+        γ: [...γ, γi],
+      })),
       E.left
     )
   }
 
   return pipe(
-    ChnR.tailRec<Computation, Computation>(C.of({ k: 0, A: m }), acc => go<N>(acc)),
-    C.map(({ A }) => ({
+    ChnR.tailRec<Computation, Computation>(C.of({ k: 0, A: m, γ: [] }), acc =>
+      go<N>(acc)
+    ),
+    C.bind('QR', ({ A, γ }) => {
+      const [L, R] = MatTypes.fromMatrix(N.Field)(A)
+      return pipe(
+        assembleQ(L, γ),
+        C.fromOption(() => '[05] Unreachable: index not found'),
+        C.map(Q => tuple(Q, R))
+      )
+    }),
+    C.map(({ QR, γ }) => ({
       input: m,
-      result: getQR(A),
-    }))
+      result: QR,
+      isSingular: () =>
+        pipe(
+          γ,
+          RA.foldMap(B.MonoidAny)(a => a === 0)
+        ),
+      det: () =>
+        pipe(
+          QR[1],
+          MatTypes.extractDiagonal(0),
+          MatTypes.diagonalFoldMap(N.MonoidProduct)
+        ),
+    })),
+    C.bilog(
+      () => '[1] Failed to decompose matrix',
+      () => '[0] Successfully decomposed matrix'
+    )
   )
 }
 
@@ -482,6 +531,59 @@ const reflect: <M extends number, N extends number>(
  * @since 1.1.0
  * @category Internal
  */
-declare const getQR: <M>(
-  m: M.Mat<M, M, number>
-) => [MatTypes.OrthogonalMatrix<M, number>, MatTypes.UpperTriangularMatrix<M, number>]
+const assembleQ = <M extends number>(
+  L: MatTypes.LowerTriangularMatrix<M, number>,
+  γ: ReadonlyArray<number>
+): O.Option<MatTypes.OrthogonalMatrix<M, number>> => {
+  type Params = {
+    i: ReadonlyArray<V.Vec<M, number>>
+    o: ReadonlyArray<M.Mat<M, M, number>>
+    k: number
+  }
+
+  const [m] = M.shape(L)
+
+  const go = <P extends number>(
+    params: O.Option<Params>
+  ): E.Either<O.Option<Params>, O.Option<ReadonlyArray<M.Mat<M, M, number>>>> => {
+    if (O.isNone(params)) {
+      return E.right(O.none)
+    }
+
+    const { k, i, o } = params.value
+
+    if (k >= m) {
+      return E.right(O.some(o))
+    }
+
+    return pipe(
+      M.getSubColumn(k, k)<P, M, M, number>(L),
+      O.bindTo('uk'),
+      O.bind('γk', () => pipe(γ, RA.lookup(k))),
+      O.chain(({ uk, γk }) => {
+        const p = V.size(uk)
+        const IdP = N.idMat(p)
+        const IdN = N.idMat(m)
+        const ukS = pipe(
+          uk,
+          V.map(a => a * γk)
+        )
+        const γUkUkt = N.outerProduct(ukS, uk)
+        const { concat, inverse } = N.AdditiveAbGrpMN(p, p)
+        const repl = concat(IdP, inverse(γUkUkt))
+        return pipe(IdN, M.updateSubMatrix<P, P, number>(k + 1, k + 1, repl))
+      }),
+      O.map(Qk => ({ k: k + 1, i, o: [...o, Qk] })),
+      E.left
+    )
+  }
+
+  return pipe(
+    ChnR.tailRec<O.Option<Params>, O.Option<Params['o']>>(
+      O.some({ k: 0, i: L, o: [] }),
+      acc => go<M>(acc)
+    ),
+    O.map(RA.foldMap(N.MonoidProductMM(m))(identity)),
+    O.map(Q => unsafeCoerce(Q))
+  )
+}
