@@ -369,6 +369,12 @@ export const lpNorm: (p: number) => <N>(v: V.Vec<N, Complex>) => Complex = p =>
   V.lpNorm(p)(Field, flow(modulus, scalar), pow)
 
 /**
+ * @since 1.1.0
+ * @category Vector Operations
+ */
+export const lInfNorm = flow(V.map(modulus), V.lInfNorm(N.Bounded, Math.abs))
+
+/**
  * @since 1.0.0
  * @category Vector Operations
  */
@@ -421,6 +427,22 @@ export const idMat = M.identity(Field)
  * @category Matrix Operations
  */
 export const mulM = M.mul(Field)
+
+/**
+ * Add two matricies
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const addM = M.lift2(Field.add)
+
+/**
+ * Subtract two matricies
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const subM = M.lift2(Field.sub)
 
 /**
  * Transform a column vector `x` into vector `b` by matrix `A`

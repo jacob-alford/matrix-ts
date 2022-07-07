@@ -944,7 +944,7 @@ export const updateAt: <A>(
   (i, j, val) => A =>
     pipe(
       shape(A),
-      O.fromPredicate(([rows, cols]) => i > 0 && j > 0 && i < rows && j < cols),
+      O.fromPredicate(([rows, cols]) => i >= 0 && j >= 0 && i < rows && j < cols),
       O.map(() => {
         const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
         const Ap = toNestedArrays(A)

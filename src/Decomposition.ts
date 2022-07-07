@@ -11,7 +11,7 @@ import * as ChnR from 'fp-ts/ChainRec'
 import * as IO from 'fp-ts/IO'
 import * as E from 'fp-ts/Either'
 import * as RA from 'fp-ts/ReadonlyArray'
-import { tuple, pipe, unsafeCoerce, identity } from 'fp-ts/function'
+import { tuple, pipe, unsafeCoerce } from 'fp-ts/function'
 
 import * as M from './Matrix'
 import * as MatTypes from './MatrixTypes'
@@ -214,7 +214,7 @@ export const LUP = <M extends number>(
 }
 
 /**
- * @since 1.0.0
+ * @since 1.1.0
  * @category Constructors
  */
 export const QR = <N extends number>(
@@ -232,6 +232,7 @@ export const QR = <N extends number>(
   type ComputationParams = {
     k: number
     A: M.Mat<N, N, number>
+    Q: M.Mat<N, N, number>
     γ: ReadonlyArray<number>
   }
 
@@ -239,8 +240,10 @@ export const QR = <N extends number>(
 
   const [, n] = M.shape(m)
 
-  /** Here, P is a free constraint that represents N - 1 */
-  const go = <P extends number>(
+  const IdN = N.idMat(n)
+
+  /** Here, P is a free constraint that represents (row) N - k, and Q represents (column) N - k - 1 */
+  const go = <P extends number, Q extends number>(
     computation: Computation
   ): E.Either<Computation, Computation> => {
     const [result] = computation
@@ -256,14 +259,14 @@ export const QR = <N extends number>(
      * Base case: Matrix reduction is complete
      * ---------------------------------------
      */
-    if (result.right.k >= n) {
+    if (result.right.k >= n - 1) {
       return pipe(
         computation,
         C.chain(result =>
           pipe(
             result.A,
             M.get(n - 1, n - 1),
-            C.fromOption(() => '[04] Unreachable: index not found'),
+            C.fromOption(() => '[05] Unreachable: index not found'),
             C.map(ann => ({ ...result, γ: [...result.γ, ann] }))
           )
         ),
@@ -274,6 +277,10 @@ export const QR = <N extends number>(
     return pipe(
       computation,
       C.bindTo('acc'),
+      /*
+       * Calculate reflector parameters: γk, τk, and uk (3.2.35, 201)
+       * -------------------------------------------------------------
+       */
       C.bind('xi', ({ acc: { A, k } }) =>
         pipe(
           M.getSubColumn(k, k)<P, N, N, number>(A),
@@ -281,63 +288,79 @@ export const QR = <N extends number>(
           C.fromOption(() => '[01] Unreachable: index not found')
         )
       ),
-      C.bind('B', ({ acc: { A, k }, xi: [, γ, uk] }) =>
-        pipe(
-          A,
-          M.getSubMatrix<P, P>(k + 1, k + 1),
-          O.map(reflect([γ, uk])),
-          C.fromOption(() => '[02] Unreachable: index not found')
+      /*
+       * Calculate Qk using reflector parameters
+       * ----------------------------------------
+       */
+      C.bind('Qk', ({ xi: [, γk, uk], acc: { k } }) => {
+        const repl = pipe(
+          uk,
+          V.map(a => a * γk),
+          γUk => N.outerProduct(γUk, uk),
+          γUkUkt => N.subM(N.idMat(V.size(uk)), γUkUkt)
         )
-      ),
-      C.bind('nextA', ({ acc: { A, k }, xi: [τ, , uk], B }) =>
+        return pipe(
+          IdN,
+          M.updateSubMatrix<P, P, number>(k, k, repl),
+          C.fromOption(() => `[02] Unreachable: index not found (k=${k})`)
+        )
+      }),
+      /*
+       * Reflect (k+1)x(k+1) submatrix of A
+       * ----------------------------------
+       */
+      C.bind('B', ({ acc: { A, k }, xi: [, γk, uk] }) =>
         pipe(
           A,
-          M.updateSubMatrix(k + 1, k + 1, B),
-          O.chain(M.updateSubColumn<P, number>(k, k, uk)),
-          O.chain(M.updateAt(k, k, -τ)),
+          M.getSubMatrix<P, Q>(k, k + 1),
+          O.map(reflect([γk, uk])),
           C.fromOption(() => '[03] Unreachable: index not found')
         )
       ),
-      C.map(({ nextA, acc: { k, γ }, xi: [, γi] }) => ({
+      /*
+       * Update A with calculated B, and parameter τk
+       * --------------------------------------------
+       */
+      C.bind('nextA', ({ acc: { A, k }, B, xi: [τk] }) =>
+        pipe(
+          A,
+          M.updateSubMatrix(k, k + 1, B),
+          O.chain(M.updateAt(k, k, -τk)),
+          C.fromOption(() => `[04] Unreachable: index not found (k=${k})`)
+        )
+      ),
+      C.map(({ nextA, acc: { k, Q, γ }, Qk, xi: [, γk] }) => ({
         A: nextA,
         k: k + 1,
-        γ: [...γ, γi],
+        Q: N.mulM(Q, Qk),
+        γ: [...γ, γk],
       })),
       E.left
     )
   }
 
   return pipe(
-    ChnR.tailRec<Computation, Computation>(C.of({ k: 0, A: m, γ: [] }), acc =>
-      go<N>(acc)
+    ChnR.tailRec<Computation, Computation>(C.of({ k: 0, A: m, Q: IdN, γ: [] }), acc =>
+      go<N, N>(acc)
     ),
-    C.bind('QR', ({ A, γ }) => {
-      const [L, R] = MatTypes.fromMatrix(N.Field)(A)
-      return pipe(
-        assembleQ(L, γ),
-        C.fromOption(() => '[05] Unreachable: index not found'),
-        C.map(Q => tuple(Q, R))
-      )
-    }),
-    C.map(({ QR, γ }) => ({
-      input: m,
-      result: QR,
-      isSingular: () =>
-        pipe(
-          γ,
-          RA.foldMap(B.MonoidAny)(a => a === 0)
-        ),
-      det: () =>
-        pipe(
-          QR[1],
-          MatTypes.extractDiagonal(0),
-          MatTypes.diagonalFoldMap(N.MonoidProduct)
-        ),
-    })),
     C.bilog(
       () => '[1] Failed to decompose matrix',
       () => '[0] Successfully decomposed matrix'
-    )
+    ),
+    C.map(({ A, Q, γ }) => {
+      const [, R] = MatTypes.fromMatrix(N.Field)(A)
+      return {
+        input: m,
+        result: tuple(unsafeCoerce(Q), R),
+        isSingular: () =>
+          pipe(
+            γ,
+            RA.foldMap(B.MonoidAny)(a => a === 0)
+          ),
+        det: () =>
+          pipe(R, MatTypes.extractDiagonal(0), MatTypes.diagonalFoldMap(N.MonoidProduct)),
+      }
+    })
   )
 }
 
@@ -457,50 +480,41 @@ const subAndScale = <M, N>(
  * @category Internal
  */
 const orthogonalize: <N extends number>(
-  x0: V.Vec<N, number>
-) => O.Option<[number, number, V.Vec<N, number>]> = xs =>
+  xi: V.Vec<N, number>
+) => O.Option<[number, number, V.Vec<N, number>]> = xi =>
   pipe(
-    RA.head(xs),
+    RA.head(xi),
     O.map(x0 =>
       pipe(
-        N.lInfNorm(xs),
+        N.lInfNorm(xi),
         O.fromPredicate(β => β !== 0),
-        O.bindTo('β'),
-        O.bind('x', ({ β }) =>
-          pipe(
-            xs,
-            V.map(x => x / β),
-            O.some
+        O.map(β => {
+          const x = pipe(
+            xi,
+            V.map(x => x / β)
           )
-        ),
-        O.bind('τ', ({ x }) =>
-          pipe(
+          const τ = pipe(
             x,
             V.foldMap(N.MonoidSum)(x => Math.pow(x, 2)),
             Math.sqrt,
-            τ => (x0 < 0 ? τ : -τ),
-            O.some
+            τ => (x0 < 0 ? -τ : τ)
           )
-        ),
-        O.bind('γ', ({ τ }) => O.some((τ + x0) / τ)),
-        O.bind('u', ({ x, τ }) =>
-          pipe(
+          const γ = (τ + x0) / τ
+          const u = pipe(
             x,
-            V.mapWithIndex((i, x) => (i === 0 ? 1 : x / (τ + x0))),
-            O.some
+            V.mapWithIndex((i, x) => (i === 0 ? 1 : x / (τ + x0)))
           )
-        ),
-        O.fold(
-          () =>
-            tuple(
-              0,
-              0,
-              pipe(
-                xs,
-                V.mapWithIndex(i => (i === 0 ? 1 : 0))
-              )
-            ),
-          ({ β, τ, γ, u }) => tuple(τ * β, γ, u)
+          return tuple(τ * β, γ, u)
+        }),
+        O.getOrElseW(() =>
+          tuple(
+            0,
+            0,
+            pipe(
+              xi,
+              V.mapWithIndex(i => (i === 0 ? 1 : 0))
+            )
+          )
         )
       )
     )
@@ -516,74 +530,10 @@ const reflect: <M extends number, N extends number>(
   gammaU: [number, V.Vec<N, number>]
 ) => (B: M.Mat<N, M, number>) => M.Mat<N, M, number> =
   ([γ, u]) =>
-  B => {
-    const [n, m] = M.shape(B)
-    const vt = pipe(
+  B =>
+    pipe(
       u,
       V.map(x => x * γ),
-      vt => N.linMapR(vt, B)
+      vt => N.linMapR(vt, B),
+      vtB => N.subM(B, N.outerProduct(u, vtB))
     )
-    const { inverse, concat } = N.AdditiveAbGrpMN(n, m)
-    return concat(B, inverse(N.outerProduct(u, vt)))
-  }
-
-/**
- * @since 1.1.0
- * @category Internal
- */
-const assembleQ = <M extends number>(
-  L: MatTypes.LowerTriangularMatrix<M, number>,
-  γ: ReadonlyArray<number>
-): O.Option<MatTypes.OrthogonalMatrix<M, number>> => {
-  type Params = {
-    i: ReadonlyArray<V.Vec<M, number>>
-    o: ReadonlyArray<M.Mat<M, M, number>>
-    k: number
-  }
-
-  const [m] = M.shape(L)
-
-  const go = <P extends number>(
-    params: O.Option<Params>
-  ): E.Either<O.Option<Params>, O.Option<ReadonlyArray<M.Mat<M, M, number>>>> => {
-    if (O.isNone(params)) {
-      return E.right(O.none)
-    }
-
-    const { k, i, o } = params.value
-
-    if (k >= m) {
-      return E.right(O.some(o))
-    }
-
-    return pipe(
-      M.getSubColumn(k, k)<P, M, M, number>(L),
-      O.bindTo('uk'),
-      O.bind('γk', () => pipe(γ, RA.lookup(k))),
-      O.chain(({ uk, γk }) => {
-        const p = V.size(uk)
-        const IdP = N.idMat(p)
-        const IdN = N.idMat(m)
-        const ukS = pipe(
-          uk,
-          V.map(a => a * γk)
-        )
-        const γUkUkt = N.outerProduct(ukS, uk)
-        const { concat, inverse } = N.AdditiveAbGrpMN(p, p)
-        const repl = concat(IdP, inverse(γUkUkt))
-        return pipe(IdN, M.updateSubMatrix<P, P, number>(k + 1, k + 1, repl))
-      }),
-      O.map(Qk => ({ k: k + 1, i, o: [...o, Qk] })),
-      E.left
-    )
-  }
-
-  return pipe(
-    ChnR.tailRec<O.Option<Params>, O.Option<Params['o']>>(
-      O.some({ k: 0, i: L, o: [] }),
-      acc => go<M>(acc)
-    ),
-    O.map(RA.foldMap(N.MonoidProductMM(m))(identity)),
-    O.map(Q => unsafeCoerce(Q))
-  )
-}

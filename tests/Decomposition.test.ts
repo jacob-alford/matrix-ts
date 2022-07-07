@@ -1,6 +1,6 @@
 import * as E from 'fp-ts/Either'
 
-import { LUP } from '../src/Decomposition'
+import { LUP, QR } from '../src/Decomposition'
 import * as M from '../src/Matrix'
 import * as N from '../src/number'
 import * as V from '../src/Vector'
@@ -175,5 +175,90 @@ describe('LUP Decomposition', () => {
     }
 
     expect(result.left).toBe('[10] Matrix is singular')
+  })
+})
+
+describe('QR decomposition', () => {
+  it('decomposes a 2x2 matrix', () => {
+    const A = M.fromNestedTuples([
+      [1, 2],
+      [1, 3],
+    ])
+
+    const [output] = QR(A)
+
+    if (E.isLeft(output)) {
+      throw new Error('Unexpected result')
+    }
+
+    const {
+      result: [Q, R],
+    } = output.right
+
+    const expQ = M.fromNestedTuples([
+      [-1 / Math.sqrt(2), -1 / Math.sqrt(2)],
+      [-1 / Math.sqrt(2), 1 / Math.sqrt(2)],
+    ])
+
+    const expR = M.fromNestedTuples([
+      [-2 / Math.sqrt(2), -5 / Math.sqrt(2)],
+      [0, 1 / Math.sqrt(2)],
+    ])
+
+    for (const [Qi, expQi] of V.zipVectors(Q, expQ)) {
+      for (const [Qij, expQij] of V.zipVectors(Qi, expQi)) {
+        expect(Qij).toBeCloseTo(expQij)
+      }
+    }
+    for (const [Ri, expRi] of V.zipVectors(R, expR)) {
+      for (const [Rij, expRij] of V.zipVectors(Ri, expRi)) {
+        expect(Rij).toBeCloseTo(expRij)
+      }
+    }
+  })
+  it('decomposes a 3x3 matrix', () => {
+    const A = M.fromNestedTuples([
+      [2, -1, 1],
+      [1, 3, -2],
+      [0, 1, -2],
+    ])
+
+    const [output] = QR(A)
+
+    if (E.isLeft(output)) {
+      throw new Error('Unexpected result')
+    }
+
+    const {
+      result: [Q, R],
+    } = output.right
+
+    console.log({
+      Q,
+      R,
+      QR: N.mulM(Q, R),
+      QQt: N.mulM(Q, M.transpose(Q)),
+    })
+
+    const expQ = M.fromNestedTuples([
+      [-1 / Math.sqrt(2), -1 / Math.sqrt(2)],
+      [-1 / Math.sqrt(2), 1 / Math.sqrt(2)],
+    ])
+
+    const expR = M.fromNestedTuples([
+      [-2 / Math.sqrt(2), -5 / Math.sqrt(2)],
+      [0, 1 / Math.sqrt(2)],
+    ])
+
+    for (const [Qi, expQi] of V.zipVectors(Q, expQ)) {
+      for (const [Qij, expQij] of V.zipVectors(Qi, expQi)) {
+        expect(Qij).toBeCloseTo(expQij)
+      }
+    }
+    for (const [Ri, expRi] of V.zipVectors(R, expR)) {
+      for (const [Rij, expRij] of V.zipVectors(Ri, expRi)) {
+        expect(Rij).toBeCloseTo(expRij)
+      }
+    }
   })
 })

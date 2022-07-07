@@ -335,6 +335,22 @@ export const idMat = M.identity(Field)
 export const mulM = M.mul(Field)
 
 /**
+ * Add two matricies
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const addM = M.lift2(Field.add)
+
+/**
+ * Subtract two matricies
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const subM = M.lift2(Field.sub)
+
+/**
  * Transform a column vector `x` into vector `b` by matrix `A`
  *
  * ```math
