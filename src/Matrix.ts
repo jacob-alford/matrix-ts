@@ -608,6 +608,45 @@ export const shape: <M extends number, N extends number, A>(
 // ##################
 
 /**
+ * Used to extract a portion of a matrix, and returns new generics `P` and `Q` that
+ * represents the the rows / columns of the extracted sub-matrix.
+ *
+ * Note: `rowFromIncl` and `colFromIncl` are the **inclusive** row / column start-indices,
+ * and `rowToExcl` and `colToExcl` are the **exclusive** row / column end-indices. If
+ * `rowToExcl` or `colToExcl` are omitted, the extracted sub-matrix will span to the final
+ * row / column.
+ *
+ * Note: In order to preserve type safety, `P` and `Q` cannot be inferred, and must be
+ * passed directly as type arguments.
+ *
+ * If `P` and `Q` are unknown, they can be declared in the parent function as arbitrary
+ * generics that have a numeric constraint.
+ *
+ * See: Decomposition > QR as an example declaring unknown length constraints
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const mapRow: <A>(
+  rowIndex: number,
+  f: (a: A) => A
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (rowIndex, f) => m =>
+    pipe(
+      shape(m),
+      O.fromPredicate(([rows]) => rowIndex >= 0 && rowIndex < rows),
+      O.map(([, cols]) => {
+        const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) =>
+          unsafeCoerce(xs[i])
+        const A = toNestedArrays(m)
+        for (let j = 0; j < cols; ++j) {
+          _(A, rowIndex)[j] = f(_(_(A, rowIndex), j))
+        }
+        return wrap(A)
+      })
+    )
+
+/**
  * Used to extract a sub-column from a matrix, and returns a new generic `P` that
  * represents the length of the sub-column.
  *

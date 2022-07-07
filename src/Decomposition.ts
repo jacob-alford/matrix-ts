@@ -292,7 +292,7 @@ export const QR = <N extends number>(
        * Calculate Qk using reflector parameters
        * ----------------------------------------
        */
-      C.bind('Qk', ({ xi: [, γk, uk], acc: { k } }) => {
+      C.bind('Qk', ({ xi: [, , γk, uk], acc: { k } }) => {
         const repl = pipe(
           uk,
           V.map(a => a * γk),
@@ -309,7 +309,7 @@ export const QR = <N extends number>(
        * Reflect (k+1)x(k+1) submatrix of A
        * ----------------------------------
        */
-      C.bind('B', ({ acc: { A, k }, xi: [, γk, uk] }) =>
+      C.bind('B', ({ acc: { A, k }, xi: [, , γk, uk] }) =>
         pipe(
           A,
           M.getSubMatrix<P, Q>(k, k + 1),
@@ -321,7 +321,7 @@ export const QR = <N extends number>(
        * Update A with calculated B, and parameter τk
        * --------------------------------------------
        */
-      C.bind('nextA', ({ acc: { A, k }, B, xi: [τk] }) =>
+      C.bind('nextA', ({ acc: { A, k }, B, xi: [, τk] }) =>
         pipe(
           A,
           M.updateSubMatrix(k, k + 1, B),
@@ -329,7 +329,7 @@ export const QR = <N extends number>(
           C.fromOption(() => `[04] Unreachable: index not found (k=${k})`)
         )
       ),
-      C.map(({ nextA, acc: { k, Q, γ }, Qk, xi: [, γk] }) => ({
+      C.map(({ nextA, acc: { k, Q, γ }, Qk, xi: [, , γk] }) => ({
         A: nextA,
         k: k + 1,
         Q: N.mulM(Q, Qk),
@@ -481,40 +481,42 @@ const subAndScale = <M, N>(
  */
 const orthogonalize: <N extends number>(
   xi: V.Vec<N, number>
-) => O.Option<[number, number, V.Vec<N, number>]> = xi =>
+) => O.Option<[number, number, number, V.Vec<N, number>]> = xi =>
   pipe(
     RA.head(xi),
     O.map(x0 =>
       pipe(
         N.lInfNorm(xi),
         O.fromPredicate(β => β !== 0),
-        O.map(β => {
-          const x = pipe(
-            xi,
-            V.map(x => x / β)
-          )
-          const τ = pipe(
-            x,
-            V.foldMap(N.MonoidSum)(x => Math.pow(x, 2)),
-            Math.sqrt,
-            τ => (x0 < 0 ? -τ : τ)
-          )
-          const γ = (τ + x0) / τ
-          const u = pipe(
-            x,
-            V.mapWithIndex((i, x) => (i === 0 ? 1 : x / (τ + x0)))
-          )
-          return tuple(τ * β, γ, u)
-        }),
-        O.getOrElseW(() =>
-          tuple(
-            0,
-            0,
-            pipe(
+        O.fold(
+          () =>
+            tuple(
+              x0,
+              0,
+              0,
+              pipe(
+                xi,
+                V.mapWithIndex(i => (i === 0 ? 1 : 0))
+              )
+            ),
+          β => {
+            const x = pipe(
               xi,
-              V.mapWithIndex(i => (i === 0 ? 1 : 0))
+              V.map(x => x / β)
             )
-          )
+            const τ = pipe(
+              x,
+              V.foldMap(N.MonoidSum)(x => Math.pow(x, 2)),
+              Math.sqrt,
+              τ => (x0 < 0 ? -τ : τ)
+            )
+            const γ = (τ + x0) / τ
+            const u = pipe(
+              x,
+              V.mapWithIndex((i, x) => (i === 0 ? 1 : x / (τ + x0)))
+            )
+            return tuple(x0, τ * β, γ, u)
+          }
         )
       )
     )
