@@ -214,6 +214,25 @@ export const LUP = <M extends number>(
 }
 
 /**
+ * QR decomposition using Householder Reflections. Based on an algorithm described in
+ * Fundamentals of Matrix Computations, David S. Watkins.
+ *
+ * Efficiency: `O(n^3)`
+ *
+ * Returns a tuple with:
+ *
+ * - `A'`: The assembled matrix R with lower triangular components being orthogonal vectors
+ *   used to construct the reflector `Q`.
+ * - `Q`: An IO that returns a constructed reflector `Q`. This has the same efficiency as QR
+ *   decomposition itself, so evaluation is reserved if needed.
+ * - `R`: The upper triangular matrix extracted from `A'`.
+ *
+ * QR decomposes a matrix A into a matrix `Q` and a matrix `R` such that:
+ *
+ * ```math
+ * A = QR
+ * ```
+ *
  * @since 1.1.0
  * @category Constructors
  */
@@ -224,7 +243,11 @@ export const QR = <N extends number>(
   Decomposition<
     N,
     number,
-    [IO.IO<MatTypes.OrthogonalMatrix<N, number>>, M.Mat<N, N, number>]
+    [
+      M.Mat<N, N, number>,
+      IO.IO<MatTypes.OrthogonalMatrix<N, number>>,
+      MatTypes.UpperTriangularMatrix<N, number>
+    ]
   > &
     IsSingular &
     Determinant
@@ -293,20 +316,15 @@ export const QR = <N extends number>(
        * ----------------------------------------
        */
       C.bind('Qk', ({ xi: [, , γk, uk], acc: { k } }) => {
-        const repl = pipe(
-          uk,
-          V.map(a => a * γk),
-          γUk => N.outerProduct(γUk, uk),
-          γUkUkt => N.subM(N.idMat(V.size(uk)), γUkUkt)
-        )
+        const repl = pipe(N.idMat(V.size(uk)), reflect([γk, uk]))
         return pipe(
           IdN,
           M.updateSubMatrix<P, P, number>(k, k, repl),
-          C.fromOption(() => `[02] Unreachable: index not found (k=${k})`)
+          C.fromOption(() => '[02] Unreachable: index not found')
         )
       }),
       /*
-       * Reflect (k+1)x(k+1) submatrix of A
+       * Reflect (k)x(k+1) submatrix of A
        * ----------------------------------
        */
       C.bind('B', ({ acc: { A, k }, xi: [, , γk, uk] }) =>
@@ -327,7 +345,7 @@ export const QR = <N extends number>(
           M.updateSubMatrix(k, k + 1, B),
           O.chain(M.updateSubColumn(k, k, uk)),
           O.chain(M.updateAt(k, k, -τk)),
-          C.fromOption(() => `[04] Unreachable: index not found (k=${k})`)
+          C.fromOption(() => '[04] Unreachable: index not found')
         )
       ),
       C.map(({ nextA, acc: { k, Q, γ }, Qk, xi: [, , γk] }) => ({
@@ -353,18 +371,20 @@ export const QR = <N extends number>(
       return {
         input: m,
         result: tuple(
+          A,
           () =>
             pipe(Q, RA.foldMap(M.getSquareMonoidProduct(N.Field)(n))(identity), a =>
               unsafeCoerce(a)
             ),
-          A
+          R
         ),
         isSingular: () =>
           pipe(
             γ,
-            RA.foldMap(B.MonoidAny)(a => a === 0)
+            RA.foldMap(B.MonoidAny)(a => Math.abs(a) <= 10 ** -12)
           ),
         det: () =>
+          Math.pow(-1, n - 1) *
           pipe(R, MatTypes.extractDiagonal(0), MatTypes.diagonalFoldMap(N.MonoidProduct)),
       }
     })
@@ -488,12 +508,12 @@ const subAndScale = <M, N>(
  */
 const orthogonalize: <N extends number>(
   xi: V.Vec<N, number>
-) => O.Option<[number, number, number, V.Vec<N, number>]> = xi =>
+) => O.Option<[number, number, number, V.Vec<N, number>]> = x =>
   pipe(
-    RA.head(xi),
+    RA.head(x),
     O.map(x0 =>
       pipe(
-        N.lInfNorm(xi),
+        N.lInfNorm(x),
         O.fromPredicate(β => β !== 0),
         O.fold(
           () =>
@@ -502,23 +522,24 @@ const orthogonalize: <N extends number>(
               0,
               0,
               pipe(
-                xi,
+                x,
                 V.mapWithIndex(i => (i === 0 ? 1 : 0))
               )
             ),
           β => {
-            const x = pipe(
-              xi,
-              V.map(x => x / β)
+            const τ = pipe(
+              x,
+              V.map(x => x / β),
+              N.l2Norm,
+              τ => β * Math.sign(x0) * τ
             )
-            const τ = pipe(x, N.l2Norm, τ => Math.sign(x0) * τ)
             const x1 = τ + x0
             const γ = x1 / τ
             const u = pipe(
               x,
               V.mapWithIndex((j, xj) => (j === 0 ? 1 : xj / x1))
             )
-            return tuple(x0, τ * β, γ, u)
+            return tuple(x0, τ, γ, u)
           }
         )
       )
@@ -531,9 +552,9 @@ const orthogonalize: <N extends number>(
  * @since 1.1.0
  * @category Internal
  */
-const reflect: <M extends number, N extends number>(
+const reflect: <N extends number>(
   gammaU: [number, V.Vec<N, number>]
-) => (B: M.Mat<N, M, number>) => M.Mat<N, M, number> =
+) => <M extends number>(B: M.Mat<N, M, number>) => M.Mat<N, M, number> =
   ([γ, u]) =>
   B =>
     pipe(

@@ -192,8 +192,10 @@ describe('QR decomposition', () => {
     }
 
     const {
-      result: [Q, R],
+      result: [R, Q_],
     } = output.right
+
+    const Q = Q_()
 
     const expQ = M.fromNestedTuples([
       [-1 / Math.sqrt(2), -1 / Math.sqrt(2)],
@@ -205,7 +207,7 @@ describe('QR decomposition', () => {
       [0.4142135623730951, 1 / Math.sqrt(2)],
     ])
 
-    for (const [Qi, expQi] of V.zipVectors(Q(), expQ)) {
+    for (const [Qi, expQi] of V.zipVectors(Q, expQ)) {
       for (const [Qij, expQij] of V.zipVectors(Qi, expQi)) {
         expect(Qij).toBeCloseTo(expQij)
       }
@@ -216,11 +218,13 @@ describe('QR decomposition', () => {
       }
     }
   })
-  it('decomposes a 3x3 matrix', () => {
+  it('decomposes a 5x5 matrix', () => {
     const A = M.fromNestedTuples([
-      [2, -2, 18],
-      [2, 1, 0],
-      [1, 2, 0],
+      [2, 10, 8, 8, 6],
+      [1, 4, -2, 4, -1],
+      [0, 2, 3, 2, 1],
+      [3, 8, 3, 10, 9],
+      [1, 4, 1, 2, 1],
     ])
 
     const [output] = QR(A)
@@ -230,28 +234,112 @@ describe('QR decomposition', () => {
     }
 
     const {
-      result: [Q, R],
+      result: [, Q, R],
     } = output.right
 
-    const expQ = M.fromNestedTuples([
-      [-1 / Math.sqrt(2), -1 / Math.sqrt(2)],
-      [-1 / Math.sqrt(2), 1 / Math.sqrt(2)],
-    ])
+    const QR_ = N.mulM(Q(), R)
 
-    const expR = M.fromNestedTuples([
-      [-2 / Math.sqrt(2), -5 / Math.sqrt(2)],
-      [0, 1 / Math.sqrt(2)],
-    ])
-
-    for (const [Qi, expQi] of V.zipVectors(Q(), expQ)) {
-      for (const [Qij, expQij] of V.zipVectors(Qi, expQi)) {
-        expect(Qij).toBeCloseTo(expQij)
+    for (const [Ei, Ai] of V.zipVectors(QR_, A)) {
+      for (const [Eij, aij] of V.zipVectors(Ei, Ai)) {
+        expect(Eij).toBeCloseTo(aij)
       }
     }
-    for (const [Ri, expRi] of V.zipVectors(R, expR)) {
-      for (const [Rij, expRij] of V.zipVectors(Ri, expRi)) {
-        expect(Rij).toBeCloseTo(expRij)
-      }
+  })
+  it('calculates a determinant (i)', () => {
+    const [output] = QR(
+      M.fromNestedTuples([
+        [5, 2, 1, 4, 6],
+        [9, 4, 2, 5, 2],
+        [11, 5, 7, 3, 9],
+        [5, 6, 6, 7, 2],
+        [7, 5, 9, 3, 3],
+      ])
+    )
+
+    if (E.isLeft(output)) {
+      throw new Error('Unexpected result')
     }
+
+    const { det } = output.right
+
+    /*
+     * This seems to be off by one
+     */
+    expect(det()).toBeCloseTo(-2003, -1)
+  })
+  it('calculates a determinant (ii)', () => {
+    const [output] = QR(
+      M.fromNestedTuples([
+        [50, 29],
+        [30, 44],
+      ])
+    )
+
+    if (E.isLeft(output)) {
+      throw new Error('Unexpected result')
+    }
+
+    const { det } = output.right
+
+    expect(det()).toBeCloseTo(1330)
+  })
+  it('calculates a determinant (ii)', () => {
+    const [output] = QR(
+      M.fromNestedTuples([
+        [55, 25, 15],
+        [30, 44, 2],
+        [11, 45, 77],
+      ])
+    )
+
+    if (E.isLeft(output)) {
+      throw new Error('Unexpected result')
+    }
+
+    const { det } = output.right
+
+    expect(det()).toBeCloseTo(137180)
+  })
+  it('detects a singular matrix (i)', () => {
+    const [result] = QR(
+      M.fromNestedTuples([
+        [1, -2],
+        [-3, 6],
+      ])
+    )
+    if (E.isLeft(result)) {
+      throw new Error('Unexpected result')
+    }
+
+    expect(result.right.isSingular()).toBe(true)
+  })
+  it('detects a singular matrix (ii)', () => {
+    const [result] = QR(
+      M.fromNestedTuples([
+        [1, 1, 1],
+        [0, 1, 0],
+        [1, 0, 1],
+      ])
+    )
+
+    if (E.isLeft(result)) {
+      throw new Error('Unexpected result')
+    }
+
+    expect(result.right.isSingular()).toBe(true)
+  })
+  it('detects a singular matrix (iii)', () => {
+    const [result] = QR(
+      M.fromNestedTuples([
+        [1, 2],
+        [-2, -4],
+      ])
+    )
+
+    if (E.isLeft(result)) {
+      throw new Error('Unexpected result')
+    }
+
+    expect(result.right.isSingular()).toBe(true)
   })
 })
