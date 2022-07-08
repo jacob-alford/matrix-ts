@@ -11,7 +11,7 @@ import * as ChnR from 'fp-ts/ChainRec'
 import * as IO from 'fp-ts/IO'
 import * as E from 'fp-ts/Either'
 import * as RA from 'fp-ts/ReadonlyArray'
-import { tuple, pipe, unsafeCoerce } from 'fp-ts/function'
+import { tuple, pipe, unsafeCoerce, identity } from 'fp-ts/function'
 
 import * as M from './Matrix'
 import * as MatTypes from './MatrixTypes'
@@ -224,7 +224,7 @@ export const QR = <N extends number>(
   Decomposition<
     N,
     number,
-    [MatTypes.OrthogonalMatrix<N, number>, MatTypes.UpperTriangularMatrix<N, number>]
+    [IO.IO<MatTypes.OrthogonalMatrix<N, number>>, M.Mat<N, N, number>]
   > &
     IsSingular &
     Determinant
@@ -232,7 +232,7 @@ export const QR = <N extends number>(
   type ComputationParams = {
     k: number
     A: M.Mat<N, N, number>
-    Q: M.Mat<N, N, number>
+    Q: ReadonlyArray<M.Mat<N, N, number>>
     γ: ReadonlyArray<number>
   }
 
@@ -321,10 +321,11 @@ export const QR = <N extends number>(
        * Update A with calculated B, and parameter τk
        * --------------------------------------------
        */
-      C.bind('nextA', ({ acc: { A, k }, B, xi: [, τk] }) =>
+      C.bind('nextA', ({ acc: { A, k }, B, xi: [, τk, , uk] }) =>
         pipe(
           A,
           M.updateSubMatrix(k, k + 1, B),
+          O.chain(M.updateSubColumn(k, k, uk)),
           O.chain(M.updateAt(k, k, -τk)),
           C.fromOption(() => `[04] Unreachable: index not found (k=${k})`)
         )
@@ -332,7 +333,7 @@ export const QR = <N extends number>(
       C.map(({ nextA, acc: { k, Q, γ }, Qk, xi: [, , γk] }) => ({
         A: nextA,
         k: k + 1,
-        Q: N.mulM(Q, Qk),
+        Q: [...Q, Qk],
         γ: [...γ, γk],
       })),
       E.left
@@ -340,7 +341,7 @@ export const QR = <N extends number>(
   }
 
   return pipe(
-    ChnR.tailRec<Computation, Computation>(C.of({ k: 0, A: m, Q: IdN, γ: [] }), acc =>
+    ChnR.tailRec<Computation, Computation>(C.of({ k: 0, A: m, Q: [], γ: [] }), acc =>
       go<N, N>(acc)
     ),
     C.bilog(
@@ -351,7 +352,13 @@ export const QR = <N extends number>(
       const [, R] = MatTypes.fromMatrix(N.Field)(A)
       return {
         input: m,
-        result: tuple(unsafeCoerce(Q), R),
+        result: tuple(
+          () =>
+            pipe(Q, RA.foldMap(M.getSquareMonoidProduct(N.Field)(n))(identity), a =>
+              unsafeCoerce(a)
+            ),
+          A
+        ),
         isSingular: () =>
           pipe(
             γ,
@@ -504,16 +511,12 @@ const orthogonalize: <N extends number>(
               xi,
               V.map(x => x / β)
             )
-            const τ = pipe(
-              x,
-              V.foldMap(N.MonoidSum)(x => Math.pow(x, 2)),
-              Math.sqrt,
-              τ => (x0 < 0 ? -τ : τ)
-            )
-            const γ = (τ + x0) / τ
+            const τ = pipe(x, N.l2Norm, τ => Math.sign(x0) * τ)
+            const x1 = τ + x0
+            const γ = x1 / τ
             const u = pipe(
               x,
-              V.mapWithIndex((i, x) => (i === 0 ? 1 : x / (τ + x0)))
+              V.mapWithIndex((j, xj) => (j === 0 ? 1 : xj / x1))
             )
             return tuple(x0, τ * β, γ, u)
           }

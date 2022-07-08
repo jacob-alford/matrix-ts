@@ -714,7 +714,7 @@ export const updateSubColumn: <P extends number, A>(
     return pipe(
       shape(A),
       O.fromPredicate(
-        ([rows, cols]) => col >= 0 && col < cols && fromRowI >= 0 && fromRowI + p < rows
+        ([rows, cols]) => col >= 0 && col < cols && fromRowI >= 0 && fromRowI + p <= rows
       ),
       O.map(() => {
         const Ap = toNestedArrays(A)
