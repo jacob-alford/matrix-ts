@@ -257,6 +257,8 @@ export const QR = <N extends number>(
     A: M.Mat<N, N, number>
     Q: ReadonlyArray<M.Mat<N, N, number>>
     γ: ReadonlyArray<number>
+    P: M.Mat<N, N, number>
+    sqColNorms: V.Vec<N, number>
   }
 
   type Computation = C.Computation<string, ComputationParams>
@@ -289,7 +291,7 @@ export const QR = <N extends number>(
           pipe(
             result.A,
             M.get(n - 1, n - 1),
-            C.fromOption(() => '[05] Unreachable: index not found'),
+            C.fromOption(() => '[09] Unreachable: index not found'),
             C.map(ann => ({ ...result, γ: [...result.γ, ann] }))
           )
         ),
@@ -301,14 +303,58 @@ export const QR = <N extends number>(
       computation,
       C.bindTo('acc'),
       /*
+       * Find max column length
+       * ----------------------
+       */
+      C.bind('maxColIndex', ({ acc: { sqColNorms, k } }) =>
+        pipe(
+          sqColNorms,
+          getMaxColFrom(k),
+          C.fromOption(() => '[01] Unreachable: index not found')
+        )
+      ),
+      /*
+       * Pivot A
+       * --------
+       */
+      C.bind('Ap', ({ maxColIndex: [, maxI], acc: { A, k } }) =>
+        pipe(
+          A,
+          M.switchColumns(maxI, k),
+          C.fromOption(() => '[02] Unreachable: index not found')
+        )
+      ),
+      /*
+       * Pivot norms
+       * -----------
+       */
+      C.bind('nextSqNorms', ({ maxColIndex: [, maxI], acc: { k, sqColNorms } }) =>
+        pipe(
+          sqColNorms,
+          V.swapIndices(maxI, k),
+          C.fromOption(() => '[03] Unreachable: index not found')
+        )
+      ),
+      /*
+       * Pivot Permutation Matrix
+       * ------------------------
+       */
+      C.bind('nextP', ({ maxColIndex: [, maxI], acc: { k, P } }) =>
+        pipe(
+          P,
+          M.switchColumns(maxI, k),
+          C.fromOption(() => '[04] Unreachable: index not found')
+        )
+      ),
+      /*
        * Calculate reflector parameters: γk, τk, and uk (3.2.35, 201)
        * -------------------------------------------------------------
        */
-      C.bind('xi', ({ acc: { A, k } }) =>
+      C.bind('xi', ({ acc: { k, A } }) =>
         pipe(
           M.getSubColumn(k, k)<P, N, N, number>(A),
           O.chain(orthogonalize),
-          C.fromOption(() => '[01] Unreachable: index not found')
+          C.fromOption(() => '[05] Unreachable: index not found')
         )
       ),
       /*
@@ -320,47 +366,64 @@ export const QR = <N extends number>(
         return pipe(
           IdN,
           M.updateSubMatrix<P, P, number>(k, k, repl),
-          C.fromOption(() => '[02] Unreachable: index not found')
+          C.fromOption(() => '[06] Unreachable: index not found')
         )
       }),
       /*
        * Reflect (k)x(k+1) submatrix of A
        * ----------------------------------
        */
-      C.bind('B', ({ acc: { A, k }, xi: [, , γk, uk] }) =>
+      C.bind('B', ({ acc: { k, A }, xi: [, , γk, uk] }) =>
         pipe(
           A,
           M.getSubMatrix<P, Q>(k, k + 1),
           O.map(reflect([γk, uk])),
-          C.fromOption(() => '[03] Unreachable: index not found')
+          C.fromOption(() => '[07] Unreachable: index not found')
         )
       ),
       /*
-       * Update A with calculated B, and parameter τk
+       * Update pivoted A with calculated B, and parameter τk
        * --------------------------------------------
        */
-      C.bind('nextA', ({ acc: { A, k }, B, xi: [, τk, , uk] }) =>
+      C.bind('nextA', ({ acc: { k, A }, B, xi: [, τk, , uk] }) =>
         pipe(
           A,
           M.updateSubMatrix(k, k + 1, B),
           O.chain(M.updateSubColumn(k, k, uk)),
           O.chain(M.updateAt(k, k, -τk)),
-          C.fromOption(() => '[04] Unreachable: index not found')
+          C.fromOption(() => '[08] Unreachable: index not found')
         )
       ),
-      C.map(({ nextA, acc: { k, Q, γ }, Qk, xi: [, , γk] }) => ({
+      C.map(({ nextA, nextSqNorms, nextP, acc: { k, Q, γ }, Qk, xi: [, , γk] }) => ({
         A: nextA,
         k: k + 1,
         Q: [...Q, Qk],
         γ: [...γ, γk],
+        sqColNorms: nextSqNorms,
+        P: nextP,
       })),
       E.left
     )
   }
 
+  const sqColNorms = pipe(
+    m,
+    M.reduceByColumn(col =>
+      pipe(N.lInfNorm(col), max =>
+        pipe(
+          col,
+          V.map(a => a / max),
+          N.l2Norm,
+          a => Math.pow(a * max, 2)
+        )
+      )
+    )
+  )
+
   return pipe(
-    ChnR.tailRec<Computation, Computation>(C.of({ k: 0, A: m, Q: [], γ: [] }), acc =>
-      go<N, N>(acc)
+    ChnR.tailRec<Computation, Computation>(
+      C.of({ k: 0, A: m, Q: [], γ: [], sqColNorms, P: IdN }),
+      acc => go<N, N>(acc)
     ),
     C.bilog(
       () => '[1] Failed to decompose matrix',
@@ -499,6 +562,35 @@ const subAndScale = <M, N>(
 // ##########
 // ### QR ###
 // ##########
+
+/**
+ * @since 1.1.0
+ * @category Internal
+ */
+const getMaxColFrom: (
+  k: number
+) => <N extends number>(v: V.Vec<N, number>) => O.Option<readonly [number, number]> =
+  k => v => {
+    const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+    const c = pipe(v, RA.dropLeft(k))
+    const go: (
+      acc: readonly [number, number, number]
+    ) => E.Either<readonly [number, number, number], readonly [number, number]> = ([
+      j,
+      max,
+      maxI,
+    ]) => {
+      if (j >= c.length) return E.right(tuple(max, maxI))
+      const cj = _(c, j)
+      return Math.abs(cj) > max
+        ? E.left([j + 1, Math.abs(cj), j])
+        : E.left([j + 1, max, maxI])
+    }
+    return pipe(
+      ChnR.tailRec(tuple(0, 0, -1), go),
+      O.fromPredicate(([max]) => max !== 0)
+    )
+  }
 
 /**
  * See 3.2.35 in Fundamentals of Matrix Computation, David S. Watkins, page 201

@@ -608,21 +608,7 @@ export const shape: <M extends number, N extends number, A>(
 // ##################
 
 /**
- * Used to extract a portion of a matrix, and returns new generics `P` and `Q` that
- * represents the the rows / columns of the extracted sub-matrix.
- *
- * Note: `rowFromIncl` and `colFromIncl` are the **inclusive** row / column start-indices,
- * and `rowToExcl` and `colToExcl` are the **exclusive** row / column end-indices. If
- * `rowToExcl` or `colToExcl` are omitted, the extracted sub-matrix will span to the final
- * row / column.
- *
- * Note: In order to preserve type safety, `P` and `Q` cannot be inferred, and must be
- * passed directly as type arguments.
- *
- * If `P` and `Q` are unknown, they can be declared in the parent function as arbitrary
- * generics that have a numeric constraint.
- *
- * See: Decomposition > QR as an example declaring unknown length constraints
+ * Map a particular row of a matrix
  *
  * @since 1.1.0
  * @category Sub-Matrix
@@ -645,6 +631,63 @@ export const mapRow: <A>(
         return wrap(A)
       })
     )
+
+/**
+ * Reduce the rows of a matrix to a vector of opposite length
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const reduceByRow: <N extends number, A, B>(
+  f: (a: V.Vec<N, A>) => B
+) => <M extends number>(m: Mat<M, N, A>) => V.Vec<M, B> = f => V.map(f)
+
+/**
+ * Map a particular column of a matrix
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const mapColumn: <A>(
+  columnIndex: number,
+  f: (a: A) => A
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (columnIndex, f) => m =>
+    pipe(
+      shape(m),
+      O.fromPredicate(([, cols]) => columnIndex >= 0 && columnIndex < cols),
+      O.map(([rows]) => {
+        const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) =>
+          unsafeCoerce(xs[i])
+        const A = toNestedArrays(m)
+        for (let i = 0; i < rows; ++i) {
+          _(A, i)[columnIndex] = f(_(_(A, i), columnIndex))
+        }
+        return wrap(A)
+      })
+    )
+
+/**
+ * Reduce the columns of a matrix to a vector of opposite length
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const reduceByColumn: <M extends number, A, B>(
+  f: (a: V.Vec<M, A>) => B
+) => <N extends number>(A: Mat<M, N, A>) => V.Vec<N, B> = f => A => {
+  const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+  const [m, n] = shape(A)
+  const out = []
+  for (let k = 0; k < n; ++k) {
+    const col = []
+    for (let i = 0; i < m; ++i) {
+      col.push(_(_(A, i), k))
+    }
+    out.push(f(unsafeCoerce(col)))
+  }
+  return unsafeCoerce(out)
+}
 
 /**
  * Used to extract a sub-column from a matrix, and returns a new generic `P` that
@@ -959,6 +1002,24 @@ export const switchRows =
               replaceRow(i)(() => jr),
               O.chain(replaceRow(j)(() => ir))
             )
+          )
+        )
+
+/**
+ * @since 1.0.0
+ * @category Matrix Operations
+ */
+export const switchColumns =
+  (i: number, j: number) =>
+  <N extends number, M extends number, A>(vs: Mat<M, N, A>): O.Option<Mat<M, N, A>> =>
+    i === j
+      ? O.some(vs)
+      : pipe(
+          O.Do,
+          O.apS('ic', getSubColumn(i, 0)<M, M, N, A>(vs)),
+          O.apS('jc', getSubColumn(j, 0)<M, M, N, A>(vs)),
+          O.chain(({ ic, jc }) =>
+            pipe(vs, updateSubColumn(i, 0, jc), O.chain(updateSubColumn(j, 0, ic)))
           )
         )
 
