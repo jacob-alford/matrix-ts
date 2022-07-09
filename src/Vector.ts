@@ -557,7 +557,7 @@ export const lInfNorm: <A>(
  * @since 1.1.0
  * @category Vector Operations
  */
-export const swapIndices: (
+export const switchIndices: (
   i: number,
   j: number
 ) => <N extends number, A>(v: Vec<N, A>) => O.Option<Vec<N, A>> = (i, j) => v =>
@@ -573,9 +573,9 @@ export const swapIndices: (
  * @since 1.0.0
  * @category Vector Operations
  */
-export const lift2: <N, A, B>(
+export const lift2: <A, B>(
   f: (x: A, y: A) => B
-) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B> = f => (x, y) =>
+) => <N>(x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B> = f => (x, y) =>
   pipe(RA.zipWith(x, y, f), a => wrap(a))
 
 /**

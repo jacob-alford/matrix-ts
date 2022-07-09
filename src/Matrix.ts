@@ -1006,7 +1006,7 @@ export const switchRows =
         )
 
 /**
- * @since 1.0.0
+ * @since 1.1.0
  * @category Matrix Operations
  */
 export const switchColumns =

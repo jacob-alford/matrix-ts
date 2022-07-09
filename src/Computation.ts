@@ -10,6 +10,7 @@ import * as Ap from 'fp-ts/Apply'
 import * as BiFun from 'fp-ts/Bifunctor'
 import * as Chn from 'fp-ts/Chain'
 import * as E from 'fp-ts/Either'
+import * as IO from 'fp-ts/IO'
 import * as FE from 'fp-ts/FromEither'
 import * as Fun from 'fp-ts/Functor'
 import * as Mon from 'fp-ts/Monad'
@@ -17,7 +18,7 @@ import * as MonThrow from 'fp-ts/MonadThrow'
 import * as O from 'fp-ts/Option'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as RTup from 'fp-ts/ReadonlyTuple'
-import { pipe, unsafeCoerce } from 'fp-ts/function'
+import { flow, pipe, unsafeCoerce } from 'fp-ts/function'
 
 // #############
 // ### Model ###
@@ -285,6 +286,21 @@ export const chainEitherK = FE.chainEitherK(FromEither, Chain)
 // #################
 // ### Utilities ###
 // #################
+
+/**
+ * @since 1.1.0
+ * @category Utilities
+ */
+export const runComputation: <E, A>(c: Computation<E, A>) => E.Either<E, A> = RTup.fst
+
+/**
+ * @since 1.1.0
+ * @category Utilities
+ */
+export const runLogs: <E, O>(
+  f: (e: E) => IO.IO<O>
+) => <A>(c: Computation<E, A>) => IO.IO<ReadonlyArray<O>> = f =>
+  flow(RTup.snd, IO.traverseArray(f))
 
 /**
  * @since 1.0.0

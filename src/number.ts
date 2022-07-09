@@ -148,6 +148,22 @@ export const AdditiveAbGrpN = V.getAdditiveAbelianGroup(Field)
 export const BiModN = V.getBimodule(Field)
 
 /**
+ * Add two vectors
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const addV = V.lift2(Field.add)
+
+/**
+ * Subtract two vectors
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const subV = V.lift2(Field.add)
+
+/**
  * @since 1.0.0
  * @category Instances
  */

@@ -1,6 +1,9 @@
+import * as Cons from 'fp-ts/Console'
 import * as E from 'fp-ts/Either'
+import { pipe } from 'fp-ts/function'
 
 import { LUP, QR } from '../src/Decomposition'
+import * as C from '../src/Computation'
 import * as M from '../src/Matrix'
 import * as N from '../src/number'
 import * as V from '../src/Vector'
@@ -117,7 +120,7 @@ describe('LUP Decomposition', () => {
 
     expect(det()).toBeCloseTo(1330)
   })
-  it('calculates a determinant (ii)', () => {
+  it('calculates a determinant (iii)', () => {
     const [output] = LUP(
       M.fromNestedTuples([
         [55, 25, 15],
@@ -185,36 +188,24 @@ describe('QR decomposition', () => {
       [1, 3],
     ])
 
-    const [output] = QR(A)
+    const output = C.runComputation(QR(A))
 
     if (E.isLeft(output)) {
       throw new Error('Unexpected result')
     }
 
     const {
-      result: [R, Q_],
+      result: [, Q_, R, P],
     } = output.right
 
     const Q = Q_()
 
-    const expQ = M.fromNestedTuples([
-      [-1 / Math.sqrt(2), -1 / Math.sqrt(2)],
-      [-1 / Math.sqrt(2), 1 / Math.sqrt(2)],
-    ])
+    const Ap = N.mulM(A, P)
+    const QR_ = N.mulM(Q, R)
 
-    const expR = M.fromNestedTuples([
-      [-2 / Math.sqrt(2), -5 / Math.sqrt(2)],
-      [0.4142135623730951, 1 / Math.sqrt(2)],
-    ])
-
-    for (const [Qi, expQi] of V.zipVectors(Q, expQ)) {
-      for (const [Qij, expQij] of V.zipVectors(Qi, expQi)) {
-        expect(Qij).toBeCloseTo(expQij)
-      }
-    }
-    for (const [Ri, expRi] of V.zipVectors(R, expR)) {
-      for (const [Rij, expRij] of V.zipVectors(Ri, expRi)) {
-        expect(Rij).toBeCloseTo(expRij)
+    for (const [QRi, Api] of V.zipVectors(QR_, Ap)) {
+      for (const [QRij, Apij] of V.zipVectors(QRi, Api)) {
+        expect(QRij).toBeCloseTo(Apij)
       }
     }
   })
@@ -227,21 +218,24 @@ describe('QR decomposition', () => {
       [1, 4, 1, 2, 1],
     ])
 
-    const [output] = QR(A)
+    const output = C.runComputation(QR(A))
 
     if (E.isLeft(output)) {
       throw new Error('Unexpected result')
     }
 
     const {
-      result: [, Q, R],
+      result: [, Q_, R, P],
     } = output.right
 
-    const QR_ = N.mulM(Q(), R)
+    const Q = Q_()
 
-    for (const [Ei, Ai] of V.zipVectors(QR_, A)) {
-      for (const [Eij, aij] of V.zipVectors(Ei, Ai)) {
-        expect(Eij).toBeCloseTo(aij)
+    const Ap = N.mulM(A, P)
+    const QR_ = N.mulM(Q, R)
+
+    for (const [QRi, Api] of V.zipVectors(QR_, Ap)) {
+      for (const [QRij, Apij] of V.zipVectors(QRi, Api)) {
+        expect(QRij).toBeCloseTo(Apij)
       }
     }
   })
@@ -283,7 +277,7 @@ describe('QR decomposition', () => {
 
     expect(det()).toBeCloseTo(1330)
   })
-  it('calculates a determinant (ii)', () => {
+  it('calculates a determinant (iii)', () => {
     const [output] = QR(
       M.fromNestedTuples([
         [55, 25, 15],
@@ -301,20 +295,24 @@ describe('QR decomposition', () => {
     expect(det()).toBeCloseTo(137180)
   })
   it('detects a singular matrix (i)', () => {
-    const [result] = QR(
+    const computation = QR(
       M.fromNestedTuples([
         [1, -2],
         [-3, 6],
       ])
     )
+
+    const result = C.runComputation(computation)
+
     if (E.isLeft(result)) {
       throw new Error('Unexpected result')
     }
 
+    expect(result.right.rank).toBe(1)
     expect(result.right.isSingular()).toBe(true)
   })
   it('detects a singular matrix (ii)', () => {
-    const [result] = QR(
+    const computation = QR(
       M.fromNestedTuples([
         [1, 1, 1],
         [0, 1, 0],
@@ -322,24 +320,30 @@ describe('QR decomposition', () => {
       ])
     )
 
+    const result = C.runComputation(computation)
+
     if (E.isLeft(result)) {
       throw new Error('Unexpected result')
     }
 
+    expect(result.right.rank).toBe(2)
     expect(result.right.isSingular()).toBe(true)
   })
   it('detects a singular matrix (iii)', () => {
-    const [result] = QR(
+    const computation = QR(
       M.fromNestedTuples([
         [1, 2],
         [-2, -4],
       ])
     )
 
+    const result = C.runComputation(computation)
+
     if (E.isLeft(result)) {
       throw new Error('Unexpected result')
     }
 
+    expect(result.right.rank).toBe(1)
     expect(result.right.isSingular()).toBe(true)
   })
 })

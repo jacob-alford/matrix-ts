@@ -76,6 +76,16 @@ export interface IsSingular {
   isSingular: IO.IO<boolean>
 }
 
+/**
+ * Returns the Rank of A
+ *
+ * @since 1.1.0
+ * @category Model
+ */
+export interface Rank {
+  rank: number
+}
+
 // ####################
 // ### Constructors ###
 // ####################
@@ -214,23 +224,30 @@ export const LUP = <M extends number>(
 }
 
 /**
- * QR decomposition using Householder Reflections. Based on an algorithm described in
- * Fundamentals of Matrix Computations, David S. Watkins.
+ * QR decomposition with column pivoting using Householder Reflections. Based on an
+ * algorithm described in Fundamentals of Matrix Computations, David S. Watkins.
+ *
+ * Can be used to calculate a matrix's:
+ *
+ * - Singularity
+ * - Rank
+ * - Determinant
  *
  * Efficiency: `O(n^3)`
  *
  * Returns a tuple with:
  *
  * - `A'`: The assembled matrix R with lower triangular components being orthogonal vectors
- *   used to construct the reflector `Q`.
+ *   collectively used to construct the reflector `Q`.
  * - `Q`: An IO that returns a constructed reflector `Q`. This has the same efficiency as QR
- *   decomposition itself, so evaluation is reserved if needed.
+ *   decomposition itself, so evaluation is deferred.
  * - `R`: The upper triangular matrix extracted from `A'`.
+ * - `P`: The permutation matrix used to permute the columns of `A`
  *
- * QR decomposes a matrix A into a matrix `Q` and a matrix `R` such that:
+ * QR decomposes a matrix A into a matrix `Q`, a matrix `R`, and a matrix `P` such that:
  *
  * ```math
- * A = QR
+ * AP = QR
  * ```
  *
  * @since 1.1.0
@@ -246,11 +263,13 @@ export const QR = <N extends number>(
     [
       M.Mat<N, N, number>,
       IO.IO<MatTypes.OrthogonalMatrix<N, number>>,
-      MatTypes.UpperTriangularMatrix<N, number>
+      MatTypes.UpperTriangularMatrix<N, number>,
+      MatTypes.OrthogonalMatrix<N, number>
     ]
   > &
     IsSingular &
-    Determinant
+    Determinant &
+    Rank
 > => {
   type ComputationParams = {
     k: number
@@ -259,24 +278,23 @@ export const QR = <N extends number>(
     γ: ReadonlyArray<number>
     P: M.Mat<N, N, number>
     sqColNorms: V.Vec<N, number>
+    numPivots: number
   }
 
-  type Computation = C.Computation<string, ComputationParams>
+  type In = C.Computation<string, ComputationParams>
+  type Out = C.Computation<string, ComputationParams & { rank: number }>
 
   const [, n] = M.shape(m)
 
   const IdN = N.idMat(n)
 
   /** Here, P is a free constraint that represents (row) N - k, and Q represents (column) N - k - 1 */
-  const go = <P extends number, Q extends number>(
-    computation: Computation
-  ): E.Either<Computation, Computation> => {
-    const [result] = computation
+  const go = <P extends number, Q extends number>(computation: In): E.Either<In, Out> => {
     /*
      * Base case: computation has failed in prior iterations
      * -----------------------------------------------------
      */
-    if (E.isLeft(result)) {
+    if (C.isLeft(computation)) {
       return E.right(computation)
     }
 
@@ -284,33 +302,75 @@ export const QR = <N extends number>(
      * Base case: Matrix reduction is complete
      * ---------------------------------------
      */
-    if (result.right.k >= n - 1) {
+    if (C.isRight(computation) && computation[0].right.k >= n - 1) {
       return pipe(
         computation,
         C.chain(result =>
           pipe(
             result.A,
             M.get(n - 1, n - 1),
-            C.fromOption(() => '[09] Unreachable: index not found'),
-            C.map(ann => ({ ...result, γ: [...result.γ, ann] }))
+            C.fromOption(() => '[010] Unreachable: index not found'),
+            C.map(ann => ({
+              ...result,
+              γ: [...result.γ, ann],
+              rank: n - (isSingular(ann) ? 1 : 0),
+            }))
           )
         ),
         E.right
       )
     }
 
-    return pipe(
+    const validatedComputation = pipe(
       computation,
       C.bindTo('acc'),
+      /*
+       * Subtract square row values from column norms
+       * --------------------------------------------
+       */
+      C.bind('adjustedSqNorms', ({ acc: { A, k } }) =>
+        pipe(
+          A,
+          V.get(k),
+          O.map(V.map(Aki => Math.pow(Aki, 2))),
+          O.map(Ak => N.subV(sqColNorms, Ak)),
+          C.fromOption(() => '[001] Unreachable: index not found')
+        )
+      ),
       /*
        * Find max column length
        * ----------------------
        */
-      C.bind('maxColIndex', ({ acc: { sqColNorms, k } }) =>
+      C.bind('maxColIndex', ({ acc: { k }, adjustedSqNorms }) =>
         pipe(
-          sqColNorms,
+          adjustedSqNorms,
           getMaxColFrom(k),
-          C.fromOption(() => '[01] Unreachable: index not found')
+          C.fromOption(() => '[002] Unreachable: index not found')
+        )
+      )
+    )
+
+    /*
+     * Base case: rest of matrix is filled with zeros
+     * ----------------------------------------------
+     */
+    if (
+      C.isRight(validatedComputation) &&
+      isSingular(validatedComputation[0].right.maxColIndex[0])
+    ) {
+      return pipe(
+        computation,
+        C.map(a => ({ ...a, rank: n - a.k })),
+        E.right
+      )
+    }
+
+    return pipe(
+      validatedComputation,
+      C.logOption(({ acc: { k }, maxColIndex: [, maxI] }) =>
+        pipe(
+          `Swapped column ${k} and ${maxI}`,
+          O.fromPredicate(() => k !== maxI)
         )
       ),
       /*
@@ -321,18 +381,18 @@ export const QR = <N extends number>(
         pipe(
           A,
           M.switchColumns(maxI, k),
-          C.fromOption(() => '[02] Unreachable: index not found')
+          C.fromOption(() => '[003] Unreachable: index not found')
         )
       ),
       /*
        * Pivot norms
        * -----------
        */
-      C.bind('nextSqNorms', ({ maxColIndex: [, maxI], acc: { k, sqColNorms } }) =>
+      C.bind('nextSqNorms', ({ maxColIndex: [, maxI], acc: { k }, adjustedSqNorms }) =>
         pipe(
-          sqColNorms,
-          V.swapIndices(maxI, k),
-          C.fromOption(() => '[03] Unreachable: index not found')
+          adjustedSqNorms,
+          V.switchIndices(maxI, k),
+          C.fromOption(() => '[004] Unreachable: index not found')
         )
       ),
       /*
@@ -343,18 +403,18 @@ export const QR = <N extends number>(
         pipe(
           P,
           M.switchColumns(maxI, k),
-          C.fromOption(() => '[04] Unreachable: index not found')
+          C.fromOption(() => '[005] Unreachable: index not found')
         )
       ),
       /*
        * Calculate reflector parameters: γk, τk, and uk (3.2.35, 201)
        * -------------------------------------------------------------
        */
-      C.bind('xi', ({ acc: { k, A } }) =>
+      C.bind('xi', ({ acc: { k }, Ap }) =>
         pipe(
-          M.getSubColumn(k, k)<P, N, N, number>(A),
+          M.getSubColumn(k, k)<P, N, N, number>(Ap),
           O.chain(orthogonalize),
-          C.fromOption(() => '[05] Unreachable: index not found')
+          C.fromOption(() => '[006] Unreachable: index not found')
         )
       ),
       /*
@@ -366,42 +426,53 @@ export const QR = <N extends number>(
         return pipe(
           IdN,
           M.updateSubMatrix<P, P, number>(k, k, repl),
-          C.fromOption(() => '[06] Unreachable: index not found')
+          C.fromOption(() => '[007] Unreachable: index not found')
         )
       }),
       /*
        * Reflect (k)x(k+1) submatrix of A
        * ----------------------------------
        */
-      C.bind('B', ({ acc: { k, A }, xi: [, , γk, uk] }) =>
+      C.bind('B', ({ acc: { k }, xi: [, , γk, uk], Ap }) =>
         pipe(
-          A,
+          Ap,
           M.getSubMatrix<P, Q>(k, k + 1),
           O.map(reflect([γk, uk])),
-          C.fromOption(() => '[07] Unreachable: index not found')
+          C.fromOption(() => '[008] Unreachable: index not found')
         )
       ),
       /*
        * Update pivoted A with calculated B, and parameter τk
        * --------------------------------------------
        */
-      C.bind('nextA', ({ acc: { k, A }, B, xi: [, τk, , uk] }) =>
+      C.bind('nextA', ({ acc: { k }, B, xi: [, τk, , uk], Ap }) =>
         pipe(
-          A,
+          Ap,
           M.updateSubMatrix(k, k + 1, B),
           O.chain(M.updateSubColumn(k, k, uk)),
           O.chain(M.updateAt(k, k, -τk)),
-          C.fromOption(() => '[08] Unreachable: index not found')
+          C.fromOption(() => '[009] Unreachable: index not found')
         )
       ),
-      C.map(({ nextA, nextSqNorms, nextP, acc: { k, Q, γ }, Qk, xi: [, , γk] }) => ({
-        A: nextA,
-        k: k + 1,
-        Q: [...Q, Qk],
-        γ: [...γ, γk],
-        sqColNorms: nextSqNorms,
-        P: nextP,
-      })),
+      C.map(
+        ({
+          nextA,
+          nextSqNorms,
+          nextP,
+          acc: { k, Q, γ, numPivots },
+          Qk,
+          xi: [, , γk],
+          maxColIndex: [, maxI],
+        }) => ({
+          A: nextA,
+          k: k + 1,
+          Q: [...Q, Qk],
+          γ: [...γ, γk],
+          sqColNorms: nextSqNorms,
+          P: nextP,
+          numPivots: k === maxI ? numPivots : numPivots + 1,
+        })
+      ),
       E.left
     )
   }
@@ -421,15 +492,15 @@ export const QR = <N extends number>(
   )
 
   return pipe(
-    ChnR.tailRec<Computation, Computation>(
-      C.of({ k: 0, A: m, Q: [], γ: [], sqColNorms, P: IdN }),
+    ChnR.tailRec<In, Out>(
+      C.of({ k: 0, A: m, Q: [], γ: [], sqColNorms, P: IdN, numPivots: 0 }),
       acc => go<N, N>(acc)
     ),
     C.bilog(
       () => '[1] Failed to decompose matrix',
       () => '[0] Successfully decomposed matrix'
     ),
-    C.map(({ A, Q, γ }) => {
+    C.map(({ A, Q, γ, P, numPivots, rank }) => {
       const [, R] = MatTypes.fromMatrix(N.Field)(A)
       return {
         input: m,
@@ -439,16 +510,15 @@ export const QR = <N extends number>(
             pipe(Q, RA.foldMap(M.getSquareMonoidProduct(N.Field)(n))(identity), a =>
               unsafeCoerce(a)
             ),
-          R
+          R,
+          unsafeCoerce(P)
         ),
-        isSingular: () =>
-          pipe(
-            γ,
-            RA.foldMap(B.MonoidAny)(a => Math.abs(a) <= 10 ** -12)
-          ),
+        isSingular: () => pipe(γ, RA.foldMap(B.MonoidAny)(isSingular)),
         det: () =>
           Math.pow(-1, n - 1) *
+          (numPivots % 2 === 0 ? 1 : -1) *
           pipe(R, MatTypes.extractDiagonal(0), MatTypes.diagonalFoldMap(N.MonoidProduct)),
+        rank,
       }
     })
   )
@@ -546,7 +616,7 @@ const subAndScale = <M, N>(
   const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
   const n = m.length
   const A = M.toNestedArrays(m)
-  if (_(_(A, k), k) === 0) return O.none
+  if (isSingular(_(_(A, k), k))) return O.none
   for (let i = k + 1; i < n; ++i) {
     _(A, i)[k] = _(_(A, i), k) / _(_(A, k), k)
   }
@@ -555,7 +625,7 @@ const subAndScale = <M, N>(
       _(A, i)[j] -= _(_(A, i), k) * _(_(A, k), j)
     }
   }
-  if (_(_(A, k), k) === 0) return O.none
+  if (isSingular(_(_(A, k), k))) return O.none
   return O.some(unsafeCoerce(A))
 }
 
@@ -583,7 +653,7 @@ const getMaxColFrom: (
       if (j >= c.length) return E.right(tuple(max, maxI))
       const cj = _(c, j)
       return Math.abs(cj) > max
-        ? E.left([j + 1, Math.abs(cj), j])
+        ? E.left([j + 1, Math.abs(cj), j + k])
         : E.left([j + 1, max, maxI])
     }
     return pipe(
@@ -655,3 +725,11 @@ const reflect: <N extends number>(
       vt => N.linMapR(vt, B),
       vtB => N.subM(B, N.outerProduct(u, vtB))
     )
+
+/**
+ * Determines if a value is close enough to zero
+ *
+ * @since 1.1.0
+ * @category Internal
+ */
+const isSingular = (x: number) => Math.abs(x) < 10 ** -12
