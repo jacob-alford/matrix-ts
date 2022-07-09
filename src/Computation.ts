@@ -18,7 +18,7 @@ import * as MonThrow from 'fp-ts/MonadThrow'
 import * as O from 'fp-ts/Option'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as RTup from 'fp-ts/ReadonlyTuple'
-import { flow, pipe, unsafeCoerce } from 'fp-ts/function'
+import { flow, identity, pipe, unsafeCoerce } from 'fp-ts/function'
 
 // #############
 // ### Model ###
@@ -301,6 +301,27 @@ export const runLogs: <E, O>(
   f: (e: E) => IO.IO<O>
 ) => <A>(c: Computation<E, A>) => IO.IO<ReadonlyArray<O>> = f =>
   flow(RTup.snd, IO.traverseArray(f))
+
+/**
+ * @since 1.1.0
+ * @category Utilities
+ */
+export const getOrThrow: <E>(
+  onError: (e: E) => string
+) => <A>(c: Computation<E, A>) => A =
+  f =>
+  ([v]) => {
+    if (E.isLeft(v)) {
+      throw new Error(f(v.left))
+    }
+    return v.right
+  }
+
+/**
+ * @since 1.1.0
+ * @category Utilities
+ */
+export const getOrThrowS: <A>(c: Computation<string, A>) => A = getOrThrow(identity)
 
 /**
  * @since 1.0.0

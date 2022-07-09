@@ -1,6 +1,4 @@
-import * as Cons from 'fp-ts/Console'
 import * as E from 'fp-ts/Either'
-import { pipe } from 'fp-ts/function'
 
 import { LUP, QR } from '../src/Decomposition'
 import * as C from '../src/Computation'
@@ -83,21 +81,15 @@ describe('LUP Decomposition', () => {
     }
   })
   it('calculates a determinant (i)', () => {
-    const [output] = LUP(
-      M.fromNestedTuples([
-        [5, 2, 1, 4, 6],
-        [9, 4, 2, 5, 2],
-        [11, 5, 7, 3, 9],
-        [5, 6, 6, 7, 2],
-        [7, 5, 9, 3, 3],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [5, 2, 1, 4, 6],
+      [9, 4, 2, 5, 2],
+      [11, 5, 7, 3, 9],
+      [5, 6, 6, 7, 2],
+      [7, 5, 9, 3, 3],
+    ])
 
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
-    const { det } = output.right
+    const { det } = C.getOrThrowS(QR(A))
 
     /*
      * This seems to be off by one
@@ -105,35 +97,23 @@ describe('LUP Decomposition', () => {
     expect(det()).toBeCloseTo(-2003, -1)
   })
   it('calculates a determinant (ii)', () => {
-    const [output] = LUP(
-      M.fromNestedTuples([
-        [50, 29],
-        [30, 44],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [50, 29],
+      [30, 44],
+    ])
 
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
-    const { det } = output.right
+    const { det } = C.getOrThrowS(QR(A))
 
     expect(det()).toBeCloseTo(1330)
   })
   it('calculates a determinant (iii)', () => {
-    const [output] = LUP(
-      M.fromNestedTuples([
-        [55, 25, 15],
-        [30, 44, 2],
-        [11, 45, 77],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [55, 25, 15],
+      [30, 44, 2],
+      [11, 45, 77],
+    ])
 
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
-    const { det } = output.right
+    const { det } = C.getOrThrowS(QR(A))
 
     expect(det()).toBeCloseTo(137180)
   })
@@ -188,15 +168,9 @@ describe('QR decomposition', () => {
       [1, 3],
     ])
 
-    const output = C.runComputation(QR(A))
-
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
     const {
       result: [, Q_, R, P],
-    } = output.right
+    } = C.getOrThrowS(QR(A))
 
     const Q = Q_()
 
@@ -218,15 +192,9 @@ describe('QR decomposition', () => {
       [1, 4, 1, 2, 1],
     ])
 
-    const output = C.runComputation(QR(A))
-
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
     const {
       result: [, Q_, R, P],
-    } = output.right
+    } = C.getOrThrowS(QR(A))
 
     const Q = Q_()
 
@@ -240,21 +208,15 @@ describe('QR decomposition', () => {
     }
   })
   it('calculates a determinant (i)', () => {
-    const [output] = QR(
-      M.fromNestedTuples([
-        [5, 2, 1, 4, 6],
-        [9, 4, 2, 5, 2],
-        [11, 5, 7, 3, 9],
-        [5, 6, 6, 7, 2],
-        [7, 5, 9, 3, 3],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [5, 2, 1, 4, 6],
+      [9, 4, 2, 5, 2],
+      [11, 5, 7, 3, 9],
+      [5, 6, 6, 7, 2],
+      [7, 5, 9, 3, 3],
+    ])
 
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
-    const { det } = output.right
+    const { det } = C.getOrThrowS(QR(A))
 
     /*
      * This seems to be off by one
@@ -262,88 +224,58 @@ describe('QR decomposition', () => {
     expect(det()).toBeCloseTo(-2003, -1)
   })
   it('calculates a determinant (ii)', () => {
-    const [output] = QR(
-      M.fromNestedTuples([
-        [50, 29],
-        [30, 44],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [50, 29],
+      [30, 44],
+    ])
 
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
-    const { det } = output.right
+    const { det } = C.getOrThrowS(QR(A))
 
     expect(det()).toBeCloseTo(1330)
   })
   it('calculates a determinant (iii)', () => {
-    const [output] = QR(
-      M.fromNestedTuples([
-        [55, 25, 15],
-        [30, 44, 2],
-        [11, 45, 77],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [55, 25, 15],
+      [30, 44, 2],
+      [11, 45, 77],
+    ])
 
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
-    const { det } = output.right
+    const { det } = C.getOrThrowS(QR(A))
 
     expect(det()).toBeCloseTo(137180)
   })
   it('detects a singular matrix (i)', () => {
-    const computation = QR(
-      M.fromNestedTuples([
-        [1, -2],
-        [-3, 6],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [1, -2],
+      [-3, 6],
+    ])
 
-    const result = C.runComputation(computation)
+    const { isSingular, rank } = C.getOrThrowS(QR(A))
 
-    if (E.isLeft(result)) {
-      throw new Error('Unexpected result')
-    }
-
-    expect(result.right.rank).toBe(1)
-    expect(result.right.isSingular()).toBe(true)
+    expect(rank).toBe(1)
+    expect(isSingular()).toBe(true)
   })
   it('detects a singular matrix (ii)', () => {
-    const computation = QR(
-      M.fromNestedTuples([
-        [1, 1, 1],
-        [0, 1, 0],
-        [1, 0, 1],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [1, 1, 1],
+      [0, 1, 0],
+      [1, 0, 1],
+    ])
 
-    const result = C.runComputation(computation)
+    const { isSingular, rank } = C.getOrThrowS(QR(A))
 
-    if (E.isLeft(result)) {
-      throw new Error('Unexpected result')
-    }
-
-    expect(result.right.rank).toBe(2)
-    expect(result.right.isSingular()).toBe(true)
+    expect(rank).toBe(2)
+    expect(isSingular()).toBe(true)
   })
   it('detects a singular matrix (iii)', () => {
-    const computation = QR(
-      M.fromNestedTuples([
-        [1, 2],
-        [-2, -4],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [1, 2],
+      [-2, -4],
+    ])
 
-    const result = C.runComputation(computation)
+    const { isSingular, rank } = C.getOrThrowS(QR(A))
 
-    if (E.isLeft(result)) {
-      throw new Error('Unexpected result')
-    }
-
-    expect(result.right.rank).toBe(1)
-    expect(result.right.isSingular()).toBe(true)
+    expect(rank).toBe(1)
+    expect(isSingular()).toBe(true)
   })
 })
