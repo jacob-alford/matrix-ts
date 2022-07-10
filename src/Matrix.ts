@@ -876,9 +876,9 @@ export const updateSubMatrix: <P extends number, Q extends number, A>(
  */
 export const mul =
   <A>(R: Rng.Ring<A>) =>
-  <M extends number, N extends number, P extends number>(
-    x: Mat<M, N, A>,
-    y: Mat<N, P, A>
+  <M extends number, N1 extends number, N2 extends N1, P extends number>(
+    x: Mat<M, N1, A>,
+    y: Mat<N2, P, A>
   ): Mat<M, P, A> =>
     x[0] === undefined || y[0] === undefined
       ? wrap([])

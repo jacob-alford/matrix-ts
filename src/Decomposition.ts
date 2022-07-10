@@ -11,6 +11,7 @@ import * as ChnR from 'fp-ts/ChainRec'
 import * as IO from 'fp-ts/IO'
 import * as E from 'fp-ts/Either'
 import * as RA from 'fp-ts/ReadonlyArray'
+import * as RTup from 'fp-ts/ReadonlyTuple'
 import { tuple, pipe, unsafeCoerce, identity } from 'fp-ts/function'
 
 import * as M from './Matrix'
@@ -27,8 +28,8 @@ import * as C from './Computation'
  * @since 1.0.0
  * @category Model
  */
-export interface Decomposition<M, R, A> {
-  input: M.Mat<M, M, R>
+export interface Decomposition<N, M, R, A> {
+  input: M.Mat<N, M, R>
   result: A
 }
 
@@ -57,13 +58,14 @@ export interface Determinant {
 }
 
 /**
- * Represents a solution to an overdetermined system
+ * Represents a solution to an overdetermined system. Returns O.none if the `rank(A) < m`
+ * (the number of columns). Returns a tuple with the residual, and solution vector
  *
  * @since 1.1.0
  * @category Model
  */
-export interface LeastSquares<N, R> {
-  solve: (b: V.Vec<N, R>) => V.Vec<N, R>
+export interface LeastSquares<N, M, R> {
+  solve: (b: V.Vec<N, R>) => C.Computation<string, [number, V.Vec<M, R>]>
 }
 
 /**
@@ -73,7 +75,7 @@ export interface LeastSquares<N, R> {
  * @category Model
  */
 export interface IsSingular {
-  isSingular: IO.IO<boolean>
+  isSingular: boolean
 }
 
 /**
@@ -106,6 +108,7 @@ export const LUP = <M extends number>(
 ): C.Computation<
   string,
   Decomposition<
+    M,
     M,
     number,
     [
@@ -253,40 +256,48 @@ export const LUP = <M extends number>(
  * @since 1.1.0
  * @category Constructors
  */
-export const QR = <N extends number>(
-  m: M.Mat<N, N, number>
+export function QR<N extends number, M extends number>(
+  mat: M.Mat<N, M, number>
 ): C.Computation<
   string,
   Decomposition<
     N,
+    M,
     number,
     [
-      M.Mat<N, N, number>,
+      M.Mat<N, M, number>,
       IO.IO<MatTypes.OrthogonalMatrix<N, number>>,
-      MatTypes.UpperTriangularMatrix<N, number>,
-      MatTypes.OrthogonalMatrix<N, number>
+      M.Mat<N, M, number>,
+      MatTypes.OrthogonalMatrix<M, number>
     ]
   > &
     IsSingular &
-    Determinant &
-    Rank
-> => {
+    Rank &
+    LeastSquares<N, M, number>
+> {
   type ComputationParams = {
     k: number
-    A: M.Mat<N, N, number>
+    A: M.Mat<N, M, number>
     Q: ReadonlyArray<M.Mat<N, N, number>>
     γ: ReadonlyArray<number>
-    P: M.Mat<N, N, number>
-    sqColNorms: V.Vec<N, number>
+    P: M.Mat<M, M, number>
+    sqColNorms: V.Vec<M, number>
     numPivots: number
   }
 
   type In = C.Computation<string, ComputationParams>
   type Out = C.Computation<string, ComputationParams & { rank: number }>
 
-  const [, n] = M.shape(m)
+  const [n, m] = M.shape(mat)
+
+  if (n < m) {
+    return C.throwError(
+      `[1] QR Decomposition only defined for matrix dimensions n >= m, received n = ${n} and m = ${m}`
+    )
+  }
 
   const IdN = N.idMat(n)
+  const IdM = N.idMat(m)
 
   /** Here, P is a free constraint that represents (row) N - k, and Q represents (column) N - k - 1 */
   const go = <P extends number, Q extends number>(computation: In): E.Either<In, Out> => {
@@ -302,18 +313,18 @@ export const QR = <N extends number>(
      * Base case: Matrix reduction is complete
      * ---------------------------------------
      */
-    if (C.isRight(computation) && computation[0].right.k >= n - 1) {
+    if (C.isRight(computation) && computation[0].right.k >= m - 1) {
       return pipe(
         computation,
         C.chain(result =>
           pipe(
             result.A,
-            M.get(n - 1, n - 1),
+            M.get(m - 1, m - 1),
             C.fromOption(() => '[010] Unreachable: index not found'),
             C.map(ann => ({
               ...result,
               γ: [...result.γ, ann],
-              rank: n - (isSingular(ann) ? 1 : 0),
+              rank: m - (isSingular(ann) ? 1 : 0),
             }))
           )
         ),
@@ -345,7 +356,10 @@ export const QR = <N extends number>(
         pipe(
           adjustedSqNorms,
           getMaxColFrom(k),
-          C.fromOption(() => '[002] Unreachable: index not found')
+          C.fromPredicate(
+            ([max]) => !(isSingular(max) && k === 0),
+            () => `[1] Matrix has zero rank`
+          )
         )
       )
     )
@@ -412,7 +426,7 @@ export const QR = <N extends number>(
        */
       C.bind('xi', ({ acc: { k }, Ap }) =>
         pipe(
-          M.getSubColumn(k, k)<P, N, N, number>(Ap),
+          M.getSubColumn(k, k)<P, N, M, number>(Ap),
           O.chain(orthogonalize),
           C.fromOption(() => '[006] Unreachable: index not found')
         )
@@ -478,7 +492,7 @@ export const QR = <N extends number>(
   }
 
   const sqColNorms = pipe(
-    m,
+    mat,
     M.reduceByColumn(col =>
       pipe(N.lInfNorm(col), max =>
         pipe(
@@ -493,17 +507,20 @@ export const QR = <N extends number>(
 
   return pipe(
     ChnR.tailRec<In, Out>(
-      C.of({ k: 0, A: m, Q: [], γ: [], sqColNorms, P: IdN, numPivots: 0 }),
-      acc => go<N, N>(acc)
+      C.of({ k: 0, A: mat, Q: [], γ: [], sqColNorms, P: IdM, numPivots: 0 }),
+      acc => go<N, M>(acc)
     ),
     C.bilog(
       () => '[1] Failed to decompose matrix',
       () => '[0] Successfully decomposed matrix'
     ),
-    C.map(({ A, Q, γ, P, numPivots, rank }) => {
-      const [, R] = MatTypes.fromMatrix(N.Field)(A)
+    C.map(({ A, Q, γ, P, rank }) => {
+      const R = pipe(
+        A,
+        M.mapWithIndex(([i, j], a) => (i > j ? 0 : a))
+      )
       return {
-        input: m,
+        input: mat,
         result: tuple(
           A,
           () =>
@@ -513,12 +530,9 @@ export const QR = <N extends number>(
           R,
           unsafeCoerce(P)
         ),
-        isSingular: () => pipe(γ, RA.foldMap(B.MonoidAny)(isSingular)),
-        det: () =>
-          Math.pow(-1, n - 1) *
-          (numPivots % 2 === 0 ? 1 : -1) *
-          pipe(R, MatTypes.extractDiagonal(0), MatTypes.diagonalFoldMap(N.MonoidProduct)),
+        isSingular: pipe(γ, RA.foldMap(B.MonoidAny)(isSingular)),
         rank,
+        solve: leastSquares(rank, R, Q),
       }
     })
   )
@@ -639,28 +653,24 @@ const subAndScale = <M, N>(
  */
 const getMaxColFrom: (
   k: number
-) => <N extends number>(v: V.Vec<N, number>) => O.Option<readonly [number, number]> =
-  k => v => {
-    const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
-    const c = pipe(v, RA.dropLeft(k))
-    const go: (
-      acc: readonly [number, number, number]
-    ) => E.Either<readonly [number, number, number], readonly [number, number]> = ([
-      j,
-      max,
-      maxI,
-    ]) => {
-      if (j >= c.length) return E.right(tuple(max, maxI))
-      const cj = _(c, j)
-      return Math.abs(cj) > max
-        ? E.left([j + 1, Math.abs(cj), j + k])
-        : E.left([j + 1, max, maxI])
-    }
-    return pipe(
-      ChnR.tailRec(tuple(0, 0, -1), go),
-      O.fromPredicate(([max]) => max !== 0)
-    )
+) => <N extends number>(v: V.Vec<N, number>) => readonly [number, number] = k => v => {
+  const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+  const c = pipe(v, RA.dropLeft(k))
+  const go: (
+    acc: readonly [number, number, number]
+  ) => E.Either<readonly [number, number, number], readonly [number, number]> = ([
+    j,
+    max,
+    maxI,
+  ]) => {
+    if (j >= c.length) return E.right(tuple(max, maxI))
+    const cj = _(c, j)
+    return Math.abs(cj) > max
+      ? E.left([j + 1, Math.abs(cj), j + k])
+      : E.left([j + 1, max, maxI])
   }
+  return ChnR.tailRec(tuple(0, 0, -1), go)
+}
 
 /**
  * See 3.2.35 in Fundamentals of Matrix Computation, David S. Watkins, page 201
@@ -733,3 +743,75 @@ const reflect: <N extends number>(
  * @category Internal
  */
 const isSingular = (x: number) => Math.abs(x) < 10 ** -12
+
+/**
+ * Drop a number of rows from a matrix, where P is a generic which represents dimension of
+ * the resulting matrix
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+const dropRowsRight: <P extends number>(
+  n: number
+) => <N extends number, M extends number, A>(m: M.Mat<N, M, A>) => M.Mat<P, M, A> =
+  n => mat =>
+    pipe(mat, RA.dropRight(n), a => unsafeCoerce(a))
+
+/**
+ * Drop a number of rows from a matrix, where P is a generic which represents dimension of
+ * the resulting matrix
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+const dropRight: <P extends number>(
+  n: number
+) => <N extends number, A>(m: V.Vec<N, A>) => V.Vec<P, A> = n => mat =>
+  pipe(mat, RA.dropRight(n), a => unsafeCoerce(a))
+
+/**
+ * Drop a number of rows from a matrix, where P is a generic which represents dimension of
+ * the resulting matrix
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+const dropLeft: <P extends number>(
+  n: number
+) => <N extends number, A>(m: V.Vec<N, A>) => V.Vec<P, A> = n => mat =>
+  pipe(mat, RA.dropLeft(n), a => unsafeCoerce(a))
+
+/**
+ * Solves the least-squares problem for a full rank matrix
+ *
+ * @since 1.1.0
+ * @category Internal
+ */
+const leastSquares =
+  <N extends number, M extends number>(
+    r: number,
+    R: M.Mat<N, M, number>,
+    Q: ReadonlyArray<M.Mat<N, N, number>>
+  ): ((b: V.Vec<N, number>) => C.Computation<string, [number, V.Vec<M, number>]>) =>
+  b =>
+    (<P extends number>() =>
+      pipe(
+        M.shape(R),
+        C.fromPredicate(
+          ([, m]) => r >= m,
+          () => '[1] Matrix is not full rank'
+        ),
+        C.bindTo('shape'),
+        C.bindW('cd', ({ shape: [n, m] }) =>
+          pipe(
+            Q,
+            RA.reduce(b, (v, m) => N.linMap(m, v)),
+            b_ => tuple(pipe(b_, dropRight<M>(n - m)), pipe(b_, dropLeft<P>(m))),
+            C.of
+          )
+        ),
+        C.bindW('R_', ({ shape: [n, m] }) =>
+          pipe(R, dropRowsRight<M>(n - m), MatTypes.fromMatrix(N.Field), RTup.snd, C.of)
+        ),
+        C.map(({ R_, cd: [c_, d] }) => tuple(pipe(d, N.l2Norm), backSub(R_, c_)))
+      ))<N>()
