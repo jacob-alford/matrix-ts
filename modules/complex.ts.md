@@ -30,9 +30,11 @@ Added in v1.0.0
   - [fromVector](#fromvector)
   - [of](#of)
   - [one](#one)
+  - [onesN](#onesn)
   - [randComplex](#randcomplex)
   - [scalar](#scalar)
   - [zero](#zero)
+  - [zerosN](#zerosn)
 - [Destructors](#destructors)
   - [argumentDegrees](#argumentdegrees)
   - [argumentRadians](#argumentradians)
@@ -53,6 +55,7 @@ Added in v1.0.0
   - [Field](#field)
   - [MagmaSub](#magmasub)
   - [MonoidProduct](#monoidproduct)
+  - [MonoidProductMM](#monoidproductmm)
   - [MonoidSum](#monoidsum)
   - [PolynomialAdditiveAbelianGroup](#polynomialadditiveabeliangroup)
   - [PolynomialBimodule](#polynomialbimodule)
@@ -65,9 +68,14 @@ Added in v1.0.0
 - [Isomorphisms](#isomorphisms)
   - [IsoVector](#isovector)
 - [Matrix Operations](#matrix-operations)
+  - [addM](#addm)
+  - [addV](#addv)
   - [idMat](#idmat)
   - [linMap](#linmap)
+  - [linMapR](#linmapr)
   - [mulM](#mulm)
+  - [subM](#subm)
+  - [subV](#subv)
   - [trace](#trace)
 - [Model](#model)
   - [Complex (interface)](#complex-interface)
@@ -86,6 +94,7 @@ Added in v1.0.0
   - [dot](#dot)
   - [l1Norm](#l1norm)
   - [l2Norm](#l2norm)
+  - [lInfNorm](#linfnorm)
   - [lpNorm](#lpnorm)
   - [outerProduct](#outerproduct)
   - [projection](#projection)
@@ -226,6 +235,16 @@ export declare const one: Complex
 
 Added in v1.0.0
 
+## onesN
+
+**Signature**
+
+```ts
+export declare const onesN: <N extends number>(n: N) => Vec<N>
+```
+
+Added in v1.1.0
+
 ## randComplex
 
 **Signature**
@@ -255,6 +274,16 @@ export declare const zero: Complex
 ```
 
 Added in v1.0.0
+
+## zerosN
+
+**Signature**
+
+```ts
+export declare const zerosN: <N extends number>(n: N) => Vec<N>
+```
+
+Added in v1.1.0
 
 # Destructors
 
@@ -432,6 +461,16 @@ export declare const MonoidProduct: Mn.Monoid<Complex>
 
 Added in v1.0.0
 
+## MonoidProductMM
+
+**Signature**
+
+```ts
+export declare const MonoidProductMM: <M>(m: M) => Mn.Monoid<M.Mat<M, M, Complex>>
+```
+
+Added in v1.1.0
+
 ## MonoidSum
 
 **Signature**
@@ -536,6 +575,30 @@ Added in v1.0.0
 
 # Matrix Operations
 
+## addM
+
+Add two matricies
+
+**Signature**
+
+```ts
+export declare const addM: <M, N>(x: M.Mat<M, N, Complex>, y: M.Mat<M, N, Complex>) => M.Mat<M, N, Complex>
+```
+
+Added in v1.1.0
+
+## addV
+
+Add two vectors
+
+**Signature**
+
+```ts
+export declare const addV: <N>(x: V.Vec<N, Complex>, y: V.Vec<N, Complex>) => V.Vec<N, Complex>
+```
+
+Added in v1.1.0
+
 ## idMat
 
 **Signature**
@@ -548,29 +611,81 @@ Added in v1.0.0
 
 ## linMap
 
-Map a vector with length `N`, with a matrix A with size `MxN`, to a vector of length `M`.
+Transform a column vector `x` into vector `b` by matrix `A`
+
+```math
+Ax = b
+```
+
+Efficiency: `8mn` flops
 
 **Signature**
 
 ```ts
-export declare const linMap: <M, N>(A: M.Mat<M, N, Complex>, x: V.Vec<N, Complex>) => V.Vec<M, Complex>
+export declare const linMap: <M, N1, N2>(A: M.Mat<M, N1, Complex>, x: V.Vec<N2, Complex>) => V.Vec<M, Complex>
 ```
 
 Added in v1.0.0
+
+## linMapR
+
+Transform a row-vector `x` into vector `b` by matrix `A`
+
+```math
+xA = b
+```
+
+Efficiency: `8mn` flops
+
+**Signature**
+
+```ts
+export declare const linMapR: <M, N1, N2>(x: V.Vec<N1, Complex>, A: M.Mat<N2, M, Complex>) => V.Vec<M, Complex>
+```
+
+Added in v1.1.0
 
 ## mulM
 
-Compose two matricies: `A`, and `B` with Matrix multiplication.
+Multiply two matricies with matching inner dimensions
 
-For A in `MxN`, and B in `NxP` returns `AB` in `MxP`.
+```math
+(A ∈ R_mn) (B ∈ R_np) = C ∈ R_mp
+```
+
+Efficiency: `(8mpn)` flops
 
 **Signature**
 
 ```ts
-export declare const mulM: <M, N, P>(x: M.Mat<M, N, Complex>, y: M.Mat<N, P, Complex>) => M.Mat<M, P, Complex>
+export declare const mulM: <M, N1, N2, P>(x: M.Mat<M, N1, Complex>, y: M.Mat<N2, P, Complex>) => M.Mat<M, P, Complex>
 ```
 
 Added in v1.0.0
+
+## subM
+
+Subtract two matricies
+
+**Signature**
+
+```ts
+export declare const subM: <M, N>(x: M.Mat<M, N, Complex>, y: M.Mat<M, N, Complex>) => M.Mat<M, N, Complex>
+```
+
+Added in v1.1.0
+
+## subV
+
+Subtract two vectors
+
+**Signature**
+
+```ts
+export declare const subV: <N>(x: V.Vec<N, Complex>, y: V.Vec<N, Complex>) => V.Vec<N, Complex>
+```
+
+Added in v1.1.0
 
 ## trace
 
@@ -735,6 +850,16 @@ export declare const l2Norm: <N>(x: V.Vec<N, Complex>) => Complex
 ```
 
 Added in v1.0.0
+
+## lInfNorm
+
+**Signature**
+
+```ts
+export declare const lInfNorm: (v: V.Vec<unknown, Complex>) => number
+```
+
+Added in v1.1.0
 
 ## lpNorm
 

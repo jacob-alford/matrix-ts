@@ -26,6 +26,7 @@ Added in v1.0.0
   - [outerProduct](#outerproduct)
   - [randMatrix](#randmatrix)
   - [repeat](#repeat)
+  - [vand](#vand)
 - [Destructors](#destructors)
   - [shape](#shape)
   - [toNestedArrays](#tonestedarrays)
@@ -51,16 +52,33 @@ Added in v1.0.0
   - [URI (type alias)](#uri-type-alias)
   - [getAdditiveAbelianGroup](#getadditiveabeliangroup)
   - [getBimodule](#getbimodule)
+  - [getSquareMonoidProduct](#getsquaremonoidproduct)
 - [Matrix Operations](#matrix-operations)
   - [get](#get)
   - [lift2](#lift2)
   - [linMap](#linmap)
+  - [linMapR](#linmapr)
   - [mul](#mul)
-  - [switchRows](#switchrows)
   - [trace](#trace)
   - [transpose](#transpose)
+  - [updateAt](#updateat)
 - [Model](#model)
   - [Mat (interface)](#mat-interface)
+- [Sub-Matrix](#sub-matrix)
+  - [appendColumn](#appendcolumn)
+  - [cropColumns](#cropcolumns)
+  - [cropRows](#croprows)
+  - [getSubColumn](#getsubcolumn)
+  - [getSubMatrix](#getsubmatrix)
+  - [mapColumn](#mapcolumn)
+  - [mapRow](#maprow)
+  - [prependColumn](#prependcolumn)
+  - [reduceByColumn](#reducebycolumn)
+  - [reduceByRow](#reducebyrow)
+  - [switchColumns](#switchcolumns)
+  - [switchRows](#switchrows)
+  - [updateSubColumn](#updatesubcolumn)
+  - [updateSubMatrix](#updatesubmatrix)
 
 ---
 
@@ -235,6 +253,19 @@ export declare const repeat: <A>(a: A) => <M extends number, N extends number>(m
 ```
 
 Added in v1.0.0
+
+## vand
+
+Constructs a Vandermonde matrix from a vector. Note: Terms is inclusive of the first
+column of ones. So a quadratic Vandermonde matrix has 3 terms.
+
+**Signature**
+
+```ts
+export declare const vand: <N extends number>(terms: N) => <M extends number>(t: V.Vec<M, number>) => Mat<M, N, number>
+```
+
+Added in v1.1.0
 
 # Destructors
 
@@ -513,6 +544,16 @@ export declare const getBimodule: <A>(
 
 Added in v1.0.0
 
+## getSquareMonoidProduct
+
+**Signature**
+
+```ts
+export declare const getSquareMonoidProduct: <A>(R: Rng.Ring<A>) => <M extends number>(m: M) => Mn.Monoid<Mat<M, M, A>>
+```
+
+Added in v1.1.0
+
 # Matrix Operations
 
 ## get
@@ -543,37 +584,66 @@ Transform a vector `x` into vector `b` by matrix `A`
 Ax = b
 ```
 
+Efficiency: `2mn` flops (for numeric Ring)
+
 **Signature**
 
 ```ts
-export declare const linMap: <R>(R: Rng.Ring<R>) => <M, N>(A: Mat<M, N, R>, x: V.Vec<N, R>) => V.Vec<M, R>
+export declare const linMap: <R>(
+  R: Rng.Ring<R>
+) => <M, N1, N2 extends N1>(A: Mat<M, N1, R>, x: V.Vec<N2, R>) => V.Vec<M, R>
 ```
 
 Added in v1.0.0
 
+## linMapR
+
+Transform a row-vector `x` into vector `b` by matrix `A`
+
+```math
+xA = b
+```
+
+Efficiency: `2mn` flops (for numeric Ring)
+
+**Signature**
+
+```ts
+export declare const linMapR: <R>(
+  R: Rng.Ring<R>
+) => <M extends number, N1 extends number, N2 extends N1>(x: V.Vec<N1, R>, A: Mat<N2, M, R>) => V.Vec<M, R>
+```
+
+Added in v1.1.0
+
 ## mul
+
+Multiply two matricies with matching inner dimensions
+
+```math
+(A ∈ R_mn) (B ∈ R_np) = C ∈ R_mp
+```
+
+Efficiency: `2mpn` flops (for numeric Ring)
 
 **Signature**
 
 ```ts
 export declare const mul: <A>(
   R: Rng.Ring<A>
-) => <M extends number, N extends number, P extends number>(x: Mat<M, N, A>, y: Mat<N, P, A>) => Mat<M, P, A>
-```
-
-Added in v1.0.0
-
-## switchRows
-
-**Signature**
-
-```ts
-export declare const switchRows: (i: number, j: number) => <A, N, M>(vs: Mat<M, N, A>) => O.Option<Mat<M, N, A>>
+) => <M extends number, N1 extends number, N2 extends N1, P extends number>(
+  x: Mat<M, N1, A>,
+  y: Mat<N2, P, A>
+) => Mat<M, P, A>
 ```
 
 Added in v1.0.0
 
 ## trace
+
+The sum of the diagonal elements
+
+Efficiency: `m` flops (for numeric Ring)
 
 **Signature**
 
@@ -593,6 +663,20 @@ export declare const transpose: <M extends number, N extends number, A>(v: Mat<M
 
 Added in v1.0.0
 
+## updateAt
+
+**Signature**
+
+```ts
+export declare const updateAt: <A>(
+  i: number,
+  j: number,
+  a: A
+) => <M extends number, N extends number>(A: Mat<M, N, A>) => O.Option<Mat<M, N, A>>
+```
+
+Added in v1.1.0
+
 # Model
 
 ## Mat (interface)
@@ -607,3 +691,245 @@ export interface Mat<M, N, A> extends V.Vec<M, V.Vec<N, A>> {
 ```
 
 Added in v1.0.0
+
+# Sub-Matrix
+
+## appendColumn
+
+Add a column at the end of a matrix. Due to the limitations of the typesystem, the
+length parameter must be passed explicitly, and will be the number of columns of the
+returned matrix.
+
+**Signature**
+
+```ts
+export declare const appendColumn: <M extends number, A>(
+  c0: V.Vec<M, A>
+) => <P extends number, N extends number>(m: Mat<M, N, A>) => Mat<M, P, A>
+```
+
+Added in v1.1.0
+
+## cropColumns
+
+Crops a matrix to be square by removing excess columns. Returns O.none if there are
+more columns than rows.
+
+**Signature**
+
+```ts
+export declare const cropColumns: <M extends number, N extends number, A>(m: Mat<M, N, A>) => O.Option<Mat<M, M, A>>
+```
+
+Added in v1.1.0
+
+## cropRows
+
+Crops a matrix to be square by removing excess rows. Returns O.none if there are more
+columns than rows.
+
+**Signature**
+
+```ts
+export declare const cropRows: <M extends number, N extends number, A>(m: Mat<M, N, A>) => O.Option<Mat<N, N, A>>
+```
+
+Added in v1.1.0
+
+## getSubColumn
+
+Used to extract a sub-column from a matrix, and returns a new generic `P` that
+represents the length of the sub-column.
+
+Note: `fromIncl` is the **inclusive** column start-index, and `toExcl` is the
+**exclusive** column end-index. If `toExcl` is omitted, then the extracted sub-column
+will span to the last row of the matrix.
+
+Note: In order to preserve type safety, P cannot be inferred, and must be passed
+directly as a type argument.
+
+If `P` is unknown, it can be declared in the parent function as an arbitrary generic
+that has a numeric constraint.
+
+See: Decomposition > QR as an example declaring an unknown length constraint
+
+**Signature**
+
+```ts
+export declare const getSubColumn: (
+  col: number,
+  fromIncl: number,
+  toExcl?: number | undefined
+) => <P extends number, M extends number, N extends number, A>(m: Mat<M, N, A>) => O.Option<V.Vec<P, A>>
+```
+
+Added in v1.1.0
+
+## getSubMatrix
+
+Used to extract a portion of a matrix, and returns new generics `P` and `Q` that
+represents the the rows / columns of the extracted sub-matrix.
+
+Note: `rowFromIncl` and `colFromIncl` are the **inclusive** row / column start-indices,
+and `rowToExcl` and `colToExcl` are the **exclusive** row / column end-indices. If
+`rowToExcl` or `colToExcl` are omitted, the extracted sub-matrix will span to the final
+row / column.
+
+Note: In order to preserve type safety, `P` and `Q` cannot be inferred, and must be
+passed directly as type arguments.
+
+If `P` and `Q` are unknown, they can be declared in the parent function as arbitrary
+generics that have a numeric constraint.
+
+See: Decomposition > QR as an example declaring unknown length constraints
+
+**Signature**
+
+```ts
+export declare const getSubMatrix: <P extends number, Q extends number>(
+  rowFromIncl: number,
+  colFromIncl: number,
+  rowToExcl?: number | undefined,
+  colToExcl?: number | undefined
+) => <M extends number, N extends number, A>(m: Mat<M, N, A>) => O.Option<Mat<P, Q, A>>
+```
+
+Added in v1.1.0
+
+## mapColumn
+
+Map a particular column of a matrix
+
+**Signature**
+
+```ts
+export declare const mapColumn: <A>(
+  columnIndex: number,
+  f: (a: A) => A
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>>
+```
+
+Added in v1.1.0
+
+## mapRow
+
+Map a particular row of a matrix
+
+**Signature**
+
+```ts
+export declare const mapRow: <A>(
+  rowIndex: number,
+  f: (a: A) => A
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>>
+```
+
+Added in v1.1.0
+
+## prependColumn
+
+Add a column at the beginning of a matrix. Due to the limitations of the typesystem,
+the length parameter must be passed explicitly, and will be the number of columns of
+the returned matrix.
+
+**Signature**
+
+```ts
+export declare const prependColumn: <M extends number, A>(
+  c0: V.Vec<M, A>
+) => <P extends number, N extends number>(m: Mat<M, N, A>) => Mat<M, P, A>
+```
+
+Added in v1.1.0
+
+## reduceByColumn
+
+Reduce the columns of a matrix to a vector of opposite length
+
+**Signature**
+
+```ts
+export declare const reduceByColumn: <M extends number, A, B>(
+  f: (a: V.Vec<M, A>) => B
+) => <N extends number>(A: Mat<M, N, A>) => V.Vec<N, B>
+```
+
+Added in v1.1.0
+
+## reduceByRow
+
+Reduce the rows of a matrix to a vector of opposite length
+
+**Signature**
+
+```ts
+export declare const reduceByRow: <N extends number, A, B>(
+  f: (a: V.Vec<N, A>) => B
+) => <M extends number>(m: Mat<M, N, A>) => V.Vec<M, B>
+```
+
+Added in v1.1.0
+
+## switchColumns
+
+**Signature**
+
+```ts
+export declare const switchColumns: (
+  i: number,
+  j: number
+) => <N extends number, M extends number, A>(vs: Mat<M, N, A>) => O.Option<Mat<M, N, A>>
+```
+
+Added in v1.1.0
+
+## switchRows
+
+**Signature**
+
+```ts
+export declare const switchRows: (i: number, j: number) => <A, N, M>(vs: Mat<M, N, A>) => O.Option<Mat<M, N, A>>
+```
+
+Added in v1.0.0
+
+## updateSubColumn
+
+Used to replace a sub-column of a matrix along with a generic `P` that is the length of
+the sub-column. If `P` is incompatible with matrix length `N`, or provided indices will
+result in an overflow, `O.none` is returned.
+
+Note: `fromRowIncl` is the **inclusive** row start-index
+
+**Signature**
+
+```ts
+export declare const updateSubColumn: <P extends number, A>(
+  col: number,
+  fromRowIncl: number,
+  repl: V.Vec<P, A>
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>>
+```
+
+Added in v1.1.0
+
+## updateSubMatrix
+
+Used to replace a portion of a matrix with generics `P` and `Q` that are the rows /
+columns of the replacement sub-matrix. If `P` is incompatible with matrix rows `M`, `Q`
+is incompatible with matrix columns `N`, or if provided indices will result in an
+overflow, `O.none` is returned.
+
+Note: `rowFromIncl` and `colFromIncl` are the **inclusive** row / column start-indices
+
+**Signature**
+
+```ts
+export declare const updateSubMatrix: <P extends number, Q extends number, A>(
+  rowFromIncl: number,
+  colFromIncl: number,
+  repl: Mat<P, Q, A>
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>>
+```
+
+Added in v1.1.0

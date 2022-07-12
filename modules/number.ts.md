@@ -25,8 +25,12 @@ Added in v1.0.0
   - [sub](#sub)
 - [Constructors](#constructors)
   - [one](#one)
+  - [onesN](#onesn)
+  - [randExp](#randexp)
+  - [randNorm](#randnorm)
   - [randNumber](#randnumber)
   - [zero](#zero)
+  - [zerosN](#zerosn)
 - [Infix](#infix)
   - [$\_](#_)
   - [\_](#_)
@@ -41,6 +45,7 @@ Added in v1.0.0
   - [Field](#field)
   - [MagmaSub](#magmasub)
   - [MonoidProduct](#monoidproduct)
+  - [MonoidProductMM](#monoidproductmm)
   - [MonoidSum](#monoidsum)
   - [Ord](#ord)
   - [PolynomialAdditiveAbelianGroup](#polynomialadditiveabeliangroup)
@@ -56,9 +61,14 @@ Added in v1.0.0
   - [get3dZRotation](#get3dzrotation)
   - [getDifferentialAutomorphism](#getdifferentialautomorphism)
 - [Matrix Operations](#matrix-operations)
+  - [addM](#addm)
+  - [addV](#addv)
   - [idMat](#idmat)
   - [linMap](#linmap)
+  - [linMapR](#linmapr)
   - [mulM](#mulm)
+  - [subM](#subm)
+  - [subV](#subv)
   - [trace](#trace)
 - [Model](#model)
   - [Mat (type alias)](#mat-type-alias)
@@ -157,7 +167,43 @@ export declare const one: 1
 
 Added in v1.0.0
 
+## onesN
+
+**Signature**
+
+```ts
+export declare const onesN: <N extends number>(n: N) => Vec<N>
+```
+
+Added in v1.1.0
+
+## randExp
+
+Exponential random variable with parameter `λ`
+
+**Signature**
+
+```ts
+export declare const randExp: (λ: number) => IO.IO<number>
+```
+
+Added in v1.1.0
+
+## randNorm
+
+Normal random variable with mean `μ` and standard deviation `σ`. Uses the Box-Muller transform
+
+**Signature**
+
+```ts
+export declare const randNorm: (μ?: number | undefined, σ?: number | undefined) => IO.IO<number>
+```
+
+Added in v1.1.0
+
 ## randNumber
+
+Uniform random variable in the interval: `[low, high)`
 
 **Signature**
 
@@ -176,6 +222,16 @@ export declare const zero: 0
 ```
 
 Added in v1.0.0
+
+## zerosN
+
+**Signature**
+
+```ts
+export declare const zerosN: <N extends number>(n: N) => Vec<N>
+```
+
+Added in v1.1.0
 
 # Infix
 
@@ -300,6 +356,16 @@ export declare const MonoidProduct: Monoid<number>
 ```
 
 Added in v1.0.0
+
+## MonoidProductMM
+
+**Signature**
+
+```ts
+export declare const MonoidProductMM: <M>(m: M) => Monoid<M.Mat<M, M, number>>
+```
+
+Added in v1.1.0
 
 ## MonoidSum
 
@@ -443,6 +509,30 @@ Added in v1.0.0
 
 # Matrix Operations
 
+## addM
+
+Add two matricies
+
+**Signature**
+
+```ts
+export declare const addM: <M, N>(x: M.Mat<M, N, number>, y: M.Mat<M, N, number>) => M.Mat<M, N, number>
+```
+
+Added in v1.1.0
+
+## addV
+
+Add two vectors
+
+**Signature**
+
+```ts
+export declare const addV: <N>(x: V.Vec<N, number>, y: V.Vec<N, number>) => V.Vec<N, number>
+```
+
+Added in v1.1.0
+
 ## idMat
 
 **Signature**
@@ -455,31 +545,87 @@ Added in v1.0.0
 
 ## linMap
 
-Map a vector with length `N`, with a matrix A with size `MxN`, to a vector of length `M`.
+Transform a column vector `x` into vector `b` by matrix `A`
+
+```math
+Ax = b
+```
+
+Efficiency: `2mn` flops
 
 **Signature**
 
 ```ts
-export declare const linMap: <M, N>(A: M.Mat<M, N, number>, x: V.Vec<N, number>) => V.Vec<M, number>
+export declare const linMap: <M, N1, N2>(A: M.Mat<M, N1, number>, x: V.Vec<N2, number>) => V.Vec<M, number>
 ```
 
 Added in v1.0.0
+
+## linMapR
+
+Transform a row-vector `x` into vector `b` by matrix `A`
+
+```math
+xA = b
+```
+
+Efficiency: `2mn` flops
+
+**Signature**
+
+```ts
+export declare const linMapR: <M, N1, N2>(x: V.Vec<N1, number>, A: M.Mat<N2, M, number>) => V.Vec<M, number>
+```
+
+Added in v1.1.0
 
 ## mulM
 
-Compose two matricies: `A`, and `B` with Matrix multiplication.
+Multiply two matricies with matching inner dimensions
 
-For A in `MxN`, and B in `NxP` returns `AB` in `MxP`.
+```math
+(A ∈ R_mn) (B ∈ R_np) = C ∈ R_mp
+```
+
+Efficiency: `2mpn` flops
 
 **Signature**
 
 ```ts
-export declare const mulM: <M, N, P>(x: M.Mat<M, N, number>, y: M.Mat<N, P, number>) => M.Mat<M, P, number>
+export declare const mulM: <M, N1, N2, P>(x: M.Mat<M, N1, number>, y: M.Mat<N2, P, number>) => M.Mat<M, P, number>
 ```
 
 Added in v1.0.0
 
+## subM
+
+Subtract two matricies
+
+**Signature**
+
+```ts
+export declare const subM: <M, N>(x: M.Mat<M, N, number>, y: M.Mat<M, N, number>) => M.Mat<M, N, number>
+```
+
+Added in v1.1.0
+
+## subV
+
+Subtract two vectors
+
+**Signature**
+
+```ts
+export declare const subV: <N>(x: V.Vec<N, number>, y: V.Vec<N, number>) => V.Vec<N, number>
+```
+
+Added in v1.1.0
+
 ## trace
+
+The sum of the diagonal elements
+
+Efficiency: `m` flops (for numeric Ring)
 
 **Signature**
 

@@ -70,12 +70,16 @@ Added in v1.0.0
 - [Model](#model)
   - [Vec (interface)](#vec-interface)
 - [Vector Operations](#vector-operations)
+  - [append](#append)
   - [crossProduct](#crossproduct)
   - [get](#get)
   - [innerProduct](#innerproduct)
   - [lift2](#lift2)
+  - [mapIndex](#mapindex)
+  - [prepend](#prepend)
   - [projection](#projection)
   - [reverse](#reverse)
+  - [switchIndices](#switchindices)
   - [updateAt](#updateat)
   - [zipVectors](#zipvectors)
 
@@ -205,13 +209,12 @@ Added in v1.0.0
 
 ## lInfNorm
 
+Get the maximum value of a vector
+
 **Signature**
 
 ```ts
-export declare const lInfNorm: <A extends number | Complex>(
-  B: Bnd.Bounded<A>,
-  abs: (a: A) => A
-) => <N>(x: Vec<N, A>) => A
+export declare const lInfNorm: <A>(B: Bnd.Bounded<A>, abs: (a: A) => A) => <N>(x: Vec<N, A>) => A
 ```
 
 Added in v1.0.0
@@ -614,6 +617,19 @@ Added in v1.0.0
 
 # Vector Operations
 
+## append
+
+Add an element at the end of a vector. Due to the limitations of the typesystem, the
+length parameter must be passed explicitly, and will be the new length of the returned matrix.
+
+**Signature**
+
+```ts
+export declare const append: <A>(head: A) => <P extends number, N extends number>(v: Vec<N, A>) => Vec<P, A>
+```
+
+Added in v1.1.0
+
 ## crossProduct
 
 **Signature**
@@ -652,10 +668,34 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const lift2: <N, A, B>(f: (x: A, y: A) => B) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B>
+export declare const lift2: <A, B>(f: (x: A, y: A) => B) => <N>(x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B>
 ```
 
 Added in v1.0.0
+
+## mapIndex
+
+**Signature**
+
+```ts
+export declare const mapIndex: (n: number) => <A>(f: (a: A) => A) => <N>(fa: Vec<N, A>) => O.Option<Vec<N, A>>
+```
+
+Added in v1.0.0
+
+## prepend
+
+Add an element at the beginning of a vector. Due to the limitations of the typesystem,
+the length parameter must be passed explicitly, and will be the new length of the
+returned matrix.
+
+**Signature**
+
+```ts
+export declare const prepend: <A>(head: A) => <P extends number, N extends number>(v: Vec<N, A>) => Vec<P, A>
+```
+
+Added in v1.1.0
 
 ## projection
 
@@ -679,6 +719,16 @@ export declare const reverse: <N, A>(v1: Vec<N, A>) => Vec<N, A>
 ```
 
 Added in v1.0.0
+
+## switchIndices
+
+**Signature**
+
+```ts
+export declare const switchIndices: (i: number, j: number) => <N extends number, A>(v: Vec<N, A>) => O.Option<Vec<N, A>>
+```
+
+Added in v1.1.0
 
 ## updateAt
 

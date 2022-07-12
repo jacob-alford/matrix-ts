@@ -23,12 +23,16 @@ Added in v1.0.0
 - [Isomorphisms](#isomorphisms)
   - [getTransposeIso](#gettransposeiso)
 - [Matrix Operations](#matrix-operations)
+  - [backSub](#backsub)
   - [diagonalFoldMap](#diagonalfoldmap)
   - [diagonalInverse](#diagonalinverse)
   - [diagonalMap](#diagonalmap)
+  - [forwardSub](#forwardsub)
+  - [orthogonalInverse](#orthogonalinverse)
 - [Model](#model)
   - [DiagonalMatrix (interface)](#diagonalmatrix-interface)
   - [LowerTriangularMatrix (interface)](#lowertriangularmatrix-interface)
+  - [OrthogonalMatrix (interface)](#orthogonalmatrix-interface)
   - [UpperTriangularMatrix (interface)](#uppertriangularmatrix-interface)
 
 ---
@@ -88,6 +92,22 @@ Added in v1.0.0
 
 # Matrix Operations
 
+## backSub
+
+See: Fundamentals of Matrix Computation, David S. Watkins, page 30. Returns O.none if
+matrix is singular
+
+**Signature**
+
+```ts
+export declare const backSub: <M extends number>(
+  U: UpperTriangularMatrix<M, number>,
+  y: V.Vec<M, number>
+) => O.Option<V.Vec<M, number>>
+```
+
+Added in v1.1.0
+
 ## diagonalFoldMap
 
 **Signature**
@@ -118,6 +138,32 @@ export declare const diagonalMap: <A>(f: (a: A) => A) => <M>(m: DiagonalMatrix<M
 
 Added in v1.0.0
 
+## forwardSub
+
+See: Fundamentals of Matrix Computation, David S. Watkins, page 26. Returns O.none if
+matrix is singular
+
+**Signature**
+
+```ts
+export declare const forwardSub: <M>(
+  L: LowerTriangularMatrix<M, number>,
+  b: V.Vec<M, number>
+) => O.Option<V.Vec<M, number>>
+```
+
+Added in v1.1.0
+
+## orthogonalInverse
+
+**Signature**
+
+```ts
+export declare const orthogonalInverse: <M extends number, A>(m: OrthogonalMatrix<M, A>) => OrthogonalMatrix<M, A>
+```
+
+Added in v1.1.0
+
 # Model
 
 ## DiagonalMatrix (interface)
@@ -147,6 +193,20 @@ export interface LowerTriangularMatrix<M, A> extends M.Mat<M, M, A> {
 ```
 
 Added in v1.0.0
+
+## OrthogonalMatrix (interface)
+
+Orthogonal Matricies
+
+**Signature**
+
+```ts
+export interface OrthogonalMatrix<M, A> extends M.Mat<M, M, A> {
+  _URI: OrthogonalSymbol
+}
+```
+
+Added in v1.1.0
 
 ## UpperTriangularMatrix (interface)
 

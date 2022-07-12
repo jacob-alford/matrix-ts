@@ -24,6 +24,11 @@ Added in v1.0.0
   - [chainOptionK](#chainoptionk)
 - [Constructors](#constructors)
   - [of](#of)
+- [Destructors](#destructors)
+  - [getOrThrow](#getorthrow)
+  - [getOrThrowS](#getorthrows)
+  - [runComputation](#runcomputation)
+  - [runLogs](#runlogs)
 - [Do Notation](#do-notation)
   - [Do](#do)
   - [apS](#aps)
@@ -35,6 +40,7 @@ Added in v1.0.0
   - [ap](#ap)
   - [bimap](#bimap)
   - [chain](#chain)
+  - [chainW](#chainw)
   - [fromEither](#fromeither)
   - [map](#map)
   - [mapLeft](#mapleft)
@@ -53,10 +59,13 @@ Added in v1.0.0
   - [Computation (type alias)](#computation-type-alias)
 - [Natural Transformations](#natural-transformations)
   - [fromOption](#fromoption)
+  - [fromPredicate](#frompredicate)
+  - [toOption](#tooption)
 - [Refinements](#refinements)
   - [isLeft](#isleft)
   - [isRight](#isright)
 - [Utilities](#utilities)
+  - [bilog](#bilog)
   - [filter](#filter)
   - [filterOptionK](#filteroptionk)
   - [log](#log)
@@ -134,6 +143,48 @@ export declare const of: <A>(value: A) => Computation<never, A>
 ```
 
 Added in v1.0.0
+
+# Destructors
+
+## getOrThrow
+
+**Signature**
+
+```ts
+export declare const getOrThrow: <E>(onError: (e: E) => string) => <A>(c: Computation<E, A>) => A
+```
+
+Added in v1.1.0
+
+## getOrThrowS
+
+**Signature**
+
+```ts
+export declare const getOrThrowS: <A>(c: Computation<string, A>) => A
+```
+
+Added in v1.1.0
+
+## runComputation
+
+**Signature**
+
+```ts
+export declare const runComputation: <E, A>(c: Computation<E, A>) => E.Either<E, A>
+```
+
+Added in v1.1.0
+
+## runLogs
+
+**Signature**
+
+```ts
+export declare const runLogs: <E, O>(f: (e: E) => IO.IO<O>) => <A>(c: Computation<E, A>) => IO.IO<readonly O[]>
+```
+
+Added in v1.1.0
 
 # Do Notation
 
@@ -238,6 +289,18 @@ export declare const chain: <E, A, B>(f: (a: A) => Computation<E, B>) => (fa: Co
 
 Added in v1.0.0
 
+## chainW
+
+**Signature**
+
+```ts
+export declare const chainW: <E1, E2, A, B>(
+  f: (a: A) => Computation<E1, B>
+) => ([fa, logs]: Computation<E2, A>) => Computation<E1 | E2, B>
+```
+
+Added in v1.0.0
+
 ## fromEither
 
 **Signature**
@@ -273,7 +336,7 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const throwError: <E, A>(e: E) => Computation<E, A>
+export declare const throwError: <E>(e: E) => Computation<E, never>
 ```
 
 Added in v1.0.0
@@ -394,6 +457,30 @@ export declare const fromOption: <E>(onNone: Lazy<E>) => NaturalTransformation12
 
 Added in v1.0.0
 
+## fromPredicate
+
+**Signature**
+
+```ts
+export declare const fromPredicate: {
+  <A, B, E>(refinement: Refinement<A, B>, onFalse: (a: A) => E): (a: A) => Computation<E, B>
+  <A, E>(predicate: Predicate<A>, onFalse: (a: A) => E): <B>(b: B) => Computation<E, B>
+  <A, E>(predicate: Predicate<A>, onFalse: (a: A) => E): (a: A) => Computation<E, A>
+}
+```
+
+Added in v1.1.0
+
+## toOption
+
+**Signature**
+
+```ts
+export declare const toOption: <E, A>(c: Computation<E, A>) => O.Option<A>
+```
+
+Added in v1.1.0
+
 # Refinements
 
 ## isLeft
@@ -417,6 +504,18 @@ export declare const isRight: <E, A>(e: Computation<E, A>) => e is readonly [E.R
 Added in v1.0.0
 
 # Utilities
+
+## bilog
+
+Log one message on left, and a different on right
+
+**Signature**
+
+```ts
+export declare const bilog: <E>(onLeft: () => E, onRight: () => E) => <A>(fa: Computation<E, A>) => Computation<E, A>
+```
+
+Added in v1.1.0
 
 ## filter
 
