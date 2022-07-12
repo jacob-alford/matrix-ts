@@ -743,7 +743,8 @@ export const getSubColumn: (
     ),
     O.map(([rows]) => {
       const sub = []
-      for (let i = fromRowI; i < (toExcl ?? rows); ++i) {
+      const toRowI = toExcl === undefined ? rows : toExcl
+      for (let i = fromRowI; i < toRowI; ++i) {
         sub.push(_(_(A, i), col))
       }
       return unsafeCoerce(sub)
