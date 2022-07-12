@@ -55,7 +55,7 @@ This library depends on fp-ts version `^2.9.6` (or major versions above `2.9.6`,
 ## Possible future additions
 
 - Add Cholesky Decomposition
-- Add QR Decomposition
+- ~~Add QR Decomposition~~ (Added in 1.1.0)
 - Add SVD Decomposition
 - Add linear interpolation
 - Add regression / multi-regression
