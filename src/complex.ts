@@ -320,6 +320,18 @@ export const IsoVector: Iso.Iso<Complex, V.Vec<2, number>> = {
 export type Vec<N> = V.Vec<N, Complex>
 
 /**
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const onesN: <N extends number>(n: N) => Vec<N> = n => V.repeat(n, one)
+
+/**
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const zerosN: <N extends number>(n: N) => Vec<N> = n => V.repeat(n, zero)
+
+/**
  * @since 1.0.0
  * @category Instances
  */

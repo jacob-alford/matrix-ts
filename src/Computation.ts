@@ -279,6 +279,15 @@ export const fromOption = FE.fromOption(FromEither)
  * @since 1.1.0
  * @category Natural Transformations
  */
+export const toOption: <E, A>(c: Computation<E, A>) => O.Option<A> = flow(
+  RTup.fst,
+  O.fromEither
+)
+
+/**
+ * @since 1.1.0
+ * @category Natural Transformations
+ */
 export const fromPredicate = FE.fromPredicate(FromEither)
 
 // ####################

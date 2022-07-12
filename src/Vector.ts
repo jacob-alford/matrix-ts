@@ -672,6 +672,31 @@ export const projection: <R extends number | Complex>(
     return BM.leftScalarMul(F.div(uv, uu), u)
   }
 
+/**
+ * Add an element at the beginning of a vector. Due to the limitations of the typesystem,
+ * the length parameter must be passed explicitly, and will be the new length of the
+ * returned matrix.
+ *
+ * @since 1.1.0
+ * @category Vector Operations
+ */
+export const prepend: <A>(
+  head: A
+) => <P extends number, N extends number>(v: Vec<N, A>) => Vec<P, A> = head =>
+  flow(RA.prepend(head), a => wrap(a))
+
+/**
+ * Add an element at the end of a vector. Due to the limitations of the typesystem, the
+ * length parameter must be passed explicitly, and will be the new length of the returned matrix.
+ *
+ * @since 1.1.0
+ * @category Vector Operations
+ */
+export const append: <A>(
+  head: A
+) => <P extends number, N extends number>(v: Vec<N, A>) => Vec<P, A> = head =>
+  flow(RA.append(head), a => wrap(a))
+
 // ###################
 // ### Do Notation ###
 // ###################

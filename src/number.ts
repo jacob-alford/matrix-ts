@@ -32,12 +32,35 @@ export const zero = 0
 export const one = 1
 
 /**
+ * Uniform random variable in the interval: `[low, high)`
+ *
  * @since 1.0.0
  * @category Constructors
  */
 export const randNumber: (low: number, high: number) => IO.IO<number> =
   (low, high) => () =>
     (high - low + 1) * Math.random() + low
+
+/**
+ * Exponential random variable with parameter `λ`
+ *
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const randExp: (λ: number) => IO.IO<number> = λ => () =>
+  Math.log(1 - Math.random()) / -λ
+
+/**
+ * Normal random variable with mean `μ` and standard deviation `σ`. Uses the Box-Muller transform
+ *
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const randNorm: (μ?: number, σ?: number) => IO.IO<number> =
+  (μ = 0, σ = 1) =>
+  () =>
+    Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random()) * σ +
+    μ
 
 // #################
 // ### Instances ###
@@ -134,6 +157,18 @@ export const _$ = Inf.getFieldReversePolishInfix(Field)
  * @category Model
  */
 export type Vec<N> = V.Vec<N, number>
+
+/**
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const onesN: <N extends number>(n: N) => Vec<N> = n => V.repeat(n, one)
+
+/**
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const zerosN: <N extends number>(n: N) => Vec<N> = n => V.repeat(n, zero)
 
 /**
  * @since 1.0.0

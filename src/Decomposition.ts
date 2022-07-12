@@ -234,7 +234,7 @@ export const LUP = <M extends number>(
  *
  * - Singularity
  * - Rank
- * - Determinant
+ * - Least Square Solution for overdetermined systems
  *
  * Efficiency: `O(n^3)`
  *
@@ -532,7 +532,7 @@ export function QR<N extends number, M extends number>(
         ),
         isSingular: pipe(γ, RA.foldMap(B.MonoidAny)(isSingular)),
         rank,
-        solve: leastSquares(rank, R, Q),
+        solve: leastSquares(rank, R, Q, unsafeCoerce(P)),
       }
     })
   )
@@ -791,7 +791,8 @@ const leastSquares =
   <N extends number, M extends number>(
     r: number,
     R: M.Mat<N, M, number>,
-    Q: ReadonlyArray<M.Mat<N, N, number>>
+    Q: ReadonlyArray<M.Mat<N, N, number>>,
+    P: MatTypes.OrthogonalMatrix<M, number>
   ): ((b: V.Vec<N, number>) => C.Computation<string, [number, V.Vec<M, number>]>) =>
   b =>
     (<P extends number>() =>
@@ -813,5 +814,10 @@ const leastSquares =
         C.bindW('R_', ({ shape: [n, m] }) =>
           pipe(R, dropRowsRight<M>(n - m), MatTypes.fromMatrix(N.Field), RTup.snd, C.of)
         ),
-        C.map(({ R_, cd: [c_, d] }) => tuple(pipe(d, N.l2Norm), backSub(R_, c_)))
+        C.map(({ R_, cd: [c_, d] }) =>
+          tuple(
+            N.l2Norm(d),
+            pipe(backSub(R_, c_), x_ => N.linMapR(x_, M.transpose(P)))
+          )
+        )
       ))<N>()

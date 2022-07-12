@@ -231,6 +231,21 @@ export const outerProduct: <A>(
   v2: V.Vec<N, A>
 ) => Mat<M, N, A> = R => (v1, v2) => mul(R)(fromVectorAsColumn(v1), fromVectorAsRow(v2))
 
+/**
+ * Constructs a Vandermonde matrix from a vector. Note: Terms is inclusive of the first
+ * column of ones. So a quadratic Vandermonde matrix has 3 terms.
+ *
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const vand: <N extends number>(
+  terms: N
+) => <M extends number>(t: V.Vec<M, number>) => Mat<M, N, number> = terms =>
+  flow(
+    V.map(ti => V.makeBy(terms, i => Math.pow(ti, i))),
+    from2dVectors
+  )
+
 // #####################
 // ### Non-Pipeables ###
 // #####################
@@ -810,9 +825,11 @@ export const getSubMatrix: <P extends number, Q extends number>(
       ),
       O.map(([m, n]) => {
         const out = []
-        for (let i = i1; i < (i2 ?? m); ++i) {
+        const upI = i2 === undefined ? m : i2
+        const upJ = j2 === undefined ? n : j2
+        for (let i = i1; i < upI; ++i) {
           const outi = []
-          for (let j = j1; j < (j2 ?? n); ++j) {
+          for (let j = j1; j < upJ; ++j) {
             outi.push(_(_(A, i), j))
           }
           out.push(outi)
@@ -857,6 +874,112 @@ export const updateSubMatrix: <P extends number, Q extends number, A>(
       })
     )
   }
+
+/**
+ * Add a column at the beginning of a matrix. Due to the limitations of the typesystem,
+ * the length parameter must be passed explicitly, and will be the number of columns of
+ * the returned matrix.
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const prependColumn =
+  <M extends number, A>(c0: V.Vec<M, A>) =>
+  <P extends number, N extends number>(m: Mat<M, N, A>): Mat<M, P, A> =>
+    pipe(
+      V.zipVectors(m, c0),
+      V.map(([ci, c0i]) => V.prepend(c0i)<P, N>(ci)),
+      from2dVectors
+    )
+
+/**
+ * Add a column at the end of a matrix. Due to the limitations of the typesystem, the
+ * length parameter must be passed explicitly, and will be the number of columns of the
+ * returned matrix.
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const appendColumn =
+  <M extends number, A>(c0: V.Vec<M, A>) =>
+  <P extends number, N extends number>(m: Mat<M, N, A>): Mat<M, P, A> =>
+    pipe(
+      V.zipVectors(m, c0),
+      V.map(([ci, c0i]) => V.append(c0i)<P, N>(ci)),
+      from2dVectors
+    )
+
+/**
+ * Crops a matrix to be square by removing excess rows. Returns O.none if there are more
+ * columns than rows.
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const cropRows: <M extends number, N extends number, A>(
+  m: Mat<M, N, A>
+) => O.Option<Mat<N, N, A>> = mat =>
+  pipe(
+    shape(mat),
+    O.fromPredicate(([m, n]) => m >= n),
+    O.map(([m, n]) => pipe(mat, RA.dropRight(m - n), a => wrap(a)))
+  )
+
+/**
+ * Crops a matrix to be square by removing excess columns. Returns O.none if there are
+ * more columns than rows.
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const cropColumns: <M extends number, N extends number, A>(
+  m: Mat<M, N, A>
+) => O.Option<Mat<M, M, A>> = mat =>
+  pipe(
+    shape(mat),
+    O.fromPredicate(([m, n]) => n >= m),
+    O.map(([m, n]) => pipe(mat, V.map(RA.dropRight(n - m)), a => wrap(a)))
+  )
+
+/**
+ * @since 1.0.0
+ * @category Sub-Matrix
+ */
+export const switchRows =
+  (i: number, j: number) =>
+  <A, N, M>(vs: Mat<M, N, A>): O.Option<Mat<M, N, A>> =>
+    i === j
+      ? O.some(vs)
+      : pipe(
+          O.Do,
+          O.apS('ir', V.get(i)(vs)),
+          O.apS('jr', V.get(j)(vs)),
+          O.chain(({ ir, jr }) =>
+            pipe(
+              vs,
+              replaceRow(i)(() => jr),
+              O.chain(replaceRow(j)(() => ir))
+            )
+          )
+        )
+
+/**
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const switchColumns =
+  (i: number, j: number) =>
+  <N extends number, M extends number, A>(vs: Mat<M, N, A>): O.Option<Mat<M, N, A>> =>
+    i === j
+      ? O.some(vs)
+      : pipe(
+          O.Do,
+          O.apS('ic', getSubColumn(i, 0)<M, M, N, A>(vs)),
+          O.apS('jc', getSubColumn(j, 0)<M, M, N, A>(vs)),
+          O.chain(({ ic, jc }) =>
+            pipe(vs, updateSubColumn(i, 0, jc), O.chain(updateSubColumn(j, 0, ic)))
+          )
+        )
 
 // #########################
 // ### Matrix Operations ###
@@ -908,7 +1031,7 @@ export const mul =
  */
 export const linMap =
   <R>(R: Rng.Ring<R>) =>
-  <M, N>(A: Mat<M, N, R>, x: V.Vec<N, R>): V.Vec<M, R> =>
+  <M, N1, N2 extends N1>(A: Mat<M, N1, R>, x: V.Vec<N2, R>): V.Vec<M, R> =>
     pipe(
       A,
       V.map(Ai => {
@@ -935,7 +1058,10 @@ export const linMap =
  */
 export const linMapR =
   <R>(R: Rng.Ring<R>) =>
-  <M extends number, N extends number>(x: V.Vec<N, R>, A: Mat<N, M, R>): V.Vec<M, R> => {
+  <M extends number, N1 extends number, N2 extends N1>(
+    x: V.Vec<N1, R>,
+    A: Mat<N2, M, R>
+  ): V.Vec<M, R> => {
     const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
     const [n, m] = shape(A)
     const out = []
@@ -982,46 +1108,6 @@ export const transpose = <M extends number, N extends number, A>(
         mapWithIndex(([i, j]) => _(_(v, j), i))
       )
 }
-
-/**
- * @since 1.0.0
- * @category Matrix Operations
- */
-export const switchRows =
-  (i: number, j: number) =>
-  <A, N, M>(vs: Mat<M, N, A>): O.Option<Mat<M, N, A>> =>
-    i === j
-      ? O.some(vs)
-      : pipe(
-          O.Do,
-          O.apS('ir', V.get(i)(vs)),
-          O.apS('jr', V.get(j)(vs)),
-          O.chain(({ ir, jr }) =>
-            pipe(
-              vs,
-              replaceRow(i)(() => jr),
-              O.chain(replaceRow(j)(() => ir))
-            )
-          )
-        )
-
-/**
- * @since 1.1.0
- * @category Matrix Operations
- */
-export const switchColumns =
-  (i: number, j: number) =>
-  <N extends number, M extends number, A>(vs: Mat<M, N, A>): O.Option<Mat<M, N, A>> =>
-    i === j
-      ? O.some(vs)
-      : pipe(
-          O.Do,
-          O.apS('ic', getSubColumn(i, 0)<M, M, N, A>(vs)),
-          O.apS('jc', getSubColumn(j, 0)<M, M, N, A>(vs)),
-          O.chain(({ ic, jc }) =>
-            pipe(vs, updateSubColumn(i, 0, jc), O.chain(updateSubColumn(j, 0, ic)))
-          )
-        )
 
 /**
  * @since 1.0.0
