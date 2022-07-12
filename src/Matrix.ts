@@ -15,7 +15,7 @@ import * as Mn from 'fp-ts/Monoid'
 import * as O from 'fp-ts/Option'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as Rng from 'fp-ts/Ring'
-import { flow, identity as id, pipe, unsafeCoerce } from 'fp-ts/function'
+import { flow, identity as id, pipe, tuple, unsafeCoerce } from 'fp-ts/function'
 
 import * as TC from './typeclasses'
 import * as V from './Vector'
@@ -231,6 +231,21 @@ export const outerProduct: <A>(
   v2: V.Vec<N, A>
 ) => Mat<M, N, A> = R => (v1, v2) => mul(R)(fromVectorAsColumn(v1), fromVectorAsRow(v2))
 
+/**
+ * Constructs a Vandermonde matrix from a vector. Note: Terms is inclusive of the first
+ * column of ones. So a quadratic Vandermonde matrix has 3 terms.
+ *
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const vand: <N extends number>(
+  terms: N
+) => <M extends number>(t: V.Vec<M, number>) => Mat<M, N, number> = terms =>
+  flow(
+    V.map(ti => V.makeBy(terms, i => Math.pow(ti, i))),
+    from2dVectors
+  )
+
 // #####################
 // ### Non-Pipeables ###
 // #####################
@@ -281,6 +296,17 @@ declare module 'fp-ts/HKT' {
     readonly [URI]: Mat<E, E, A>
   }
 }
+
+/**
+ * @since 1.1.0
+ * @category Instances
+ */
+export const getSquareMonoidProduct =
+  <A>(R: Rng.Ring<A>) =>
+  <M extends number>(m: M): Mn.Monoid<Mat<M, M, A>> => ({
+    empty: identity(R)(m),
+    concat: (a, b) => mul(R)(a, b),
+  })
 
 /**
  * @since 1.0.0
@@ -592,19 +618,391 @@ export const shape: <M extends number, N extends number, A>(
     ? [0 as typeof m['_rows'], 0 as typeof m['_cols']]
     : [m.length as typeof m['_rows'], m[0].length as typeof m['_cols']]
 
+// ##################
+// ### Sub-Matrix ###
+// ##################
+
+/**
+ * Map a particular row of a matrix
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const mapRow: <A>(
+  rowIndex: number,
+  f: (a: A) => A
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (rowIndex, f) => m =>
+    pipe(
+      shape(m),
+      O.fromPredicate(([rows]) => rowIndex >= 0 && rowIndex < rows),
+      O.map(([, cols]) => {
+        const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) =>
+          unsafeCoerce(xs[i])
+        const A = toNestedArrays(m)
+        for (let j = 0; j < cols; ++j) {
+          _(A, rowIndex)[j] = f(_(_(A, rowIndex), j))
+        }
+        return wrap(A)
+      })
+    )
+
+/**
+ * Reduce the rows of a matrix to a vector of opposite length
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const reduceByRow: <N extends number, A, B>(
+  f: (a: V.Vec<N, A>) => B
+) => <M extends number>(m: Mat<M, N, A>) => V.Vec<M, B> = f => V.map(f)
+
+/**
+ * Map a particular column of a matrix
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const mapColumn: <A>(
+  columnIndex: number,
+  f: (a: A) => A
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (columnIndex, f) => m =>
+    pipe(
+      shape(m),
+      O.fromPredicate(([, cols]) => columnIndex >= 0 && columnIndex < cols),
+      O.map(([rows]) => {
+        const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) =>
+          unsafeCoerce(xs[i])
+        const A = toNestedArrays(m)
+        for (let i = 0; i < rows; ++i) {
+          _(A, i)[columnIndex] = f(_(_(A, i), columnIndex))
+        }
+        return wrap(A)
+      })
+    )
+
+/**
+ * Reduce the columns of a matrix to a vector of opposite length
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const reduceByColumn: <M extends number, A, B>(
+  f: (a: V.Vec<M, A>) => B
+) => <N extends number>(A: Mat<M, N, A>) => V.Vec<N, B> = f => A => {
+  const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+  const [m, n] = shape(A)
+  const out = []
+  for (let k = 0; k < n; ++k) {
+    const col = []
+    for (let i = 0; i < m; ++i) {
+      col.push(_(_(A, i), k))
+    }
+    out.push(f(unsafeCoerce(col)))
+  }
+  return unsafeCoerce(out)
+}
+
+/**
+ * Used to extract a sub-column from a matrix, and returns a new generic `P` that
+ * represents the length of the sub-column.
+ *
+ * Note: `fromIncl` is the **inclusive** column start-index, and `toExcl` is the
+ * **exclusive** column end-index. If `toExcl` is omitted, then the extracted sub-column
+ * will span to the last row of the matrix.
+ *
+ * Note: In order to preserve type safety, P cannot be inferred, and must be passed
+ * directly as a type argument.
+ *
+ * If `P` is unknown, it can be declared in the parent function as an arbitrary generic
+ * that has a numeric constraint.
+ *
+ * See: Decomposition > QR as an example declaring an unknown length constraint
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const getSubColumn: (
+  col: number,
+  fromIncl: number,
+  toExcl?: number
+) => <P extends number, M extends number, N extends number, A>(
+  m: Mat<M, N, A>
+) => O.Option<V.Vec<P, A>> = (col, fromRowI, toExcl) => A => {
+  const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+  return pipe(
+    shape(A),
+    O.fromPredicate(
+      ([rows, cols]) =>
+        col >= 0 &&
+        col < cols &&
+        fromRowI >= 0 &&
+        fromRowI < rows &&
+        (toExcl === undefined || (toExcl > fromRowI && toExcl <= rows))
+    ),
+    O.map(([rows]) => {
+      const sub = []
+      const toRowI = toExcl === undefined ? rows : toExcl
+      for (let i = fromRowI; i < toRowI; ++i) {
+        sub.push(_(_(A, i), col))
+      }
+      return unsafeCoerce(sub)
+    })
+  )
+}
+
+/**
+ * Used to replace a sub-column of a matrix along with a generic `P` that is the length of
+ * the sub-column. If `P` is incompatible with matrix length `N`, or provided indices will
+ * result in an overflow, `O.none` is returned.
+ *
+ * Note: `fromRowIncl` is the **inclusive** row start-index
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const updateSubColumn: <P extends number, A>(
+  col: number,
+  fromRowIncl: number,
+  repl: V.Vec<P, A>
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (col, fromRowI, repl) => A => {
+    const _: <A>(xs: ReadonlyArray<A>, i: number) => A = (xs, i) => unsafeCoerce(xs[i])
+    const p = V.size(repl)
+    return pipe(
+      shape(A),
+      O.fromPredicate(
+        ([rows, cols]) => col >= 0 && col < cols && fromRowI >= 0 && fromRowI + p <= rows
+      ),
+      O.map(() => {
+        const Ap = toNestedArrays(A)
+        for (let i = fromRowI; i < p + fromRowI; ++i) {
+          _(Ap, i)[col] = _(repl, i - fromRowI)
+        }
+        return unsafeCoerce(Ap)
+      })
+    )
+  }
+
+/**
+ * Used to extract a portion of a matrix, and returns new generics `P` and `Q` that
+ * represents the the rows / columns of the extracted sub-matrix.
+ *
+ * Note: `rowFromIncl` and `colFromIncl` are the **inclusive** row / column start-indices,
+ * and `rowToExcl` and `colToExcl` are the **exclusive** row / column end-indices. If
+ * `rowToExcl` or `colToExcl` are omitted, the extracted sub-matrix will span to the final
+ * row / column.
+ *
+ * Note: In order to preserve type safety, `P` and `Q` cannot be inferred, and must be
+ * passed directly as type arguments.
+ *
+ * If `P` and `Q` are unknown, they can be declared in the parent function as arbitrary
+ * generics that have a numeric constraint.
+ *
+ * See: Decomposition > QR as an example declaring unknown length constraints
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const getSubMatrix: <P extends number, Q extends number>(
+  rowFromIncl: number,
+  colFromIncl: number,
+  rowToExcl?: number,
+  colToExcl?: number
+) => <M extends number, N extends number, A>(m: Mat<M, N, A>) => O.Option<Mat<P, Q, A>> =
+  (i1, j1, i2, j2) => A => {
+    const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
+    return pipe(
+      shape(A),
+      O.fromPredicate(
+        ([rows, cols]) =>
+          i1 >= 0 &&
+          i1 < rows &&
+          j1 >= 0 &&
+          j1 < cols &&
+          (i2 === undefined || (i2 > i1 && i2 <= rows)) &&
+          (j2 === undefined || (j2 > j1 && j2 <= cols))
+      ),
+      O.map(([m, n]) => {
+        const out = []
+        const upI = i2 === undefined ? m : i2
+        const upJ = j2 === undefined ? n : j2
+        for (let i = i1; i < upI; ++i) {
+          const outi = []
+          for (let j = j1; j < upJ; ++j) {
+            outi.push(_(_(A, i), j))
+          }
+          out.push(outi)
+        }
+        return unsafeCoerce(out)
+      })
+    )
+  }
+
+/**
+ * Used to replace a portion of a matrix with generics `P` and `Q` that are the rows /
+ * columns of the replacement sub-matrix. If `P` is incompatible with matrix rows `M`, `Q`
+ * is incompatible with matrix columns `N`, or if provided indices will result in an
+ * overflow, `O.none` is returned.
+ *
+ * Note: `rowFromIncl` and `colFromIncl` are the **inclusive** row / column start-indices
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const updateSubMatrix: <P extends number, Q extends number, A>(
+  rowFromIncl: number,
+  colFromIncl: number,
+  repl: Mat<P, Q, A>
+) => <M extends number, N extends number>(m: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (i1, j1, repl) => m => {
+    const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
+    return pipe(
+      tuple(shape(m), shape(repl)),
+      O.fromPredicate(
+        ([[rows, cols], [replRows, replCols]]) =>
+          i1 >= 0 && i1 + replRows <= rows && j1 >= 0 && j1 + replCols <= cols
+      ),
+      O.map(([, [i2, j2]]) => {
+        const A = toNestedArrays(m)
+        for (let i = i1; i < i1 + i2; ++i) {
+          for (let j = j1; j < j1 + j2; ++j) {
+            _(A, i)[j] = _(_(repl, i - i1), j - j1)
+          }
+        }
+        return unsafeCoerce(A)
+      })
+    )
+  }
+
+/**
+ * Add a column at the beginning of a matrix. Due to the limitations of the typesystem,
+ * the length parameter must be passed explicitly, and will be the number of columns of
+ * the returned matrix.
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const prependColumn =
+  <M extends number, A>(c0: V.Vec<M, A>) =>
+  <P extends number, N extends number>(m: Mat<M, N, A>): Mat<M, P, A> =>
+    pipe(
+      V.zipVectors(m, c0),
+      V.map(([ci, c0i]) => V.prepend(c0i)<P, N>(ci)),
+      from2dVectors
+    )
+
+/**
+ * Add a column at the end of a matrix. Due to the limitations of the typesystem, the
+ * length parameter must be passed explicitly, and will be the number of columns of the
+ * returned matrix.
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const appendColumn =
+  <M extends number, A>(c0: V.Vec<M, A>) =>
+  <P extends number, N extends number>(m: Mat<M, N, A>): Mat<M, P, A> =>
+    pipe(
+      V.zipVectors(m, c0),
+      V.map(([ci, c0i]) => V.append(c0i)<P, N>(ci)),
+      from2dVectors
+    )
+
+/**
+ * Crops a matrix to be square by removing excess rows. Returns O.none if there are more
+ * columns than rows.
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const cropRows: <M extends number, N extends number, A>(
+  m: Mat<M, N, A>
+) => O.Option<Mat<N, N, A>> = mat =>
+  pipe(
+    shape(mat),
+    O.fromPredicate(([m, n]) => m >= n),
+    O.map(([m, n]) => pipe(mat, RA.dropRight(m - n), a => wrap(a)))
+  )
+
+/**
+ * Crops a matrix to be square by removing excess columns. Returns O.none if there are
+ * more columns than rows.
+ *
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const cropColumns: <M extends number, N extends number, A>(
+  m: Mat<M, N, A>
+) => O.Option<Mat<M, M, A>> = mat =>
+  pipe(
+    shape(mat),
+    O.fromPredicate(([m, n]) => n >= m),
+    O.map(([m, n]) => pipe(mat, V.map(RA.dropRight(n - m)), a => wrap(a)))
+  )
+
+/**
+ * @since 1.0.0
+ * @category Sub-Matrix
+ */
+export const switchRows =
+  (i: number, j: number) =>
+  <A, N, M>(vs: Mat<M, N, A>): O.Option<Mat<M, N, A>> =>
+    i === j
+      ? O.some(vs)
+      : pipe(
+          O.Do,
+          O.apS('ir', V.get(i)(vs)),
+          O.apS('jr', V.get(j)(vs)),
+          O.chain(({ ir, jr }) =>
+            pipe(
+              vs,
+              replaceRow(i)(() => jr),
+              O.chain(replaceRow(j)(() => ir))
+            )
+          )
+        )
+
+/**
+ * @since 1.1.0
+ * @category Sub-Matrix
+ */
+export const switchColumns =
+  (i: number, j: number) =>
+  <N extends number, M extends number, A>(vs: Mat<M, N, A>): O.Option<Mat<M, N, A>> =>
+    i === j
+      ? O.some(vs)
+      : pipe(
+          O.Do,
+          O.apS('ic', getSubColumn(i, 0)<M, M, N, A>(vs)),
+          O.apS('jc', getSubColumn(j, 0)<M, M, N, A>(vs)),
+          O.chain(({ ic, jc }) =>
+            pipe(vs, updateSubColumn(i, 0, jc), O.chain(updateSubColumn(j, 0, ic)))
+          )
+        )
+
 // #########################
 // ### Matrix Operations ###
 // #########################
 
 /**
+ * Multiply two matricies with matching inner dimensions
+ *
+ * ```math
+ * (A ∈ R_mn) (B ∈ R_np) = C ∈ R_mp
+ * ```
+ *
+ * Efficiency: `2mpn` flops (for numeric Ring)
+ *
  * @since 1.0.0
  * @category Matrix Operations
  */
 export const mul =
   <A>(R: Rng.Ring<A>) =>
-  <M extends number, N extends number, P extends number>(
-    x: Mat<M, N, A>,
-    y: Mat<N, P, A>
+  <M extends number, N1 extends number, N2 extends N1, P extends number>(
+    x: Mat<M, N1, A>,
+    y: Mat<N2, P, A>
   ): Mat<M, P, A> =>
     x[0] === undefined || y[0] === undefined
       ? wrap([])
@@ -627,12 +1025,14 @@ export const mul =
  * Ax = b
  * ```
  *
+ * Efficiency: `2mn` flops (for numeric Ring)
+ *
  * @since 1.0.0
  * @category Matrix Operations
  */
 export const linMap =
   <R>(R: Rng.Ring<R>) =>
-  <M, N>(A: Mat<M, N, R>, x: V.Vec<N, R>): V.Vec<M, R> =>
+  <M, N1, N2 extends N1>(A: Mat<M, N1, R>, x: V.Vec<N2, R>): V.Vec<M, R> =>
     pipe(
       A,
       V.map(Ai => {
@@ -646,6 +1046,41 @@ export const linMap =
     )
 
 /**
+ * Transform a row-vector `x` into vector `b` by matrix `A`
+ *
+ * ```math
+ * xA = b
+ * ```
+ *
+ * Efficiency: `2mn` flops (for numeric Ring)
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const linMapR =
+  <R>(R: Rng.Ring<R>) =>
+  <M extends number, N1 extends number, N2 extends N1>(
+    x: V.Vec<N1, R>,
+    A: Mat<N2, M, R>
+  ): V.Vec<M, R> => {
+    const _ = <A>(rs: ReadonlyArray<A>, i: number): A => unsafeCoerce(rs[i])
+    const [n, m] = shape(A)
+    const out = []
+    for (let i = 0; i < m; ++i) {
+      let outi = R.zero
+      for (let j = 0; j < n; ++j) {
+        outi = R.add(outi, R.mul(_(x, j), _(_(A, j), i)))
+      }
+      out.push(outi)
+    }
+    return unsafeCoerce(out)
+  }
+
+/**
+ * The sum of the diagonal elements
+ *
+ * Efficiency: `m` flops (for numeric Ring)
+ *
  * @since 1.0.0
  * @category Matrix Operations
  */
@@ -679,32 +1114,31 @@ export const transpose = <M extends number, N extends number, A>(
  * @since 1.0.0
  * @category Matrix Operations
  */
-export const switchRows =
-  (i: number, j: number) =>
-  <A, N, M>(vs: Mat<M, N, A>): O.Option<Mat<M, N, A>> =>
-    i === j
-      ? O.some(vs)
-      : pipe(
-          O.Do,
-          O.apS('ir', V.get(i)(vs)),
-          O.apS('jr', V.get(j)(vs)),
-          O.chain(({ ir, jr }) =>
-            pipe(
-              vs,
-              replaceRow(i)(() => jr),
-              O.chain(replaceRow(j)(() => ir))
-            )
-          )
-        )
-
-/**
- * @since 1.0.0
- * @category Matrix Operations
- */
 export const get: (i: number, j: number) => <M, N, A>(m: Mat<M, N, A>) => O.Option<A> = (
   i,
   j
 ) => flow(V.get(i), O.chain(V.get(j)))
+
+/**
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const updateAt: <A>(
+  i: number,
+  j: number,
+  a: A
+) => <M extends number, N extends number>(A: Mat<M, N, A>) => O.Option<Mat<M, N, A>> =
+  (i, j, val) => A =>
+    pipe(
+      shape(A),
+      O.fromPredicate(([rows, cols]) => i >= 0 && j >= 0 && i < rows && j < cols),
+      O.map(() => {
+        const _ = <A>(xs: ReadonlyArray<A>, i: number): A => unsafeCoerce(xs[i])
+        const Ap = toNestedArrays(A)
+        _(Ap, i)[j] = val
+        return unsafeCoerce(Ap)
+      })
+    )
 
 /**
  * @since 1.0.0

@@ -10,6 +10,7 @@ import * as Ap from 'fp-ts/Apply'
 import * as BiFun from 'fp-ts/Bifunctor'
 import * as Chn from 'fp-ts/Chain'
 import * as E from 'fp-ts/Either'
+import * as IO from 'fp-ts/IO'
 import * as FE from 'fp-ts/FromEither'
 import * as Fun from 'fp-ts/Functor'
 import * as Mon from 'fp-ts/Monad'
@@ -17,7 +18,7 @@ import * as MonThrow from 'fp-ts/MonadThrow'
 import * as O from 'fp-ts/Option'
 import * as RA from 'fp-ts/ReadonlyArray'
 import * as RTup from 'fp-ts/ReadonlyTuple'
-import { pipe, unsafeCoerce } from 'fp-ts/function'
+import { flow, identity, pipe, unsafeCoerce } from 'fp-ts/function'
 
 // #############
 // ### Model ###
@@ -41,6 +42,46 @@ export const of: <A>(value: A) => Computation<never, A> = value => [
   E.right(value),
   RA.zero(),
 ]
+
+// ###################
+// ### Destructors ###
+// ###################
+
+/**
+ * @since 1.1.0
+ * @category Destructors
+ */
+export const runComputation: <E, A>(c: Computation<E, A>) => E.Either<E, A> = RTup.fst
+
+/**
+ * @since 1.1.0
+ * @category Destructors
+ */
+export const runLogs: <E, O>(
+  f: (e: E) => IO.IO<O>
+) => <A>(c: Computation<E, A>) => IO.IO<ReadonlyArray<O>> = f =>
+  flow(RTup.snd, IO.traverseArray(f))
+
+/**
+ * @since 1.1.0
+ * @category Destructors
+ */
+export const getOrThrow: <E>(
+  onError: (e: E) => string
+) => <A>(c: Computation<E, A>) => A =
+  f =>
+  ([v]) => {
+    if (E.isLeft(v)) {
+      throw new Error(f(v.left))
+    }
+    return v.right
+  }
+
+/**
+ * @since 1.1.0
+ * @category Destructors
+ */
+export const getOrThrowS: <A>(c: Computation<string, A>) => A = getOrThrow(identity)
 
 // #####################
 // ### Non-Pipeables ###
@@ -153,19 +194,25 @@ export const Applicative: Apl.Applicative2<URI> = {
  * @since 1.0.0
  * @category Instance Operations
  */
-export const chain: <E, A, B>(
-  f: (a: A) => Computation<E, B>
-) => (fa: Computation<E, A>) => Computation<E, B> =
-  f =>
-  ([fa, logs]) =>
+export const chainW =
+  <E1, E2, A, B>(f: (a: A) => Computation<E1, B>) =>
+  ([fa, logs]: Computation<E2, A>): Computation<E1 | E2, B> =>
     pipe(
       fa,
       E.map(f),
-      E.fold(
+      E.foldW(
         err => [E.left(err), logs],
-        ([result, logs2]) => [result, pipe(logs, RA.concat(logs2))]
+        ([result, logs2]) => [result, pipe(logs, RA.concat<E1 | E2>(logs2))]
       )
     )
+
+/**
+ * @since 1.0.0
+ * @category Instance Operations
+ */
+export const chain: <E, A, B>(
+  f: (a: A) => Computation<E, B>
+) => (fa: Computation<E, A>) => Computation<E, B> = chainW
 
 /**
  * @since 1.0.0
@@ -189,7 +236,7 @@ export const Monad: Mon.Monad2<URI> = {
  * @since 1.0.0
  * @category Instance Operations
  */
-export const throwError: <E, A>(e: E) => Computation<E, A> = e => [E.left(e), RA.of(e)]
+export const throwError: <E>(e: E) => Computation<E, never> = e => [E.left(e), RA.of(e)]
 
 /**
  * @since 1.0.0
@@ -227,6 +274,21 @@ export const FromEither: FE.FromEither2<URI> = {
  * @category Natural Transformations
  */
 export const fromOption = FE.fromOption(FromEither)
+
+/**
+ * @since 1.1.0
+ * @category Natural Transformations
+ */
+export const toOption: <E, A>(c: Computation<E, A>) => O.Option<A> = flow(
+  RTup.fst,
+  O.fromEither
+)
+
+/**
+ * @since 1.1.0
+ * @category Natural Transformations
+ */
+export const fromPredicate = FE.fromPredicate(FromEither)
 
 // ####################
 // ### Refinements ####
@@ -305,6 +367,18 @@ export const log: <E>(message: E) => <A>(fa: Computation<E, A>) => Computation<E
     [a, pipe(logs, RA.concat(RA.of(message)))]
 
 /**
+ * Log one message on left, and a different on right
+ *
+ * @since 1.1.0
+ * @category Utilities
+ */
+export const bilog: <E>(
+  onLeft: () => E,
+  onRight: () => E
+) => <A>(fa: Computation<E, A>) => Computation<E, A> = (onLeft, onRight) => c =>
+  pipe(c, log(isLeft(c) ? onLeft() : onRight()))
+
+/**
  * @since 1.0.0
  * @category Utilities
  */
@@ -342,7 +416,7 @@ export const filterOptionK: <E, A, B>(
 ) => (a: A) => Computation<E, B> = (test, onFalse) => a =>
   pipe(
     test(a),
-    O.fold(() => throwError(onFalse(a)), of)
+    O.foldW(() => throwError(onFalse(a)), of)
   )
 
 // ###################

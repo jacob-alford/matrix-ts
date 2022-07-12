@@ -320,6 +320,18 @@ export const IsoVector: Iso.Iso<Complex, V.Vec<2, number>> = {
 export type Vec<N> = V.Vec<N, Complex>
 
 /**
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const onesN: <N extends number>(n: N) => Vec<N> = n => V.repeat(n, one)
+
+/**
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const zerosN: <N extends number>(n: N) => Vec<N> = n => V.repeat(n, zero)
+
+/**
  * @since 1.0.0
  * @category Instances
  */
@@ -330,6 +342,22 @@ export const AdditiveAbGrpN = V.getAdditiveAbelianGroup(Field)
  * @category Instances
  */
 export const BiModN = V.getBimodule(Field)
+
+/**
+ * Add two vectors
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const addV = V.lift2(Field.add)
+
+/**
+ * Subtract two vectors
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const subV = V.lift2(Field.add)
 
 /**
  * @since 1.0.0
@@ -369,6 +397,12 @@ export const lpNorm: (p: number) => <N>(v: V.Vec<N, Complex>) => Complex = p =>
   V.lpNorm(p)(Field, flow(modulus, scalar), pow)
 
 /**
+ * @since 1.1.0
+ * @category Vector Operations
+ */
+export const lInfNorm = flow(V.map(modulus), V.lInfNorm(N.Bounded, Math.abs))
+
+/**
  * @since 1.0.0
  * @category Vector Operations
  */
@@ -383,6 +417,12 @@ export const projection = V.projection(Field, conj)
  * @category Model
  */
 export type Mat<M, N> = M.Mat<M, N, Complex>
+
+/**
+ * @since 1.1.0
+ * @category Instances
+ */
+export const MonoidProductMM = M.getSquareMonoidProduct(Field)
 
 /**
  * @since 1.0.0
@@ -403,9 +443,13 @@ export const BiModMN = M.getBimodule(Field)
 export const idMat = M.identity(Field)
 
 /**
- * Compose two matricies: `A`, and `B` with Matrix multiplication.
+ * Multiply two matricies with matching inner dimensions
  *
- * For A in `MxN`, and B in `NxP` returns `AB` in `MxP`.
+ * ```math
+ * (A ∈ R_mn) (B ∈ R_np) = C ∈ R_mp
+ * ```
+ *
+ * Efficiency: `(8mpn)` flops
  *
  * @since 1.0.0
  * @category Matrix Operations
@@ -413,12 +457,48 @@ export const idMat = M.identity(Field)
 export const mulM = M.mul(Field)
 
 /**
- * Map a vector with length `N`, with a matrix A with size `MxN`, to a vector of length `M`.
+ * Add two matricies
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const addM = M.lift2(Field.add)
+
+/**
+ * Subtract two matricies
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const subM = M.lift2(Field.sub)
+
+/**
+ * Transform a column vector `x` into vector `b` by matrix `A`
+ *
+ * ```math
+ * Ax = b
+ * ```
+ *
+ * Efficiency: `8mn` flops
  *
  * @since 1.0.0
  * @category Matrix Operations
  */
 export const linMap = M.linMap(Field)
+
+/**
+ * Transform a row-vector `x` into vector `b` by matrix `A`
+ *
+ * ```math
+ * xA = b
+ * ```
+ *
+ * Efficiency: `8mn` flops
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const linMapR = M.linMapR(Field)
 
 /**
  * @since 1.0.0

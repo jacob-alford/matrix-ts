@@ -32,12 +32,35 @@ export const zero = 0
 export const one = 1
 
 /**
+ * Uniform random variable in the interval: `[low, high)`
+ *
  * @since 1.0.0
  * @category Constructors
  */
 export const randNumber: (low: number, high: number) => IO.IO<number> =
   (low, high) => () =>
     (high - low + 1) * Math.random() + low
+
+/**
+ * Exponential random variable with parameter `λ`
+ *
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const randExp: (λ: number) => IO.IO<number> = λ => () =>
+  Math.log(1 - Math.random()) / -λ
+
+/**
+ * Normal random variable with mean `μ` and standard deviation `σ`. Uses the Box-Muller transform
+ *
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const randNorm: (μ?: number, σ?: number) => IO.IO<number> =
+  (μ = 0, σ = 1) =>
+  () =>
+    Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random()) * σ +
+    μ
 
 // #################
 // ### Instances ###
@@ -136,6 +159,18 @@ export const _$ = Inf.getFieldReversePolishInfix(Field)
 export type Vec<N> = V.Vec<N, number>
 
 /**
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const onesN: <N extends number>(n: N) => Vec<N> = n => V.repeat(n, one)
+
+/**
+ * @since 1.1.0
+ * @category Constructors
+ */
+export const zerosN: <N extends number>(n: N) => Vec<N> = n => V.repeat(n, zero)
+
+/**
  * @since 1.0.0
  * @category Instances
  */
@@ -146,6 +181,22 @@ export const AdditiveAbGrpN = V.getAdditiveAbelianGroup(Field)
  * @category Instances
  */
 export const BiModN = V.getBimodule(Field)
+
+/**
+ * Add two vectors
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const addV = V.lift2(Field.add)
+
+/**
+ * Subtract two vectors
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const subV = V.lift2(Field.add)
 
 /**
  * @since 1.0.0
@@ -297,6 +348,12 @@ export const projection = V.projection(Field, identity)
 export type Mat<M, N> = M.Mat<M, N, number>
 
 /**
+ * @since 1.1.0
+ * @category Instances
+ */
+export const MonoidProductMM = M.getSquareMonoidProduct(Field)
+
+/**
  * @since 1.0.0
  * @category Instances
  */
@@ -315,9 +372,13 @@ export const BiModMN = M.getBimodule(Field)
 export const idMat = M.identity(Field)
 
 /**
- * Compose two matricies: `A`, and `B` with Matrix multiplication.
+ * Multiply two matricies with matching inner dimensions
  *
- * For A in `MxN`, and B in `NxP` returns `AB` in `MxP`.
+ * ```math
+ * (A ∈ R_mn) (B ∈ R_np) = C ∈ R_mp
+ * ```
+ *
+ * Efficiency: `2mpn` flops
  *
  * @since 1.0.0
  * @category Matrix Operations
@@ -325,7 +386,29 @@ export const idMat = M.identity(Field)
 export const mulM = M.mul(Field)
 
 /**
- * Map a vector with length `N`, with a matrix A with size `MxN`, to a vector of length `M`.
+ * Add two matricies
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const addM = M.lift2(Field.add)
+
+/**
+ * Subtract two matricies
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const subM = M.lift2(Field.sub)
+
+/**
+ * Transform a column vector `x` into vector `b` by matrix `A`
+ *
+ * ```math
+ * Ax = b
+ * ```
+ *
+ * Efficiency: `2mn` flops
  *
  * @since 1.0.0
  * @category Matrix Operations
@@ -333,6 +416,24 @@ export const mulM = M.mul(Field)
 export const linMap = M.linMap(Field)
 
 /**
+ * Transform a row-vector `x` into vector `b` by matrix `A`
+ *
+ * ```math
+ * xA = b
+ * ```
+ *
+ * Efficiency: `2mn` flops
+ *
+ * @since 1.1.0
+ * @category Matrix Operations
+ */
+export const linMapR = M.linMapR(Field)
+
+/**
+ * The sum of the diagonal elements
+ *
+ * Efficiency: `m` flops (for numeric Ring)
+ *
  * @since 1.0.0
  * @category Matrix Operations
  */

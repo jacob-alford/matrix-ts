@@ -539,10 +539,12 @@ export const l1Norm: <A extends number | Complex>(
 export const l2Norm = lpNorm(2)
 
 /**
+ * Get the maximum value of a vector
+ *
  * @since 1.0.0
  * @category Destructors
  */
-export const lInfNorm: <A extends number | Complex>(
+export const lInfNorm: <A>(
   B: Bnd.Bounded<A>,
   abs: (a: A) => A
 ) => <N>(x: Vec<N, A>) => A = (B, abs) => foldMap(Mn.max(B))(abs)
@@ -552,13 +554,43 @@ export const lInfNorm: <A extends number | Complex>(
 // #########################
 
 /**
+ * @since 1.1.0
+ * @category Vector Operations
+ */
+export const switchIndices: (
+  i: number,
+  j: number
+) => <N extends number, A>(v: Vec<N, A>) => O.Option<Vec<N, A>> = (i, j) => v =>
+  pipe(
+    O.Do,
+    O.filter(() => i >= 0 && j >= 0 && i < size(v) && j < size(v)),
+    O.bind('vi', () => pipe(v, get(i))),
+    O.bind('vj', () => pipe(v, get(j))),
+    O.chain(({ vi, vj }) => pipe(v, updateAt(i)(vj), O.chain(updateAt(j)(vi))))
+  )
+
+/**
  * @since 1.0.0
  * @category Vector Operations
  */
-export const lift2: <N, A, B>(
+export const lift2: <A, B>(
   f: (x: A, y: A) => B
-) => (x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B> = f => (x, y) =>
+) => <N>(x: Vec<N, A>, y: Vec<N, A>) => Vec<N, B> = f => (x, y) =>
   pipe(RA.zipWith(x, y, f), a => wrap(a))
+
+/**
+ * @since 1.0.0
+ * @category Vector Operations
+ */
+export const mapIndex: (
+  n: number
+) => <A>(f: (a: A) => A) => <N>(fa: Vec<N, A>) => O.Option<Vec<N, A>> = n => f => fa =>
+  pipe(
+    fa,
+    RA.lookup(n),
+    O.chain(a => pipe(fa, RA.updateAt(n, f(a)))),
+    O.map(a => wrap(a))
+  )
 
 /**
  * @since 1.0.0
@@ -639,6 +671,31 @@ export const projection: <R extends number | Complex>(
     const uu = innerProduct(F, conj)(u, u)
     return BM.leftScalarMul(F.div(uv, uu), u)
   }
+
+/**
+ * Add an element at the beginning of a vector. Due to the limitations of the typesystem,
+ * the length parameter must be passed explicitly, and will be the new length of the
+ * returned matrix.
+ *
+ * @since 1.1.0
+ * @category Vector Operations
+ */
+export const prepend: <A>(
+  head: A
+) => <P extends number, N extends number>(v: Vec<N, A>) => Vec<P, A> = head =>
+  flow(RA.prepend(head), a => wrap(a))
+
+/**
+ * Add an element at the end of a vector. Due to the limitations of the typesystem, the
+ * length parameter must be passed explicitly, and will be the new length of the returned matrix.
+ *
+ * @since 1.1.0
+ * @category Vector Operations
+ */
+export const append: <A>(
+  head: A
+) => <P extends number, N extends number>(v: Vec<N, A>) => Vec<P, A> = head =>
+  flow(RA.append(head), a => wrap(a))
 
 // ###################
 // ### Do Notation ###

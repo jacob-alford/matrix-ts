@@ -1,6 +1,8 @@
 import * as E from 'fp-ts/Either'
+import { pipe } from 'fp-ts/function'
 
-import { LUP } from '../src/Decomposition'
+import { LUP, QR } from '../src/Decomposition'
+import * as C from '../src/Computation'
 import * as M from '../src/Matrix'
 import * as N from '../src/number'
 import * as V from '../src/Vector'
@@ -80,21 +82,15 @@ describe('LUP Decomposition', () => {
     }
   })
   it('calculates a determinant (i)', () => {
-    const [output] = LUP(
-      M.fromNestedTuples([
-        [5, 2, 1, 4, 6],
-        [9, 4, 2, 5, 2],
-        [11, 5, 7, 3, 9],
-        [5, 6, 6, 7, 2],
-        [7, 5, 9, 3, 3],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [5, 2, 1, 4, 6],
+      [9, 4, 2, 5, 2],
+      [11, 5, 7, 3, 9],
+      [5, 6, 6, 7, 2],
+      [7, 5, 9, 3, 3],
+    ])
 
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
-    const { det } = output.right
+    const { det } = C.getOrThrowS(LUP(A))
 
     /*
      * This seems to be off by one
@@ -102,35 +98,23 @@ describe('LUP Decomposition', () => {
     expect(det()).toBeCloseTo(-2003, -1)
   })
   it('calculates a determinant (ii)', () => {
-    const [output] = LUP(
-      M.fromNestedTuples([
-        [50, 29],
-        [30, 44],
-      ])
-    )
+    const A = M.fromNestedTuples([
+      [50, 29],
+      [30, 44],
+    ])
 
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
-    const { det } = output.right
+    const { det } = C.getOrThrowS(LUP(A))
 
     expect(det()).toBeCloseTo(1330)
   })
-  it('calculates a determinant (ii)', () => {
-    const [output] = LUP(
-      M.fromNestedTuples([
-        [55, 25, 15],
-        [30, 44, 2],
-        [11, 45, 77],
-      ])
-    )
+  it('calculates a determinant (iii)', () => {
+    const A = M.fromNestedTuples([
+      [55, 25, 15],
+      [30, 44, 2],
+      [11, 45, 77],
+    ])
 
-    if (E.isLeft(output)) {
-      throw new Error('Unexpected result')
-    }
-
-    const { det } = output.right
+    const { det } = C.getOrThrowS(LUP(A))
 
     expect(det()).toBeCloseTo(137180)
   })
@@ -175,5 +159,152 @@ describe('LUP Decomposition', () => {
     }
 
     expect(result.left).toBe('[10] Matrix is singular')
+  })
+})
+
+describe('QR decomposition', () => {
+  it('decomposes a 2x2 matrix', () => {
+    const A = M.fromNestedTuples([
+      [1, 2],
+      [1, 3],
+    ])
+
+    const {
+      result: [, Q_, R, P],
+    } = C.getOrThrowS(QR(A))
+
+    const Q = Q_()
+
+    const Ap = N.mulM(A, P)
+    const QR_ = N.mulM(Q, R)
+
+    for (const [QRi, Api] of V.zipVectors(QR_, Ap)) {
+      for (const [QRij, Apij] of V.zipVectors(QRi, Api)) {
+        expect(QRij).toBeCloseTo(Apij)
+      }
+    }
+  })
+  it('decomposes a 5x5 matrix', () => {
+    const A = M.fromNestedTuples([
+      [2, 10, 8, 8, 6],
+      [1, 4, -2, 4, -1],
+      [0, 2, 3, 2, 1],
+      [3, 8, 3, 10, 9],
+      [1, 4, 1, 2, 1],
+    ])
+
+    const {
+      result: [, Q_, R, P],
+    } = C.getOrThrowS(QR(A))
+
+    const Q = Q_()
+
+    const Ap = N.mulM(A, P)
+    const QR_ = N.mulM(Q, R)
+
+    for (const [QRi, Api] of V.zipVectors(QR_, Ap)) {
+      for (const [QRij, Apij] of V.zipVectors(QRi, Api)) {
+        expect(QRij).toBeCloseTo(Apij)
+      }
+    }
+  })
+  it('detects a singular matrix (i)', () => {
+    const A = M.fromNestedTuples([
+      [1, -2],
+      [-3, 6],
+    ])
+
+    const { isSingular, rank } = C.getOrThrowS(QR(A))
+
+    expect(rank).toBe(1)
+    expect(isSingular).toBe(true)
+  })
+  it('detects a singular matrix (ii)', () => {
+    const A = M.fromNestedTuples([
+      [1, 1, 1],
+      [0, 1, 0],
+      [1, 0, 1],
+    ])
+
+    const { isSingular, rank } = C.getOrThrowS(QR(A))
+
+    expect(rank).toBe(2)
+    expect(isSingular).toBe(true)
+  })
+  it('detects a singular matrix (iii)', () => {
+    const A = M.fromNestedTuples([
+      [1, 2],
+      [-2, -4],
+    ])
+
+    const { isSingular, rank } = C.getOrThrowS(QR(A))
+
+    expect(rank).toBe(1)
+    expect(isSingular).toBe(true)
+  })
+  it('decomposes a rectangular data matrix', () => {
+    const A = M.fromNestedTuples([
+      [1000, 6010, 9422],
+      [1050, 6153, 9300],
+      [1060, 6421, 9220],
+      [1080, 6399, 9150],
+      [1110, 6726, 9042],
+      [1130, 6701, 8800],
+    ])
+
+    const {
+      result: [, Q_, R, P],
+    } = C.getOrThrowS(QR(A))
+
+    const Q = Q_()
+
+    const Ap = N.mulM(A, P)
+    const QR_ = N.mulM(Q, R)
+
+    for (const [QRi, Api] of V.zipVectors(QR_, Ap)) {
+      for (const [QRij, Apij] of V.zipVectors(QRi, Api)) {
+        expect(QRij).toBeCloseTo(Apij, -3)
+      }
+    }
+  })
+  it('detects a matrix of zero rank', () => {
+    const A = M.fromNestedTuples([
+      [0, 0, 0],
+      [0, 0, 0],
+      [0, 0, 0],
+    ])
+    expect(() => C.getOrThrowS(QR(A))).toThrow('[1] Matrix has zero rank')
+  })
+  it('solves a least squares problem', () => {
+    const A_ = M.fromNestedReadonlyArrays(
+      7,
+      3
+    )([
+      [1, -1, 1],
+      [1, -0.75, 0.75 ** 2],
+      [1, -0.5, 0.25],
+      [1, 0, 0],
+      [1, 0.25, 0.125],
+      [1, 0.5, 0.25],
+      [1, 0.75, 0.75 ** 2],
+    ])
+
+    const A = pipe(
+      A_,
+      C.fromOption(() => 'Unexpected result'),
+      C.getOrThrowS
+    )
+
+    const { solve } = C.getOrThrowS(QR(A))
+
+    const [, x] = C.getOrThrowS(
+      solve(V.fromTuple([1, 0.8125, 0.75, 1, 1.3125, 1.75, 2.3125]))
+    )
+
+    const e = V.fromTuple([1, 1, 1])
+
+    for (const [xi, ei] of V.zipVectors(x, e)) {
+      expect(xi).toBeCloseTo(ei, 1)
+    }
   })
 })
