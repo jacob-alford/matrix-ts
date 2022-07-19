@@ -12,7 +12,6 @@ fp-ts style mathematics library featuring: linear algebra, numerical methods, po
 ## Table of Contents
 
 <!-- AUTO-GENERATED-CONTENT:START (TOC) -->
-
 - [Install](#install)
   - [Yarn](#yarn)
   - [NPM](#npm)
@@ -28,11 +27,12 @@ fp-ts style mathematics library featuring: linear algebra, numerical methods, po
   - [Multiplies two Integer Polynomials](#multiplies-two-integer-polynomials)
 - [Advanced Examples](#advanced-examples)
   - [Gaussian Elimination with Partial Pivoting (LUP)](#gaussian-elimination-with-partial-pivoting-lup)
+  - [Least Squares of an overdetermined system using QR Decomposition](#least-squares-of-an-overdetermined-system-using-qr-decomposition)
   - [Covariance matrix of a multivariate sample](#covariance-matrix-of-a-multivariate-sample)
   - [Automorphisms of polynomials](#automorphisms-of-polynomials)
   - [Automorphisms of matricies](#automorphisms-of-matricies)
   - [Quaternion automorphisms](#quaternion-automorphisms)
-  <!-- AUTO-GENERATED-CONTENT:END -->
+<!-- AUTO-GENERATED-CONTENT:END -->
 
 ## Install
 
@@ -256,6 +256,8 @@ it('returns a factorized matrix', () => {
 
 ### Least Squares of an overdetermined system using QR Decomposition
 
+`src/__tests__/Decomposition.test.ts`
+
 ```ts
 it('solves a least squares problem', () => {
     const A_ = M.fromNestedReadonlyArrays(
@@ -290,6 +292,8 @@ it('solves a least squares problem', () => {
 ```
 
 ### Covariance matrix of a multivariate sample
+
+`src/__tests__/Multivariate.test.ts`
 
 ```ts
 import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'

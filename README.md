@@ -249,6 +249,8 @@ it('returns a factorized matrix', () => {
 
 ### Least Squares of an overdetermined system using QR Decomposition
 
+`src/__tests__/Decomposition.test.ts`
+
 ```ts
 it('solves a least squares problem', () => {
     const A_ = M.fromNestedReadonlyArrays(
@@ -283,6 +285,8 @@ it('solves a least squares problem', () => {
 ```
 
 ### Covariance matrix of a multivariate sample
+
+`src/__tests__/Multivariate.test.ts`
 
 ```ts
 import * as RNEA from 'fp-ts/ReadonlyNonEmptyArray'
