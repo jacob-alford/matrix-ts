@@ -1,6 +1,6 @@
 {
   "name": "@jacob-alford/matrix-ts",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "fp-ts style mathematics library featuring: linear algebra, numerical methods, polynomials, and statistics",
   "homepage": "https://jacob-alford.github.io/matrix-ts/",
   "repository": "https://github.com/jacob-alford/matrix-ts",

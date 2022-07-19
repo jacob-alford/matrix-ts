@@ -5,7 +5,6 @@ fp-ts style mathematics library featuring: linear algebra, numerical methods, po
 ## Table of Contents
 
 <!-- AUTO-GENERATED-CONTENT:START (TOC) -->
-
 - [Install](#install)
   - [Yarn](#yarn)
   - [NPM](#npm)
@@ -21,11 +20,12 @@ fp-ts style mathematics library featuring: linear algebra, numerical methods, po
   - [Multiplies two Integer Polynomials](#multiplies-two-integer-polynomials)
 - [Advanced Examples](#advanced-examples)
   - [Gaussian Elimination with Partial Pivoting (LUP)](#gaussian-elimination-with-partial-pivoting-lup)
+  - [Least Squares of an overdetermined system using QR Decomposition](#least-squares-of-an-overdetermined-system-using-qr-decomposition)
   - [Covariance matrix of a multivariate sample](#covariance-matrix-of-a-multivariate-sample)
   - [Automorphisms of polynomials](#automorphisms-of-polynomials)
   - [Automorphisms of matricies](#automorphisms-of-matricies)
   - [Quaternion automorphisms](#quaternion-automorphisms)
-  <!-- AUTO-GENERATED-CONTENT:END -->
+<!-- AUTO-GENERATED-CONTENT:END -->
 
 ## Install
 
@@ -245,6 +245,41 @@ it('returns a factorized matrix', () => {
 
   // ... assertions
 })
+```
+
+### Least Squares of an overdetermined system using QR Decomposition
+
+```ts
+it('solves a least squares problem', () => {
+    const A_ = M.fromNestedReadonlyArrays(
+      7,
+      3
+    )([
+      [1, -1, 1],
+      [1, -0.75, 0.75 ** 2],
+      [1, -0.5, 0.25],
+      [1, 0, 0],
+      [1, 0.25, 0.125],
+      [1, 0.5, 0.25],
+      [1, 0.75, 0.75 ** 2],
+    ])
+
+    const A = pipe(
+      A_,
+      C.fromOption(() => 'Unexpected result'),
+      C.getOrThrowS
+    )
+
+    const { solve } = C.getOrThrowS(QR(A))
+
+    const [, x] = C.getOrThrowS(
+      solve(V.fromTuple([1, 0.8125, 0.75, 1, 1.3125, 1.75, 2.3125]))
+    )
+
+    const e = V.fromTuple([1, 1, 1])
+
+    // ... assertions
+  })
 ```
 
 ### Covariance matrix of a multivariate sample

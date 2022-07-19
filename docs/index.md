@@ -62,7 +62,7 @@ This library depends on fp-ts version `^2.9.6` (or major versions above `2.9.6`,
 ## Possible future additions
 
 - Add Cholesky Decomposition
-- Add QR Decomposition
+- ~~Add QR Decomposition~~ (Added in 1.1.0)
 - Add SVD Decomposition
 - Add linear interpolation
 - Add regression / multi-regression
@@ -252,6 +252,41 @@ it('returns a factorized matrix', () => {
 
   // ... assertions
 })
+```
+
+### Least Squares of an overdetermined system using QR Decomposition
+
+```ts
+it('solves a least squares problem', () => {
+    const A_ = M.fromNestedReadonlyArrays(
+      7,
+      3
+    )([
+      [1, -1, 1],
+      [1, -0.75, 0.75 ** 2],
+      [1, -0.5, 0.25],
+      [1, 0, 0],
+      [1, 0.25, 0.125],
+      [1, 0.5, 0.25],
+      [1, 0.75, 0.75 ** 2],
+    ])
+
+    const A = pipe(
+      A_,
+      C.fromOption(() => 'Unexpected result'),
+      C.getOrThrowS
+    )
+
+    const { solve } = C.getOrThrowS(QR(A))
+
+    const [, x] = C.getOrThrowS(
+      solve(V.fromTuple([1, 0.8125, 0.75, 1, 1.3125, 1.75, 2.3125]))
+    )
+
+    const e = V.fromTuple([1, 1, 1])
+
+    // ... assertions
+  })
 ```
 
 ### Covariance matrix of a multivariate sample

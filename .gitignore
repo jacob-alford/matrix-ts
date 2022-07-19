@@ -5,3 +5,4 @@ docs/modules/*.ts.md
 docs/_site
 coverage
 build
+.DS_store

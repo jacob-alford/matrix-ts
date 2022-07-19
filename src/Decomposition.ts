@@ -374,7 +374,7 @@ export function QR<N extends number, M extends number>(
     ) {
       return pipe(
         computation,
-        C.map(a => ({ ...a, rank: n - a.k })),
+        C.map(a => ({ ...a, rank: a.k + 1 })),
         E.right
       )
     }
